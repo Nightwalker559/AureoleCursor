@@ -5,7 +5,7 @@
 ## 1.0.2
 
 ### Mouse trail
-- "Custom color" now supports up to four colors. With **Gradient** on, the trail blends smoothly from one color to the next and back to the first; with it off, every dot picks one of the colors at random. The opacity setting applies to all colors. Existing settings keep working (one color, as before).
+- "Custom color" now supports up to four colors. With **Gradient** on, the trail blends smoothly from one color to the next and back to the first; with it off, every dot picks one of the colors at random. The colors sit side by side in one row, as many as you choose. The opacity setting applies to all colors. Existing settings keep working (one color, as before).
 
 ### Code
 - All code comments are now in English. No functional changes.

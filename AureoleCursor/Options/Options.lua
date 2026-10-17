@@ -61,7 +61,7 @@ end
 
 -- Color swatch: the setting value is an ARGB hex string, the config holds {r, g, b, a}.
 -- Opacity has its own slider, so a stays untouched when the color changes.
-local function colorSwatch(category, key, label, tip, field)
+local function colorSetting(category, key, label, field)
     field = field or "color"
     local function hexOf(col)
         return CreateColor(col[1], col[2], col[3], 1):GenerateHexColor()
@@ -73,9 +73,12 @@ local function colorSwatch(category, key, label, tip, field)
         col[1], col[2], col[3] = c.r, c.g, c.b
         ns:Apply()
     end
-    local s = Settings.RegisterProxySetting(category, varName(key, field), Settings.VarType.String, label,
+    return Settings.RegisterProxySetting(category, varName(key, field), Settings.VarType.String, label,
         hexOf(ns.defaults[key][field]), get, set)
-    return Settings.CreateColorSwatch(category, s, tip)
+end
+
+local function colorSwatch(category, key, label, tip, field)
+    return Settings.CreateColorSwatch(category, colorSetting(category, key, label, field), tip)
 end
 
 local function opacitySlider(category, key, label, tip)
@@ -155,18 +158,22 @@ local function buildElement(category, layout, key, title, opts)
         local dropdown = Settings.CreateDropdown(category, mode, modes, L.colorModeTip)
         dropdown:SetParentInitializer(enable, colorable)
         -- Custom color: 1-4 colors, blended along the trail (gradient) or picked at random per dot.
-        -- The extra colors hang off the color count so they follow it; the count itself reports changes of
-        -- the enable switch and the color mode (see proxy).
+        -- The colors share one row (ColorRow.xml) that hangs off the color count and shows as many swatches as the
+        -- count says; the count itself reports changes of the enable switch and the color mode (see proxy).
         local count = slider(category, key, "colorCount", L.colorCount, L.colorCountTip, 1, 4, 1)
         count:SetParentInitializer(dropdown, custom)
-        local swatch = colorSwatch(category, key, L.color, L.colorTip)
-        swatch:SetParentInitializer(dropdown, custom)
-        for i = 2, 4 do
-            local extra = colorSwatch(category, key, L["color" .. i], L.colorTip, "color" .. i)
-            extra:SetParentInitializer(count, function()
-                return custom() and ns.cfg[key].colorCount >= i
-            end)
+        local entries = {}
+        for i = 1, 4 do
+            local field = i == 1 and "color" or "color" .. i
+            local name = i == 1 and L.color or L["color" .. i]
+            entries[i] = { setting = colorSetting(category, key, name, field), name = name, tooltip = L.colorTip }
         end
+        local row = Settings.CreateElementInitializer("AureoleCursorColorRowTemplate", {
+            name = L.colors, tooltip = L.colorsTip, entries = entries,
+            count = function() return ns.cfg[key].colorCount end,
+        })
+        layout:AddInitializer(row)
+        row:SetParentInitializer(count, custom)
         local blend = checkbox(category, key, "gradient", L.gradient, L.gradientTip)
         blend:SetParentInitializer(count, function()
             return custom() and ns.cfg[key].colorCount > 1
