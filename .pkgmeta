@@ -1,0 +1,15 @@
+package-as: NW_CursorRing
+
+move-folders:
+  NW_CursorRing/NW_CursorRing: NW_CursorRing
+
+ignore:
+  - .github/*
+  - .gitattributes
+  - .gitignore
+  - LICENSE.md
+  - README.md
+
+manual-changelog:
+  filename: CHANGELOG.md
+  markup-type: markdown

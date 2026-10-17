@@ -1,0 +1,76 @@
+-- NW_CursorRing: Deutsch (deDE). Fehlende Schlüssel zeigen den englischen Text aus enUS.lua.
+if GetLocale() ~= "deDE" then return end
+local ADDON, ns = ...
+
+local L = ns.L
+
+-- Einstellungen: Allgemein
+L.general = "Allgemein"
+L.scale = "Skalierung"
+L.scaleTip = "Skaliert alle Ringe und den Mittelpunkt gemeinsam."
+L.alpha = "Deckkraft gesamt"
+L.alphaTip = "Gesamt-Transparenz aller Elemente am Mauszeiger."
+L.idleAlpha = "Deckkraft außerhalb des Kampfes"
+L.idleAlphaTip = "Anteil der Gesamt-Deckkraft, solange du nicht im Kampf bist. 100% = kein Unterschied, 0% = unsichtbar."
+L.hideOnMouselook = "Bei Maussteuerung ausblenden"
+L.hideOnMouselookTip = "Blendet alles aus, solange du die Kamera mit gedrückter Maustaste drehst."
+L.combatOnly = "Nur im Kampf anzeigen"
+L.combatOnlyTip = "Blendet alles aus, solange du nicht im Kampf bist."
+L.strata = "Ebene"
+L.strataTip = "Frame-Ebene der Ringe. TOOLTIP liegt über fast allem, BACKGROUND hinter den Fenstern."
+
+-- Einstellungen: Elemente
+L.enabled = "Anzeigen"
+L.size = "Größe"
+L.sizeTip = "Durchmesser in Pixeln (vor der Skalierung)."
+L.thickness = "Dicke"
+L.thicknessTip = "Dicke des Rings in acht Stufen. Die Dicke wächst mit der Ringgröße."
+L.classColor = "Klassenfarbe"
+L.classColorTip = "Nutzt deine Klassenfarbe statt der gewählten Farbe."
+L.color = "Farbe"
+L.colorTip = "Farbe des Elements. Bei aktiver Klassenfarbe wird sie ignoriert."
+L.opacity = "Deckkraft"
+L.opacityTip = "Transparenz dieses Elements."
+L.track = "Hintergrund-Spur"
+L.trackTip = "Zeigt hinter dem Ring einen schwachen Vollring, damit man sieht, wie viel noch fehlt."
+L.trackAlpha = "Spur-Deckkraft"
+L.trackAlphaTip = "Transparenz der Hintergrund-Spur."
+L.combatTint = "Im Kampf automatisch einfärben"
+L.combatTintTip = "Der Ring wechselt im Kampf automatisch auf die Kampffarbe, danach zurück. Die Deckkraft bleibt."
+L.combatColor = "Kampffarbe"
+L.combatColorTip = "Farbe des Rings, solange du im Kampf bist."
+
+L.main = "Main Ring"
+L.mainTip = "Der feste Ring um den Mauszeiger."
+L.gcd = "GCD-Ring"
+L.gcdTip = "Zeigt die globale Abklingzeit (GCD)."
+L.cast = "Cast-Ring"
+L.castTip = "Zeigt Zauber, Kanalisierungen und Empower-Zauber."
+L.dot = "Mittelpunkt"
+L.dotTip = "Der Punkt in der Mitte der Ringe."
+
+-- Einstellungen: Mauspur
+L.trail = "Mauspur"
+L.trailTip = "Hinterlässt beim Bewegen der Maus eine Spur aus Punkten, die ausblendet."
+L.duration = "Dauer"
+L.durationTip = "Wie lange ein Punkt der Spur sichtbar bleibt."
+L.spacing = "Abstand"
+L.spacingTip = "Abstand zwischen den Punkten in Pixeln. Kleiner = dichtere Spur."
+L.shrink = "Schrumpfen"
+L.shrinkTip = "Die Punkte werden beim Ausblenden kleiner."
+L.colorMode = "Farbmodus"
+L.colorModeTip = "Bunt wechselt beim Bewegen durch alle Regenbogenfarben. Die Farbe lässt sich nur bei \"Eigene Farbe\" einstellen. Die Deckkraft gilt immer."
+L.modeRainbow = "Bunt"
+L.modeClass = "Klassenfarbe"
+L.modeCustom = "Eigene Farbe"
+
+-- Slash-Befehl
+L.slashReset = "Einstellungen zurückgesetzt."
+L.slashStatus = "Skalierung %.2f, Deckkraft %.2f, nur im Kampf: %s"
+L.slashElement = "  %s: %s, Größe %d"
+L.slashRingUsage = "/nwcr ring %s on | off | size <Zahl>"
+L.slashHelp = "/nwcr config öffnet die Einstellungen. Kurzbefehle: scale <n> | alpha <n> | combat on|off | ring main|gcd|cast|dot|trail on|off|size <n> | reset"
+L.yes = "ja"
+L.no = "nein"
+L.stateOn = "an"
+L.stateOff = "aus"

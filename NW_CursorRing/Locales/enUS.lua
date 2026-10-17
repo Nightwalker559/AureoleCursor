@@ -1,0 +1,76 @@
+-- NW_CursorRing: English (enUS). Fallback for all languages: missing keys in another locale show this text.
+local ADDON, ns = ...
+
+local L = {}
+ns.L = L
+
+-- Settings: general
+L.general = "General"
+L.scale = "Scale"
+L.scaleTip = "Scales all rings and the center dot together."
+L.alpha = "Overall opacity"
+L.alphaTip = "Overall transparency of all elements at the cursor."
+L.idleAlpha = "Opacity out of combat"
+L.idleAlphaTip = "Share of the overall opacity while you are not in combat. 100% = no difference, 0% = invisible."
+L.hideOnMouselook = "Hide while mouse-looking"
+L.hideOnMouselookTip = "Hides everything while you turn the camera with the mouse button held."
+L.combatOnly = "Show in combat only"
+L.combatOnlyTip = "Hides everything while you are not in combat."
+L.strata = "Layer"
+L.strataTip = "Frame layer of the rings. TOOLTIP sits above almost everything, BACKGROUND behind the windows."
+
+-- Settings: elements
+L.enabled = "Show"
+L.size = "Size"
+L.sizeTip = "Diameter in pixels (before scaling)."
+L.thickness = "Thickness"
+L.thicknessTip = "Ring thickness in eight steps. The thickness grows with the ring size."
+L.classColor = "Class color"
+L.classColorTip = "Uses your class color instead of the chosen color."
+L.color = "Color"
+L.colorTip = "Color of the element. Ignored while class color is active."
+L.opacity = "Opacity"
+L.opacityTip = "Transparency of this element."
+L.track = "Background track"
+L.trackTip = "Shows a faint full ring behind the progress ring so you can see how much is left."
+L.trackAlpha = "Track opacity"
+L.trackAlphaTip = "Transparency of the background track."
+L.combatTint = "Tint automatically in combat"
+L.combatTintTip = "The ring switches to the combat color automatically in combat and back afterwards. Opacity is kept."
+L.combatColor = "Combat color"
+L.combatColorTip = "Color of the ring while you are in combat."
+
+L.main = "Main Ring"
+L.mainTip = "The fixed ring around the cursor."
+L.gcd = "GCD Ring"
+L.gcdTip = "Shows the global cooldown (GCD)."
+L.cast = "Cast Ring"
+L.castTip = "Shows casts, channels and empowered spells."
+L.dot = "Center dot"
+L.dotTip = "The dot in the middle of the rings."
+
+-- Settings: mouse trail
+L.trail = "Mouse trail"
+L.trailTip = "Leaves a trail of dots behind the cursor while you move the mouse; they fade out."
+L.duration = "Duration"
+L.durationTip = "How long a trail dot stays visible."
+L.spacing = "Spacing"
+L.spacingTip = "Distance between the dots in pixels. Smaller = denser trail."
+L.shrink = "Shrink"
+L.shrinkTip = "The dots get smaller as they fade."
+L.colorMode = "Color mode"
+L.colorModeTip = "Rainbow cycles through all rainbow colors while you move. The color can only be set with \"Custom color\". Opacity always applies."
+L.modeRainbow = "Rainbow"
+L.modeClass = "Class color"
+L.modeCustom = "Custom color"
+
+-- Slash command
+L.slashReset = "Settings reset."
+L.slashStatus = "scale %.2f, alpha %.2f, combat only: %s"
+L.slashElement = "  %s: %s, size %d"
+L.slashRingUsage = "/nwcr ring %s on | off | size <number>"
+L.slashHelp = "/nwcr config opens the settings. Shortcuts: scale <n> | alpha <n> | combat on|off | ring main|gcd|cast|dot|trail on|off|size <n> | reset"
+L.yes = "yes"
+L.no = "no"
+L.stateOn = "on"
+L.stateOff = "off"
