@@ -13,7 +13,7 @@ ns.anchor = anchor
 local lastX, lastY, lastScale
 
 anchor:SetScript("OnUpdate", function(self)
-    if ns.cfg.hideOnMouselook then
+    if ns.cfg.hideOnMouselook and IsMouselooking then -- IsMouselooking steht nicht in der Blizzard-UI-Quelle: abgesichert
         local looking = IsMouselooking() and true or false
         if looking ~= ns.mouselooking then
             ns.mouselooking = looking

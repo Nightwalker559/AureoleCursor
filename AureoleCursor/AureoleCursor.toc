@@ -3,7 +3,7 @@
 ## Notes: Rings at the mouse cursor: Main Ring, GCD Ring, Cast Ring, center dot and mouse trail.
 ## Notes-deDE: Ringe am Mauszeiger: Main Ring, GCD-Ring, Cast-Ring, Mittelpunkt und Mauspur.
 ## Author: Nightwalker559
-## Version: 0.6.1
+## Version: 0.6.2
 ## X-Curse-Project-ID: 1749710
 ## Category: Unit Frames
 ## IconTexture: Interface\AddOns\AureoleCursor\Media\Icon

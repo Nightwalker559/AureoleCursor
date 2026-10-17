@@ -2,6 +2,13 @@
 
 ---
 
+## 0.6.2
+
+### Fixed
+- "Hide while mouse-looking" no longer errors if the client does not provide `IsMouselooking`.
+
+---
+
 ## 0.6.1
 
 ### Changed
