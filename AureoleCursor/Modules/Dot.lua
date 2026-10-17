@@ -1,4 +1,4 @@
--- Aureole Cursor: Mittelpunkt (Dot) im Zentrum der Ringe.
+-- Aureole Cursor: center dot in the middle of the rings.
 local ADDON, ns = ...
 
 local dot = ns.anchor:CreateTexture(nil, "OVERLAY")
@@ -6,8 +6,8 @@ dot:SetTexture(ns:DotTexture(8))
 dot:SetPoint("CENTER", ns.anchor, "CENTER")
 ns.dot = dot
 
--- Klick-Impuls: ein Ring waechst aus dem Mittelpunkt und blendet aus. Die Animation laeuft in der Engine,
--- Lua wird nur beim Klick gebraucht.
+-- Click pulse: a ring grows out of the center dot and fades out. The animation runs in the engine,
+-- Lua is only needed on the click.
 local PULSE_TIME = 0.3
 local PULSE_BUTTONS = {
     left = { LeftButton = true },
@@ -37,8 +37,8 @@ ns:On("GLOBAL_MOUSE_DOWN", function(_, button)
     pulseGroup:Play()
 end)
 
--- Jede Form hat ihre eigene Groesse: beim Wechsel wird die aktuelle Groesse fuer die alte Form gemerkt und die
--- gemerkte (zuerst die Standardgroesse aus cfg.dot.sizes) der neuen Form uebernommen.
+-- Each shape has its own size: on a change the current size is remembered for the old shape and the
+-- remembered one (initially the default size from cfg.dot.sizes) is applied for the new shape.
 function ns:SetDotShape(shape)
     local cfg = self.cfg.dot
     if cfg.shape == shape then return end
@@ -57,7 +57,7 @@ function Dot:Apply()
     dot:SetVertexColor(ns:GetRingColor(cfg))
     dot:SetShown(cfg.enabled)
 
-    -- Impuls: der Ring hat am Ende die Groesse Punkt * pulseSize und waechst vom Punkt aus dorthin
+    -- Pulse: the ring ends at dot size * pulseSize and grows from the dot to that size
     local final = cfg.size * cfg.pulseSize
     pulse:SetTexture(ns:RingTexture(3, final))
     pulse:SetSize(final, final)

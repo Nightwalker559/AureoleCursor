@@ -1,6 +1,6 @@
--- Aureole Cursor: Einstellungen in der Blizzard-Optionsoberflaeche (Vertical-Layout, Proxy-Settings).
--- Alles liegt auf einer Seite; Abschnitte (Allgemein, je ein Ring, Mittelpunkt) haben Ueberschriften
--- und werden in eigenen Funktionen aufgebaut, damit sich Optionen Schritt fuer Schritt ergaenzen lassen.
+-- Aureole Cursor: settings in the Blizzard options UI (vertical layout, proxy settings).
+-- Everything is on one page; sections (General, one per ring, center dot) have headers
+-- and are built in separate functions so options can be added step by step.
 local ADDON, ns = ...
 
 local L = ns.L
@@ -21,7 +21,7 @@ local function varName(key, field)
     return string.upper("AUREOLECURSOR_" .. (key or "GENERAL") .. "_" .. field)
 end
 
--- Proxy-Setting: liest und schreibt immer in die aktuelle ns.cfg (die beim Reset ersetzt wird).
+-- Proxy setting: always reads from and writes to the current ns.cfg (which is replaced on reset).
 local function proxy(category, key, field, vtype, label)
     local function get() return section(key)[field] end
     local function set(value)
@@ -55,8 +55,8 @@ local function seconds(v)
     return string.format("%.2f s", v)
 end
 
--- Farb-Swatch: der Setting-Wert ist ein ARGB-Hexstring, in der Config liegt {r, g, b, a}.
--- Die Deckkraft hat einen eigenen Regler, deshalb bleibt a beim Farbwechsel unberuehrt.
+-- Color swatch: the setting value is an ARGB hex string, the config holds {r, g, b, a}.
+-- Opacity has its own slider, so a stays untouched when the color changes.
 local function colorSwatch(category, key, label, tip, field)
     field = field or "color"
     local function hexOf(col)
@@ -88,7 +88,7 @@ local function opacitySlider(category, key, label, tip)
 end
 
 ------------------------------------------------------------------------
--- Seiten
+-- Pages
 ------------------------------------------------------------------------
 
 local function header(layout, title)
@@ -112,9 +112,9 @@ local function buildGeneral(category, layout)
     Settings.CreateDropdown(category, s, options, L.strataTip)
 end
 
--- Abschnitt fuer ein Element; die Optionen darunter sind nur aktiv, solange "Anzeigen" an ist.
--- opts: size = { min, max, step }, thickness (Ring-Dicke), track (Hintergrund-Spur),
---       extra = function(category, key, child) fuer elementspezifische Optionen.
+-- Section for one element; the options below are only active while "Show" is on.
+-- opts: size = { min, max, step }, thickness (ring thickness), track (background track),
+--       extra = function(category, key, child) for element-specific options.
 local function buildElement(category, layout, key, title, opts)
     header(layout, title)
     local enable = checkbox(category, key, "enabled", L.enabled, L[key .. "Tip"])
@@ -129,7 +129,7 @@ local function buildElement(category, layout, key, title, opts)
     end
     if opts.extra then opts.extra(category, key, child) end
     if opts.colorMode then
-        -- Farbmodus als Dropdown; die Farbwahl ist nur bei "Eigene Farbe" aktiv
+        -- Color mode as a dropdown; the color picker is only active for "Custom color"
         local mode = proxy(category, key, "colorMode", Settings.VarType.String, L.colorMode)
         local function modes()
             local c = Settings.CreateControlTextContainer()
@@ -141,7 +141,7 @@ local function buildElement(category, layout, key, title, opts)
             c:Add("custom", L.modeCustom)
             return c:GetData()
         end
-        -- Die Energie-Form hat feste Originalfarben: Farbmodus und Farbe sind dann ausgegraut
+        -- The energy shape has fixed original colors: color mode and color are greyed out
         local function colorable()
             return ns.cfg[key].enabled and ns.cfg[key].shape ~= "energy"
         end
@@ -152,7 +152,7 @@ local function buildElement(category, layout, key, title, opts)
             return colorable() and ns.cfg[key].colorMode == "custom"
         end)
     else
-        -- Die Farbwahl ist bei aktiver Klassenfarbe ausgegraut
+        -- The color picker is greyed out while class color is active
         local class = checkbox(category, key, "classColor", L.classColor, L.classColorTip)
         child(class)
         local swatch = colorSwatch(category, key, L.color, L.colorTip)
@@ -175,25 +175,25 @@ local function buildElement(category, layout, key, title, opts)
     end
 end
 
--- Form-Dropdown: choices = { { Wert, Text }, ... }
+-- Shape dropdown: choices = { { value, text }, ... }
 local function shapeDropdown(category, key, child, tip, choices)
     local function setShape(value)
         if key == "dot" then
-            ns:SetDotShape(value) -- jede Form des Mittelpunkts hat ihre eigene Groesse
+            ns:SetDotShape(value) -- each center dot shape has its own size
         elseif key == "trail" then
-            ns:SetTrailShape(value) -- jede Form der Spur hat eigene Groesse, Dauer und Abstand
+            ns:SetTrailShape(value) -- each trail shape has its own size, duration and spacing
         else
             section(key).shape = value
         end
         ns:Apply()
         if key == "dot" and Settings.NotifyUpdate then
-            Settings.NotifyUpdate(varName(key, "size")) -- Groessenregler zeigt die Groesse der neuen Form
+            Settings.NotifyUpdate(varName(key, "size")) -- size slider shows the size of the new shape
         end
         if key == "trail" and Settings.NotifyUpdate then
             for _, field in ipairs({ "size", "duration", "spacing" }) do
-                Settings.NotifyUpdate(varName(key, field)) -- Regler zeigen die Werte der neuen Form
+                Settings.NotifyUpdate(varName(key, field)) -- sliders show the values of the new shape
             end
-            -- Energie sperrt Farbmodus und Farbe: Elternschalter und Farbmodus melden die Aenderung an ihre Kinder
+            -- Energy locks color mode and color: the parent toggle and color mode report the change to their children
             Settings.NotifyUpdate(varName(key, "enabled"))
             Settings.NotifyUpdate(varName(key, "colorMode"))
         end
@@ -213,7 +213,7 @@ local function dotOptions(category, key, child)
         { "dot", L.shapeDot }, { "gap", L.shapeGap }, { "ring", L.shapeRing }, { "spark", L.shapeSpark },
     })
 
-    -- Klick-Impuls: Taste und Groesse sind nur bei aktivem Impuls bedienbar
+    -- Click pulse: button and size are only usable while the pulse is active
     local pulse = checkbox(category, key, "pulse", L.pulse, L.pulseTip)
     child(pulse)
     local function whenPulse()

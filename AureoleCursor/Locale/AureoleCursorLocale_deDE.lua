@@ -1,10 +1,10 @@
--- Aureole Cursor: Deutsch (deDE). Fehlende Schlüssel zeigen den englischen Text aus enUS.lua.
+-- Aureole Cursor: German (deDE). Missing keys show the English text from enUS.lua.
 if GetLocale() ~= "deDE" then return end
 local ADDON, ns = ...
 
 local L = ns.L
 
--- Einstellungen: Allgemein
+-- Settings: general
 L.general = "Allgemein"
 L.scale = "Skalierung"
 L.scaleTip = "Skaliert alle Ringe und den Mittelpunkt gemeinsam."
@@ -19,7 +19,7 @@ L.combatOnlyTip = "Blendet alles aus, solange du nicht im Kampf bist."
 L.strata = "Ebene"
 L.strataTip = "Frame-Ebene der Ringe. TOOLTIP liegt über fast allem, BACKGROUND hinter den Fenstern."
 
--- Einstellungen: Elemente
+-- Settings: elements
 L.enabled = "Anzeigen"
 L.size = "Größe"
 L.sizeTip = "Durchmesser in Pixeln (vor der Skalierung)."
@@ -49,7 +49,7 @@ L.castTip = "Zeigt Zauber, Kanalisierungen und Empower-Zauber."
 L.dot = "Mittelpunkt"
 L.dotTip = "Der Punkt in der Mitte der Ringe."
 
--- Einstellungen: Mauspur
+-- Settings: mouse trail
 L.trail = "Mauspur"
 L.trailTip = "Hinterlässt beim Bewegen der Maus eine Spur aus Punkten, die ausblendet."
 L.duration = "Dauer"
@@ -88,7 +88,7 @@ L.buttonBoth = "Beide"
 L.pulseSize = "Impuls-Größe"
 L.pulseSizeTip = "Endgröße des Impuls-Rings als Vielfaches des Mittelpunkts."
 
--- Slash-Befehl
+-- Slash command
 L.slashReset = "Einstellungen zurückgesetzt."
 L.slashStatus = "Skalierung %.2f, Deckkraft %.2f, nur im Kampf: %s"
 L.slashElement = "  %s: %s, Größe %d"

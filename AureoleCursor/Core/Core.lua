@@ -1,4 +1,4 @@
--- Aureole Cursor: Kern. Namespace, Einstellungen (mit Defaults), Event-Verteiler, Module, Slash-Befehle.
+-- Aureole Cursor: core. Namespace, settings (with defaults), event dispatcher, modules, slash commands.
 local ADDON, ns = ...
 
 ns.modules = {}
@@ -9,15 +9,15 @@ ns.defaults = {
     alpha = 1.0,
     strata = "TOOLTIP",
     combatOnly = false,
-    idleAlpha = 1.0,          -- Anteil der Deckkraft ausserhalb des Kampfes
-    hideOnMouselook = false,  -- ausblenden, solange die Kamera per Maus gedreht wird
+    idleAlpha = 1.0,          -- share of the opacity applied out of combat
+    hideOnMouselook = false,  -- hide while the camera is being turned with the mouse
     main = { enabled = true, size = 40, thickness = 6, classColor = false, color = { 1, 1, 1, 0.8 },
-             combatTint = false, combatColor = { 1, 0.1, 0.1, 1 } }, -- im Kampf andere Farbe (Deckkraft bleibt)
+             combatTint = false, combatColor = { 1, 0.1, 0.1, 1 } }, -- different color in combat (opacity is kept)
     gcd  = { enabled = true, size = 28, thickness = 6, classColor = false, color = { 1, 0.82, 0, 1 }, track = true, trackAlpha = 0.5 },
     cast = { enabled = true, size = 54, thickness = 6, classColor = false, color = { 1, 1, 1, 1 }, track = true, trackAlpha = 0.5 },
     dot  = { enabled = true, size = 10, shape = "dot", sizes = { dot = 10, gap = 22, ring = 24, spark = 24 }, pulse = true, pulseButton = "both", pulseSize = 4, classColor = false, color = { 1, 1, 1, 0.9 } },
-    -- presets: Standardgroesse, -dauer und -abstand je Form; beim Formwechsel werden die aktuellen Werte fuer die alte
-    -- Form gemerkt und die gemerkten (zuerst diese Standardwerte) der neuen Form uebernommen.
+    -- presets: default size, duration and spacing per shape; on a shape change the current values are remembered
+    -- for the old shape and the remembered ones (initially these defaults) are applied for the new shape.
     trail = { enabled = true, size = 16, duration = 0.45, spacing = 6, shrink = true, shape = "dot", colorMode = "rainbow", color = { 1, 1, 1, 0.5 },
               presets = {
                   dot = { size = 16, duration = 0.45, spacing = 6 },
@@ -29,13 +29,13 @@ ns.defaults = {
               } },
 }
 
--- Ring-Dicke in Stufen 1..8 (Prozent vom Radius, siehe make_media.py im Tools-Ordner)
+-- Ring thickness in levels 1..8 (percent of the radius, see make_media.py in the tools folder)
 ns.MAX_THICKNESS = 8
 local MEDIA = "Interface\\AddOns\\AureoleCursor\\Media\\"
 
--- Texturen gibt es in mehreren Aufloesungen, damit verkleinerte Ringe nicht verpixeln.
--- Gewaehlt wird nach der Groesse in Bildschirm-Pixeln (siehe ns:ScreenPixels).
-local RING_RES = { { 80, 64 }, { 160, 128 }, { math.huge, 256 } } -- { bis Pixel, Textur-Aufloesung }
+-- Textures exist in several resolutions so that shrunken rings do not turn pixelated.
+-- The choice depends on the size in screen pixels (see ns:ScreenPixels).
+local RING_RES = { { 80, 64 }, { 160, 128 }, { math.huge, 256 } } -- { up to pixels, texture resolution }
 local DOT_RES = { { 20, 16 }, { 40, 32 }, { math.huge, 64 } }
 
 local function pickResolution(list, pixels)
@@ -44,7 +44,7 @@ local function pickResolution(list, pixels)
     end
 end
 
--- Groesse eines Elements in echten Bildschirm-Pixeln (UI-Skalierung und Aufloesung eingerechnet).
+-- Size of an element in real screen pixels (UI scale and resolution included).
 function ns:ScreenPixels(size)
     local scale = self.anchor and self.anchor:GetEffectiveScale() or 1
     local height = 768
@@ -64,14 +64,14 @@ function ns:DotTexture(size)
     return MEDIA .. "Dot\\Dot_" .. pickResolution(DOT_RES, self:ScreenPixels(size or 8)) .. ".tga"
 end
 
--- Formen der Mauspur (Blatt, Flocke, Stern) und des Mittelpunkts (Fadenkreuz, Punkt mit Ring, Funkeln); "dot" ist der normale Punkt.
+-- Shapes of the mouse trail (leaf, snowflake, star) and of the center dot (crosshair, dot with ring, sparkle); "dot" is the plain dot.
 local SHAPE_RES = { { 30, 32 }, { 60, 64 }, { math.huge, 128 } }
 local SHAPE_FILE = { leaf = "Trail\\Leaf", snow = "Trail\\Snow", star = "Trail\\Star", mist = "Trail\\Mist",
     gap = "Dot\\Gap", ring = "Dot\\DotRing", spark = "Dot\\Spark" }
 
--- "Energie": Blizzard-Textur aus dem Spiel (FileID, wird nicht mitgeliefert), nahtlose Kachel mit Alpha-Kanal.
+-- "Energy": Blizzard texture from the game (FileID, not shipped with the addon), seamless tile with alpha channel.
 ns.ENERGY_FILE_ID = 6735695
--- Weiche Rundmaske, schneidet aus der Kachel einen runden Punkt.
+-- Soft round mask, cuts a round dot out of the tile.
 ns.TRAIL_MASK = MEDIA .. "Trail\\Mask_64.tga"
 
 function ns:ShapeTexture(shape, size)
@@ -88,7 +88,7 @@ local function copy(v)
     return t
 end
 
--- Fehlende Schluessel aus den Defaults ergaenzen, vorhandene Werte nie anfassen.
+-- Fill missing keys from the defaults, never touch existing values.
 local function fillDefaults(dst, src)
     for k, v in pairs(src) do
         if dst[k] == nil then
@@ -115,7 +115,7 @@ function ns:UpdateVisibility()
     end
 end
 
--- Gesamt-Deckkraft: Grundwert, ausserhalb des Kampfes mit idleAlpha, bei Maussteuerung ggf. 0.
+-- Overall opacity: base value, multiplied by idleAlpha out of combat, 0 while mouselooking if configured.
 function ns:CurrentAlpha()
     local cfg = self.cfg
     if cfg.hideOnMouselook and self.mouselooking then return 0 end
@@ -136,7 +136,7 @@ function ns:ResetSettings()
     self:Apply()
 end
 
--- Farbe eines Rings: Klassenfarbe oder eingestellte Farbe (r, g, b, a).
+-- Color of a ring: class color or the configured color (r, g, b, a).
 function ns:GetRingColor(ringCfg)
     if ringCfg.classColor and UnitClass then
         local _, class = UnitClass("player")
@@ -148,7 +148,7 @@ function ns:GetRingColor(ringCfg)
 end
 
 ------------------------------------------------------------------------
--- Event-Verteiler: ns:On(event, fn [, unit]); mit unit wird RegisterUnitEvent genutzt.
+-- Event dispatcher: ns:On(event, fn [, unit]); with unit, RegisterUnitEvent is used.
 ------------------------------------------------------------------------
 
 local frame = CreateFrame("Frame")
@@ -175,17 +175,17 @@ ns:On("ADDON_LOADED", function(_, name)
     if name ~= ADDON then return end
     AureoleCursorDB = AureoleCursorDB or {}
     local db = AureoleCursorDB
-    db.runs, db.build = nil, nil -- Reste der Phase-0-Probe
+    db.runs, db.build = nil, nil -- leftovers of the phase 0 probe
     db.cfg = db.cfg or {}
     local tr = db.cfg.trail
-    if tr and tr.colorMode == nil then -- Stand 0.3.x: Haken Klassenfarbe / Bunt
+    if tr and tr.colorMode == nil then -- state of 0.3.x: class color / rainbow checkboxes
         if tr.classColor then tr.colorMode = "class"
         elseif tr.rainbow == false then tr.colorMode = "custom" end
     end
     if tr then tr.classColor, tr.rainbow = nil, nil end
     fillDefaults(db.cfg, ns.defaults)
     for _, key in ipairs({ "main", "gcd", "cast", "dot" }) do
-        db.cfg[key].style = nil -- Rest des entfernten Kantenstils
+        db.cfg[key].style = nil -- leftover of the removed edge style
     end
     ns.cfg = db.cfg
 end)
@@ -206,7 +206,7 @@ ns:On("PLAYER_REGEN_ENABLED", function()
 end)
 
 ------------------------------------------------------------------------
--- Slash-Befehle (Zwischenloesung, bis die Config-Oberflaeche Schritt fuer Schritt entsteht)
+-- Slash commands (interim solution until the config UI is built step by step)
 ------------------------------------------------------------------------
 
 local L = ns.L
@@ -253,7 +253,7 @@ SlashCmdList["AUREOLECURSOR"] = function(msg)
         end
         ns:Apply()
     elseif cmd == nil or cmd == "config" or cmd == "options" then
-        -- ohne Argument direkt die Einstellungen oeffnen (kurzer Weg: /ac)
+        -- without arguments, open the settings directly (shortcut: /ac)
         if ns.OpenSettings then ns:OpenSettings() end
         return
     elseif cmd == "reset" then

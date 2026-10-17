@@ -2,6 +2,13 @@
 
 ---
 
+## 1.0.2
+
+### Code
+- All code comments are now in English. No functional changes.
+
+---
+
 ## 1.0.1
 
 ### Mouse trail

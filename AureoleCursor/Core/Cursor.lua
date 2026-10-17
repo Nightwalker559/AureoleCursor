@@ -1,4 +1,4 @@
--- Aureole Cursor: Cursor-Anker. Ein Frame folgt der Maus; die Ringe haengen daran.
+-- Aureole Cursor: cursor anchor. One frame follows the mouse; the rings hang off it.
 local ADDON, ns = ...
 
 local GetCursorPosition = GetCursorPosition
@@ -9,11 +9,11 @@ anchor:EnableMouse(false)
 anchor:Hide()
 ns.anchor = anchor
 
--- Nur neu setzen, wenn sich Position oder Skalierung geaendert haben.
+-- Only re-anchor when position or scale changed.
 local lastX, lastY, lastScale
 
 anchor:SetScript("OnUpdate", function(self)
-    if ns.cfg.hideOnMouselook and IsMouselooking then -- IsMouselooking steht nicht in der Blizzard-UI-Quelle: abgesichert
+    if ns.cfg.hideOnMouselook and IsMouselooking then -- IsMouselooking is not in the Blizzard UI source: guarded
         local looking = IsMouselooking() and true or false
         if looking ~= ns.mouselooking then
             ns.mouselooking = looking
@@ -28,7 +28,7 @@ anchor:SetScript("OnUpdate", function(self)
     end
 end)
 
--- Beim Einblenden sofort an die aktuelle Position springen.
+-- On show, jump to the current position immediately.
 anchor:SetScript("OnShow", function()
     lastX, lastY, lastScale = nil, nil, nil
 end)

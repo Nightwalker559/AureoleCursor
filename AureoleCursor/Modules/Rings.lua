@@ -1,5 +1,5 @@
--- Aureole Cursor: die drei Ringe. Main = fester Ring, GCD und Cast = Cooldown-Ringe
--- (Swipe mit Ring-Textur). Zeiten kommen als Duration-Objekte, es wird nie mit Secret-Werten gerechnet.
+-- Aureole Cursor: the three rings. Main = fixed ring, GCD and Cast = cooldown rings
+-- (swipe with ring texture). Times come as duration objects, secret values are never used in calculations.
 local ADDON, ns = ...
 
 local DEFAULT_RING_TEXTURE = ns:RingTexture(4)
@@ -25,7 +25,7 @@ mainRing:SetTexture(DEFAULT_RING_TEXTURE)
 mainRing:SetPoint("CENTER", anchor, "CENTER")
 ns.mainRing = mainRing
 
--- Hintergrund-Spur: schwacher Vollring hinter dem Fortschritts-Ring (liegt unter den Cooldown-Frames).
+-- Background track: faint full ring behind the progress ring (sits below the cooldown frames).
 local function createTrack()
     local t = anchor:CreateTexture(nil, "BACKGROUND")
     t:SetTexture(DEFAULT_RING_TEXTURE)
@@ -45,8 +45,8 @@ ns.gcdCooldown, ns.castCooldown = gcdCD, castCD
 -- GCD
 ------------------------------------------------------------------------
 
--- Laeuft der GCD, den Swipe aus dem Duration-Objekt des GCD-Spells setzen.
--- Ist er vorbei, endet der Swipe von selbst.
+-- While the GCD is running, set the swipe from the duration object of the GCD spell.
+-- Once it is over, the swipe ends by itself.
 local function updateGCD()
     if not ns.cfg or not ns.cfg.gcd.enabled then return end
     local info = C_Spell.GetSpellCooldown(GCD_SPELL)
@@ -63,8 +63,8 @@ ns:On("SPELL_UPDATE_COOLDOWN", updateGCD)
 -- Cast / Channel / Empower
 ------------------------------------------------------------------------
 
--- Zustand immer frisch lesen: laeuft etwas, Swipe setzen, sonst loeschen.
--- Cast fuellt sich auf, Channel leert sich.
+-- Always read the state fresh: if something is running, set the swipe, otherwise clear it.
+-- A cast fills up, a channel drains.
 local function updateCast()
     if not ns.cfg or not ns.cfg.cast.enabled then return end
     local d = UnitCastingDuration("player")
@@ -95,20 +95,20 @@ for _, event in ipairs({
 end
 
 ------------------------------------------------------------------------
--- Einstellungen anwenden
+-- Apply settings
 ------------------------------------------------------------------------
 
 local Rings = {}
 ns:RegisterModule(Rings)
 
--- Aendert sich die Pixelgroesse (UI-Skalierung, Aufloesung), passt die Textur-Aufloesung neu.
+-- If the pixel size changes (UI scale, resolution), the texture resolution has to be re-picked.
 local function reapply()
     if ns.cfg then ns:Apply() end
 end
 ns:On("UI_SCALE_CHANGED", reapply)
 ns:On("DISPLAY_SIZE_CHANGED", reapply)
 
--- Main Ring: im Kampf (wenn eingestellt) in der Kampffarbe, mit der Deckkraft des Rings.
+-- Main Ring: in combat (if enabled) uses the combat color, with the ring's opacity.
 local function applyMainColor()
     local m = ns.cfg.main
     if m.combatTint and ns.inCombat then
