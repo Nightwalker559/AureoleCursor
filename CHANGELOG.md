@@ -2,6 +2,17 @@
 
 ---
 
+## 1.0.1
+
+### Mouse trail
+- Two new shapes: **Mist**, a soft cloud that you can tint with every color mode, and **Energy**, a glowing energy pattern taken from the game files (nothing extra is shipped). Energy keeps its original colors, so color mode and color are disabled while it is selected; only the opacity applies.
+- Every shape now has its own default size, duration and spacing. Values you set yourself are remembered per shape, like the sizes of the center mark.
+
+### Defaults
+- New defaults for the rings and the center mark: thicker rings, a larger white Cast Ring, a more visible background track, combat tint off, a bigger center dot and click pulse on both mouse buttons. Your existing settings stay as they are, only new installs and "Reset" use the new defaults.
+
+---
+
 ## 1.0.0
 
 First release.
