@@ -12,7 +12,7 @@ First public version.
 - Mouse trail with rainbow, class or custom color, adjustable duration, spacing and size, optional shrinking.
 - Main Ring turns to a combat color automatically in combat (can be switched off, color is adjustable).
 - Visibility options: overall opacity, opacity out of combat, show in combat only, hide while mouse-looking, frame layer.
-- One settings page with a section per element (`/aureole config`).
+- One settings page with a section per element. Open it with `/ac` or `/aureole`.
 - English and German.
 
 ### Changed

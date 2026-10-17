@@ -19,14 +19,14 @@ Built for Midnight (12.1.5). The timers use Blizzard's duration objects, so the 
 
 ## Usage
 
-Open the settings with `/aureole config` (or `/aureolecursor config`). Everything is on one page with a section per element. Options that depend on another one are greyed out while they do not apply.
+Open the settings with `/ac` or `/aureole` (`/aureolecursor` works too). Everything is on one page with a section per element. Options that depend on another one are greyed out while they do not apply.
 
 ### Commands
 
 | Command | What it does |
 | --- | --- |
-| `/aureole` | Show the current state and the command list |
-| `/aureole config` | Open the settings |
+| `/ac` or `/aureole` | Open the settings |
+| `/aureole help` | Show the current state and the command list |
 | `/aureole scale <n>` | Overall scale |
 | `/aureole alpha <n>` | Overall opacity (0.05 to 1) |
 | `/aureole combat on\|off` | Show only in combat |

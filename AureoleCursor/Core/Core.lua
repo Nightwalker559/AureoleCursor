@@ -197,6 +197,7 @@ end
 
 SLASH_AUREOLECURSOR1 = "/aureole"
 SLASH_AUREOLECURSOR2 = "/aureolecursor"
+SLASH_AUREOLECURSOR3 = "/ac"
 SlashCmdList["AUREOLECURSOR"] = function(msg)
     local cfg = ns.cfg
     if not cfg then return end
@@ -224,7 +225,8 @@ SlashCmdList["AUREOLECURSOR"] = function(msg)
             return
         end
         ns:Apply()
-    elseif cmd == "config" or cmd == "options" then
+    elseif cmd == nil or cmd == "config" or cmd == "options" then
+        -- ohne Argument direkt die Einstellungen oeffnen (kurzer Weg: /ac)
         if ns.OpenSettings then ns:OpenSettings() end
         return
     elseif cmd == "reset" then
