@@ -37,6 +37,16 @@ ns:On("GLOBAL_MOUSE_DOWN", function(_, button)
     pulseGroup:Play()
 end)
 
+-- Jede Form hat ihre eigene Groesse: beim Wechsel wird die aktuelle Groesse fuer die alte Form gemerkt und die
+-- gemerkte (zuerst die Standardgroesse aus cfg.dot.sizes) der neuen Form uebernommen.
+function ns:SetDotShape(shape)
+    local cfg = self.cfg.dot
+    if cfg.shape == shape then return end
+    cfg.sizes[cfg.shape] = cfg.size
+    cfg.shape = shape
+    cfg.size = cfg.sizes[shape] or cfg.size
+end
+
 local Dot = {}
 ns:RegisterModule(Dot)
 

@@ -2,6 +2,13 @@
 
 ---
 
+## 0.6.1
+
+### Changed
+- Every center mark shape has its own default size (dot 8, crosshair 22, dot with ring 18, sparkle 18). Switching the shape applies that shape's size; a size you set yourself is remembered for that shape.
+
+---
+
 ## 0.6.0
 
 ### New

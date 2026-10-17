@@ -173,7 +173,19 @@ end
 
 -- Form-Dropdown: choices = { { Wert, Text }, ... }
 local function shapeDropdown(category, key, child, tip, choices)
-    local shape = proxy(category, key, "shape", Settings.VarType.String, L.shape)
+    local function setShape(value)
+        if key == "dot" then
+            ns:SetDotShape(value) -- jede Form des Mittelpunkts hat ihre eigene Groesse
+        else
+            section(key).shape = value
+        end
+        ns:Apply()
+        if key == "dot" and Settings.NotifyUpdate then
+            Settings.NotifyUpdate(varName(key, "size")) -- Groessenregler zeigt die Groesse der neuen Form
+        end
+    end
+    local shape = Settings.RegisterProxySetting(category, varName(key, "shape"), Settings.VarType.String, L.shape,
+        defaultOf(key, "shape"), function() return section(key).shape end, setShape)
     local function shapes()
         local c = Settings.CreateControlTextContainer()
         for _, choice in ipairs(choices) do c:Add(choice[1], choice[2]) end
