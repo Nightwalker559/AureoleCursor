@@ -5,7 +5,7 @@
 ## Author: Nightwalker559
 ## Version: 0.4.2
 ## Category: Unit Frames
-## IconTexture: Interface\AddOns\AureoleCursor\Media\Ring4_128
+## IconTexture: Interface\AddOns\AureoleCursor\Media\Icon
 ## SavedVariables: AureoleCursorDB
 
 Locale\AureoleCursorLocale_enUS.lua
