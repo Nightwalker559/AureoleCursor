@@ -1,6 +1,6 @@
 # Aureole Cursor
 
-Rings around your mouse cursor: a fixed ring, a global cooldown ring, a cast ring, a center dot and an optional mouse trail. Sharp edges at every size, all settings on one page.
+Rings around your mouse cursor: a fixed ring, a global cooldown ring, a cast ring, a center dot, an optional glow and a mouse trail. Sharp edges at every size, all settings on one page.
 
 Built for Midnight (12.1.5). The timers use Blizzard's duration objects, so the rings keep working when combat values are restricted.
 
@@ -11,6 +11,7 @@ Built for Midnight (12.1.5). The timers use Blizzard's duration objects, so the 
 - **Cast Ring:** shows casts (fills up), channels (drains) and empowered spells.
 - **Background track:** an optional faint full ring behind the GCD and Cast ring, so you can see how much is left.
 - **Center mark:** a dot in the middle of the rings, or a crosshair with a gap, a dot with a ring or a sparkle. It can give a click pulse: a ring that expands from the center when you press the left, right or both mouse buttons.
+- **Glow:** a soft glow behind the mouse pointer (off by default). It follows the cursor position, so it works with every cursor shape. Size, color or class color, opacity and an offset to center it on the arrow are adjustable.
 - **Mouse trail:** a trail of dots behind the cursor that fades out and shrinks. Color mode: rainbow, autumn, winter, Christmas, class color or a custom color. Shape: dot, leaf, snowflake or star, so the trail can fit the season. Duration, spacing and size are adjustable. Fast mouse movements stay gap-free.
 - **Sharp at any size:** the textures come in several resolutions and are picked by the size on your screen, so small rings do not turn pixelated. Ring thickness has eight steps.
 - **Colors:** every element has its own color, opacity and class color option.
@@ -30,7 +31,7 @@ Open the settings with `/ac` or `/aureole` (`/aureolecursor` works too). Everyth
 | `/aureole scale <n>` | Overall scale |
 | `/aureole alpha <n>` | Overall opacity (0.05 to 1) |
 | `/aureole combat on\|off` | Show only in combat |
-| `/aureole ring main\|gcd\|cast\|dot\|trail on\|off` | Switch an element on or off |
+| `/aureole ring main\|gcd\|cast\|dot\|glow\|trail on\|off` | Switch an element on or off |
 | `/aureole ring <element> size <n>` | Change the size of an element |
 | `/aureole reset` | Reset all settings |
 

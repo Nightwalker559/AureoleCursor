@@ -15,5 +15,6 @@ Core\Core.lua
 Core\Cursor.lua
 Modules\Rings.lua
 Modules\Dot.lua
+Modules\Glow.lua
 Modules\Trail.lua
 Options\Options.lua

@@ -219,6 +219,11 @@ local function dotOptions(category, key, child)
     end):SetParentInitializer(pulse, whenPulse)
 end
 
+local function glowOptions(category, key, child)
+    child(slider(category, key, "offsetX", L.offsetX, L.offsetXTip, -60, 60, 1))
+    child(slider(category, key, "offsetY", L.offsetY, L.offsetYTip, -60, 60, 1))
+end
+
 local function trailOptions(category, key, child)
     shapeDropdown(category, key, child, L.shapeTip, {
         { "dot", L.shapeDot }, { "leaf", L.shapeLeaf }, { "snow", L.shapeSnow }, { "star", L.shapeStar },
@@ -239,6 +244,7 @@ local function build()
     buildElement(category, layout, "gcd", L.gcd, { thickness = true, track = true })
     buildElement(category, layout, "cast", L.cast, { thickness = true, track = true })
     buildElement(category, layout, "dot", L.dot, { extra = dotOptions })
+    buildElement(category, layout, "glow", L.glow, { size = { 8, 300, 2 }, extra = glowOptions })
     buildElement(category, layout, "trail", L.trail, { size = { 4, 64, 1 }, colorMode = true, extra = trailOptions })
 
     Settings.RegisterAddOnCategory(category)
