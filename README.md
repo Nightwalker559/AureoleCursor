@@ -11,7 +11,7 @@ Built for Midnight (12.1.5). The timers use Blizzard's duration objects, so the 
 - **Cast Ring:** shows casts (fills up), channels (drains) and empowered spells.
 - **Background track:** an optional faint full ring behind the GCD and Cast ring, so you can see how much is left.
 - **Center dot:** a dot in the middle of the rings.
-- **Mouse trail:** a trail of dots behind the cursor that fades out and shrinks. Color mode: rainbow, class color or a custom color. Duration, spacing and size are adjustable. Fast mouse movements stay gap-free.
+- **Mouse trail:** a trail of dots behind the cursor that fades out and shrinks. Color mode: rainbow, autumn, winter, Christmas, class color or a custom color. Shape: dot, leaf, snowflake or star, so the trail can fit the season. Duration, spacing and size are adjustable. Fast mouse movements stay gap-free.
 - **Sharp at any size:** the textures come in several resolutions and are picked by the size on your screen, so small rings do not turn pixelated. Ring thickness has eight steps.
 - **Colors:** every element has its own color, opacity and class color option.
 - **Visibility:** overall opacity, a separate opacity out of combat, "show in combat only", hide while mouse-looking, and the frame layer.

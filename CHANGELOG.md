@@ -2,6 +2,13 @@
 
 ---
 
+## 0.5.0
+
+### New
+- Seasonal mouse trail: the dots can be leaves, snowflakes or stars (new "Shape" option) and use autumn, winter or Christmas colors (new entries in "Color mode"). Leaves, snowflakes and stars are rotated randomly.
+
+---
+
 ## 0.4.2
 
 First public version.

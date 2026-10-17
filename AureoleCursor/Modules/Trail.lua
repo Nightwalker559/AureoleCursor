@@ -9,6 +9,13 @@ local MAX_PER_FRAME = 40   -- Obergrenze je Frame; schnelle Mausbewegungen bleib
 local SHRINK_TO = 0.2
 local RAINBOW_LENGTH = 400   -- Strecke in Pixeln fuer einmal durch alle Farben
 
+-- Jahreszeiten-Paletten: jeder Punkt bekommt zufaellig eine der Farben
+local PALETTES = {
+    autumn = { { 0.85, 0.33, 0.10 }, { 0.95, 0.60, 0.12 }, { 0.70, 0.15, 0.10 }, { 0.90, 0.75, 0.20 }, { 0.50, 0.28, 0.10 } },
+    winter = { { 1, 1, 1 }, { 0.85, 0.95, 1 }, { 0.70, 0.86, 1 }, { 0.55, 0.78, 1 } },
+    christmas = { { 0.85, 0.10, 0.10 }, { 0.10, 0.60, 0.20 }, { 1, 0.85, 0.30 }, { 1, 1, 1 } },
+}
+
 local frame = CreateFrame("Frame", "AureoleCursorTrail", UIParent)
 frame:SetSize(1, 1)
 frame:EnableMouse(false)
@@ -32,7 +39,7 @@ for i = 1, POOL do
 end
 
 local lastX, lastY
-local rainbow, rainbowAlpha = false, 1
+local rainbow, palette, spin, colorAlpha = false, nil, false, 1
 local travelled = 0
 
 -- Farbton (0..1) bei voller Saettigung und Helligkeit in RGB
@@ -59,10 +66,14 @@ local function spawn(x, y)
     local d = dots[nextDot]
     nextDot = nextDot % POOL + 1
     d.group:Stop()
-    if rainbow then
+    if palette then
+        local c = palette[math.random(#palette)]
+        d.tex:SetVertexColor(c[1], c[2], c[3], colorAlpha)
+    elseif rainbow then
         local r, g, b = hue(travelled / RAINBOW_LENGTH)
-        d.tex:SetVertexColor(r, g, b, rainbowAlpha)
+        d.tex:SetVertexColor(r, g, b, colorAlpha)
     end
+    if spin then d.tex:SetRotation(math.random() * 2 * math.pi) end
     d.tex:ClearAllPoints()
     d.tex:SetPoint("CENTER", UIParent, "BOTTOMLEFT", x, y)
     d.tex:Show()
@@ -116,15 +127,17 @@ function Trail:Apply()
     frame:SetFrameStrata(cfg.strata)
     ns:UpdateAlpha()
 
-    local texture = ns:DotTexture(t.size)
-    -- Farbmodus: bunt (Farbton pro Punkt in spawn), Klassenfarbe oder eigene Farbe
+    local texture = ns:ShapeTexture(t.shape, t.size)
+    -- Farbmodus: bunt oder Jahreszeit (Farbe pro Punkt in spawn), Klassenfarbe oder eigene Farbe
     local r, g, b, a = ns:GetRingColor({ classColor = t.colorMode == "class", color = t.color })
-    rainbow, rainbowAlpha = t.colorMode == "rainbow", a
+    rainbow, palette, colorAlpha = t.colorMode == "rainbow", PALETTES[t.colorMode], a
+    spin = t.shape ~= "dot" and t.shape ~= nil -- Blaetter, Flocken und Sterne liegen zufaellig gedreht
     local target = t.shrink and SHRINK_TO or 1
     for _, d in ipairs(dots) do
         d.tex:SetTexture(texture)
         d.tex:SetSize(t.size, t.size)
         d.tex:SetVertexColor(r, g, b, a)
+        d.tex:SetRotation(0)
         d.fade:SetDuration(t.duration)
         d.shrink:SetDuration(t.duration)
         d.shrink:SetScaleTo(target, target)
