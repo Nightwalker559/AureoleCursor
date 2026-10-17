@@ -16,7 +16,6 @@ ns.defaults = {
     gcd  = { enabled = true, size = 28, thickness = 4, classColor = false, color = { 1, 0.82, 0, 1 }, track = true, trackAlpha = 0.25 },
     cast = { enabled = true, size = 40, thickness = 4, classColor = false, color = { 0.4, 0.8, 1, 1 }, track = true, trackAlpha = 0.25 },
     dot  = { enabled = true, size = 8, shape = "dot", sizes = { dot = 8, gap = 22, ring = 18, spark = 18 }, pulse = true, pulseButton = "left", pulseSize = 3, classColor = false, color = { 1, 1, 1, 0.9 } },
-    glow = { enabled = false, size = 56, offsetX = 0, offsetY = 0, classColor = false, color = { 0.4, 0.8, 1, 0.5 } },
     trail = { enabled = true, size = 16, duration = 0.45, spacing = 6, shrink = true, shape = "dot", colorMode = "rainbow", color = { 1, 1, 1, 0.5 } },
 }
 
@@ -195,7 +194,7 @@ end)
 
 local L = ns.L
 local PREFIX = "|cff66ccffAureole Cursor|r "
-local RINGS = { main = true, gcd = true, cast = true, dot = true, glow = true, trail = true }
+local RINGS = { main = true, gcd = true, cast = true, dot = true, trail = true }
 
 local function say(...)
     print(PREFIX .. string.format(...))
@@ -246,7 +245,7 @@ SlashCmdList["AUREOLECURSOR"] = function(msg)
         return
     else
         say(L.slashStatus, cfg.scale, cfg.alpha, cfg.combatOnly and L.yes or L.no)
-        for _, name in ipairs({ "main", "gcd", "cast", "dot", "glow", "trail" }) do
+        for _, name in ipairs({ "main", "gcd", "cast", "dot", "trail" }) do
             say(L.slashElement, name, cfg[name].enabled and L.stateOn or L.stateOff, cfg[name].size)
         end
         say(L.slashHelp)
