@@ -11,10 +11,10 @@ ns.defaults = {
     combatOnly = false,
     idleAlpha = 1.0,          -- Anteil der Deckkraft ausserhalb des Kampfes
     hideOnMouselook = false,  -- ausblenden, solange die Kamera per Maus gedreht wird
-    main = { enabled = true, size = 40, thickness = 4, classColor = false, color = { 1, 1, 1, 0.85 },
-             combatTint = true, combatColor = { 1, 0.1, 0.1, 1 } }, -- im Kampf andere Farbe (Deckkraft bleibt)
-    gcd  = { enabled = true, size = 28, thickness = 4, classColor = false, color = { 1, 0.82, 0, 1 }, track = true, trackAlpha = 0.25 },
-    cast = { enabled = true, size = 40, thickness = 4, classColor = false, color = { 0.4, 0.8, 1, 1 }, track = true, trackAlpha = 0.25 },
+    main = { enabled = true, size = 40, thickness = 6, classColor = false, color = { 1, 1, 1, 0.8 },
+             combatTint = false, combatColor = { 1, 0.1, 0.1, 1 } }, -- im Kampf andere Farbe (Deckkraft bleibt)
+    gcd  = { enabled = true, size = 28, thickness = 6, classColor = false, color = { 1, 0.82, 0, 1 }, track = true, trackAlpha = 0.5 },
+    cast = { enabled = true, size = 54, thickness = 6, classColor = false, color = { 1, 1, 1, 1 }, track = true, trackAlpha = 0.5 },
     dot  = { enabled = true, size = 8, shape = "dot", sizes = { dot = 8, gap = 22, ring = 18, spark = 18 }, pulse = true, pulseButton = "left", pulseSize = 3, classColor = false, color = { 1, 1, 1, 0.9 } },
     -- presets: Standardgroesse, -dauer und -abstand je Form; beim Formwechsel werden die aktuellen Werte fuer die alte
     -- Form gemerkt und die gemerkten (zuerst diese Standardwerte) der neuen Form uebernommen.
