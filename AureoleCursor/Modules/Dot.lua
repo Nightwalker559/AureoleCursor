@@ -11,7 +11,7 @@ ns:RegisterModule(Dot)
 
 function Dot:Apply()
     local cfg = ns.cfg.dot
-    dot:SetTexture(ns:DotTexture(cfg.size))
+    dot:SetTexture(ns:ShapeTexture(cfg.shape, cfg.size))
     dot:SetSize(cfg.size, cfg.size)
     dot:SetVertexColor(ns:GetRingColor(cfg))
     dot:SetShown(cfg.enabled)

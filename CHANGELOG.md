@@ -2,6 +2,13 @@
 
 ---
 
+## 0.5.1
+
+### New
+- The center mark has a "Shape" option: dot, crosshair with a gap, dot with a ring or a four-point sparkle.
+
+---
+
 ## 0.5.0
 
 ### New

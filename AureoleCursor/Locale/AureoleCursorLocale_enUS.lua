@@ -72,6 +72,10 @@ L.shapeDot = "Dot"
 L.shapeLeaf = "Leaf"
 L.shapeSnow = "Snowflake"
 L.shapeStar = "Star"
+L.dotShapeTip = "Shape of the center mark: dot, crosshair with a gap, dot with a ring or a four-point sparkle."
+L.shapeGap = "Crosshair"
+L.shapeRing = "Dot with ring"
+L.shapeSpark = "Sparkle"
 
 -- Slash command
 L.slashReset = "Settings reset."

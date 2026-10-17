@@ -171,17 +171,27 @@ local function buildElement(category, layout, key, title, opts)
     end
 end
 
-local function trailOptions(category, key, child)
+-- Form-Dropdown: choices = { { Wert, Text }, ... }
+local function shapeDropdown(category, key, child, tip, choices)
     local shape = proxy(category, key, "shape", Settings.VarType.String, L.shape)
     local function shapes()
         local c = Settings.CreateControlTextContainer()
-        c:Add("dot", L.shapeDot)
-        c:Add("leaf", L.shapeLeaf)
-        c:Add("snow", L.shapeSnow)
-        c:Add("star", L.shapeStar)
+        for _, choice in ipairs(choices) do c:Add(choice[1], choice[2]) end
         return c:GetData()
     end
-    child(Settings.CreateDropdown(category, shape, shapes, L.shapeTip))
+    child(Settings.CreateDropdown(category, shape, shapes, tip))
+end
+
+local function dotOptions(category, key, child)
+    shapeDropdown(category, key, child, L.dotShapeTip, {
+        { "dot", L.shapeDot }, { "gap", L.shapeGap }, { "ring", L.shapeRing }, { "spark", L.shapeSpark },
+    })
+end
+
+local function trailOptions(category, key, child)
+    shapeDropdown(category, key, child, L.shapeTip, {
+        { "dot", L.shapeDot }, { "leaf", L.shapeLeaf }, { "snow", L.shapeSnow }, { "star", L.shapeStar },
+    })
     child(slider(category, key, "duration", L.duration, L.durationTip, 0.1, 1.5, 0.05, seconds))
     child(slider(category, key, "spacing", L.spacing, L.spacingTip, 2, 40, 1))
     child(checkbox(category, key, "shrink", L.shrink, L.shrinkTip))
@@ -197,7 +207,7 @@ local function build()
     buildElement(category, layout, "main", L.main, { thickness = true, combatTint = true })
     buildElement(category, layout, "gcd", L.gcd, { thickness = true, track = true })
     buildElement(category, layout, "cast", L.cast, { thickness = true, track = true })
-    buildElement(category, layout, "dot", L.dot, {})
+    buildElement(category, layout, "dot", L.dot, { extra = dotOptions })
     buildElement(category, layout, "trail", L.trail, { size = { 4, 64, 1 }, colorMode = true, extra = trailOptions })
 
     Settings.RegisterAddOnCategory(category)

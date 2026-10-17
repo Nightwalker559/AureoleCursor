@@ -72,6 +72,10 @@ L.shapeDot = "Punkt"
 L.shapeLeaf = "Blatt"
 L.shapeSnow = "Schneeflocke"
 L.shapeStar = "Stern"
+L.dotShapeTip = "Form des Mittelpunkts: Punkt, Fadenkreuz mit Lücke, Punkt mit Ring oder Funkeln mit vier Zacken."
+L.shapeGap = "Fadenkreuz"
+L.shapeRing = "Punkt mit Ring"
+L.shapeSpark = "Funkeln"
 
 -- Slash-Befehl
 L.slashReset = "Einstellungen zurückgesetzt."
