@@ -150,6 +150,17 @@ end)
 frame:SetScript("OnShow", function() lastX, lastY = nil, nil end)
 frame:SetScript("OnHide", stopAll)
 
+-- Jede Form hat ihre eigene Groesse, Dauer und ihren eigenen Abstand: beim Wechsel werden die aktuellen Werte
+-- fuer die alte Form gemerkt und die gemerkten (zuerst die Standardwerte aus cfg.trail.presets) uebernommen.
+function ns:SetTrailShape(shape)
+    local t = self.cfg.trail
+    if t.shape == shape then return end
+    t.presets[t.shape] = { size = t.size, duration = t.duration, spacing = t.spacing }
+    t.shape = shape
+    local p = t.presets[shape]
+    if p then t.size, t.duration, t.spacing = p.size, p.duration, p.spacing end
+end
+
 local Trail = {}
 ns:RegisterModule(Trail)
 

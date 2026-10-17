@@ -16,7 +16,17 @@ ns.defaults = {
     gcd  = { enabled = true, size = 28, thickness = 4, classColor = false, color = { 1, 0.82, 0, 1 }, track = true, trackAlpha = 0.25 },
     cast = { enabled = true, size = 40, thickness = 4, classColor = false, color = { 0.4, 0.8, 1, 1 }, track = true, trackAlpha = 0.25 },
     dot  = { enabled = true, size = 8, shape = "dot", sizes = { dot = 8, gap = 22, ring = 18, spark = 18 }, pulse = true, pulseButton = "left", pulseSize = 3, classColor = false, color = { 1, 1, 1, 0.9 } },
-    trail = { enabled = true, size = 16, duration = 0.45, spacing = 6, shrink = true, shape = "dot", colorMode = "rainbow", color = { 1, 1, 1, 0.5 } },
+    -- presets: Standardgroesse, -dauer und -abstand je Form; beim Formwechsel werden die aktuellen Werte fuer die alte
+    -- Form gemerkt und die gemerkten (zuerst diese Standardwerte) der neuen Form uebernommen.
+    trail = { enabled = true, size = 16, duration = 0.45, spacing = 6, shrink = true, shape = "dot", colorMode = "rainbow", color = { 1, 1, 1, 0.5 },
+              presets = {
+                  dot = { size = 16, duration = 0.45, spacing = 6 },
+                  leaf = { size = 20, duration = 0.9, spacing = 22 },
+                  snow = { size = 18, duration = 0.9, spacing = 16 },
+                  star = { size = 18, duration = 0.7, spacing = 14 },
+                  mist = { size = 14, duration = 1.0, spacing = 5 },
+                  energy = { size = 28, duration = 0.55, spacing = 8 },
+              } },
 }
 
 -- Ring-Dicke in Stufen 1..8 (Prozent vom Radius, siehe make_media.py im Tools-Ordner)

@@ -180,6 +180,8 @@ local function shapeDropdown(category, key, child, tip, choices)
     local function setShape(value)
         if key == "dot" then
             ns:SetDotShape(value) -- jede Form des Mittelpunkts hat ihre eigene Groesse
+        elseif key == "trail" then
+            ns:SetTrailShape(value) -- jede Form der Spur hat eigene Groesse, Dauer und Abstand
         else
             section(key).shape = value
         end
@@ -188,6 +190,9 @@ local function shapeDropdown(category, key, child, tip, choices)
             Settings.NotifyUpdate(varName(key, "size")) -- Groessenregler zeigt die Groesse der neuen Form
         end
         if key == "trail" and Settings.NotifyUpdate then
+            for _, field in ipairs({ "size", "duration", "spacing" }) do
+                Settings.NotifyUpdate(varName(key, field)) -- Regler zeigen die Werte der neuen Form
+            end
             -- Energie sperrt Farbmodus und Farbe: Elternschalter und Farbmodus melden die Aenderung an ihre Kinder
             Settings.NotifyUpdate(varName(key, "enabled"))
             Settings.NotifyUpdate(varName(key, "colorMode"))
