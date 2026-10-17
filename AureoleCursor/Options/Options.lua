@@ -30,16 +30,25 @@ local function varName(key, field)
     return string.upper("AUREOLECURSOR_" .. (key or "GENERAL") .. "_" .. field)
 end
 
+-- Some options hang off a different setting than the one they really depend on (the Blizzard panel only re-evaluates
+-- children of the setting that changed). After a change, tell that intermediate setting to refresh its children.
+local function notifyDependents(key, field)
+    if not Settings.NotifyUpdate then return end
+    if key == "trail" and (field == "enabled" or field == "colorMode") then
+        Settings.NotifyUpdate(varName(key, "colorCount")) -- the extra trail colors follow the color count
+    elseif key == "cast" and (field == "enabled" or field == "gradient") then
+        if field == "enabled" then Settings.NotifyUpdate(varName(key, "gradient")) end -- class color follows the gradient switch
+        Settings.NotifyUpdate(varName(key, "classColor")) -- the color row follows the class color switch
+    end
+end
+
 -- Proxy setting: always reads from and writes to the current ns.cfg (which is replaced on reset).
 local function proxy(category, key, field, vtype, label)
     local function get() return section(key)[field] end
     local function set(value)
         section(key)[field] = value
         ns:Apply()
-        -- the extra trail colors depend on these (through the color count): tell them to re-evaluate
-        if key == "trail" and (field == "enabled" or field == "colorMode") and Settings.NotifyUpdate then
-            Settings.NotifyUpdate(varName(key, "colorCount"))
-        end
+        notifyDependents(key, field)
     end
     return Settings.RegisterProxySetting(category, varName(key, field), vtype, label, defaultOf(key, field), get, set)
 end
@@ -197,10 +206,35 @@ local function buildElement(category, layout, key, title, opts)
             count = function() return ns.cfg[key].colorCount end,
         })
         layout:AddInitializer(row)
+        track(row)
         row:SetParentInitializer(count, custom)
         local blend = checkbox(category, key, "gradient", L.gradient, L.gradientTip)
         blend:SetParentInitializer(count, function()
             return custom() and ns.cfg[key].colorCount > 1
+        end)
+    elseif opts.gradient then
+        -- Gradient (cast ring): the ring moves from color 1 to color 2 while the cast progresses. Class color is
+        -- ignored then, so it hangs off the gradient switch. The color row shows one swatch, or two with a gradient.
+        -- The row hangs off the class color switch; changes of the enable and gradient switches are reported to
+        -- it through the proxy (see notifyDependents).
+        local blend = checkbox(category, key, "gradient", L.castGradient, L.castGradientTip)
+        child(blend)
+        local class = checkbox(category, key, "classColor", L.classColor, L.classColorTip)
+        class:SetParentInitializer(blend, function()
+            return ns.cfg[key].enabled and not ns.cfg[key].gradient
+        end)
+        local entries = {
+            { setting = colorSetting(category, key, L.color, "color"), name = L.color, tooltip = L.colorTip },
+            { setting = colorSetting(category, key, L.color2, "color2"), name = L.color2, tooltip = L.colorTip },
+        }
+        local row = Settings.CreateElementInitializer("AureoleCursorColorRowTemplate", {
+            name = L.colors, tooltip = L.castColorsTip, entries = entries,
+            count = function() return ns.cfg[key].gradient and 2 or 1 end,
+        })
+        layout:AddInitializer(row)
+        track(row)
+        row:SetParentInitializer(class, function()
+            return ns.cfg[key].enabled and (ns.cfg[key].gradient or not ns.cfg[key].classColor)
         end)
     else
         -- The color picker is greyed out while class color is active
@@ -312,7 +346,7 @@ local function build()
     buildGeneral(category, layout)
     buildElement(category, layout, "main", L.main, { thickness = true, combatTint = true })
     buildElement(category, layout, "gcd", L.gcd, { thickness = true, track = true, ring = true })
-    buildElement(category, layout, "cast", L.cast, { thickness = true, track = true, ring = true })
+    buildElement(category, layout, "cast", L.cast, { thickness = true, track = true, ring = true, gradient = true })
     buildElement(category, layout, "dot", L.dot, { extra = dotOptions })
     buildElement(category, layout, "trail", L.trail, { size = { 4, 64, 1 }, colorMode = true, extra = trailOptions })
 

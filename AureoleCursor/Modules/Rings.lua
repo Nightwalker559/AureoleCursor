@@ -63,10 +63,44 @@ ns:On("SPELL_UPDATE_COOLDOWN", updateGCD)
 -- Cast / Channel / Empower
 ------------------------------------------------------------------------
 
+-- Gradient (cast ring): the swipe color moves from color to color2 while the cast progresses. The color comes from a
+-- color curve evaluated against the cast's duration object, so no secret values are ever read or calculated with.
+local castCurve, castDuration
+
+local castDriver = CreateFrame("Frame", nil, anchor)
+castDriver:Hide()
+ns.castDriver = castDriver
+
+-- The result may be a color object or plain r, g, b, a values.
+local function unpackColor(c, g, b, a)
+    if g == nil and c ~= nil and type(c) ~= "number" then
+        if c.GetRGBA then return c:GetRGBA() end
+        return c.r, c.g, c.b, c.a
+    end
+    return c, g, b, a
+end
+
+local function tickCast()
+    if not (castDuration and castCurve) then return end
+    local ok, c, g, b, a = pcall(castDuration.EvaluateElapsedPercent, castDuration, castCurve)
+    if not ok then -- the API does not behave as expected: keep the static start color, do not retry every frame
+        castCurve = nil
+        castDriver:Hide()
+        return
+    end
+    local r, g2, b2, a2 = unpackColor(c, g, b, a)
+    if r then castCD:SetSwipeColor(r, g2, b2, a2) end
+end
+castDriver:SetScript("OnUpdate", tickCast)
+
 -- Always read the state fresh: if something is running, set the swipe, otherwise clear it.
 -- A cast fills up, a channel drains.
 local function updateCast()
-    if not ns.cfg or not ns.cfg.cast.enabled or not ns:RingActive("cast") then return end
+    if not ns.cfg or not ns.cfg.cast.enabled or not ns:RingActive("cast") then
+        castDuration = nil
+        castDriver:Hide()
+        return
+    end
     local d = UnitCastingDuration("player")
     local channel = false
     if not d then
@@ -80,9 +114,26 @@ local function updateCast()
     if d then
         castCD:SetReverse(not channel)
         castCD:SetCooldownFromDurationObject(d)
+        castDuration = d
+        if castCurve then
+            castDriver:Show()
+            tickCast()
+        end
     else
         castCD:Clear()
+        castDuration = nil
+        castDriver:Hide()
     end
+end
+
+local function buildCastCurve(ring)
+    if not (ring.gradient and C_CurveUtil and C_CurveUtil.CreateColorCurve and CreateColor) then return nil end
+    local c1, c2, a = ring.color, ring.color2, ring.color[4] or 1
+    local curve = C_CurveUtil.CreateColorCurve()
+    if Enum and Enum.LuaCurveType and curve.SetType then curve:SetType(Enum.LuaCurveType.Linear) end
+    curve:AddPoint(0, CreateColor(c1[1], c1[2], c1[3], a))
+    curve:AddPoint(1, CreateColor(c2[1], c2[2], c2[3], a))
+    return curve
 end
 
 for _, event in ipairs({
@@ -149,6 +200,8 @@ function Rings:Apply()
     end
     gcdCD:SetReverse(false)
 
+    castCurve = buildCastCurve(cfg.cast)
+    if not castCurve then castDriver:Hide() end
     updateGCD()
     updateCast()
 end

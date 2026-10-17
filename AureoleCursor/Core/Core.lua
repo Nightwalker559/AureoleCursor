@@ -15,7 +15,9 @@ ns.defaults = {
     main = { enabled = true, size = 40, thickness = 6, classColor = false, color = { 1, 1, 1, 0.8 },
              combatTint = false, combatColor = { 1, 0.1, 0.1, 1 } }, -- different color in combat (opacity is kept)
     gcd  = { enabled = true, size = 28, thickness = 6, classColor = false, color = { 1, 0.82, 0, 1 }, track = true, trackAlpha = 0.5 },
-    cast = { enabled = true, size = 54, thickness = 6, classColor = false, color = { 1, 1, 1, 1 }, track = true, trackAlpha = 0.5 },
+    -- gradient: the swipe color moves from color to color2 while the cast progresses (class color is ignored then)
+    cast = { enabled = true, size = 54, thickness = 6, classColor = false, color = { 1, 1, 1, 1 }, track = true, trackAlpha = 0.5,
+             gradient = false, color2 = { 0.3, 0.8, 1, 1 } },
     dot  = { enabled = true, size = 10, shape = "dot", sizes = { dot = 10, gap = 22, ring = 24, spark = 24 }, pulse = true, pulseButton = "both", pulseSize = 4, classColor = false, color = { 1, 1, 1, 0.9 } },
     -- presets: default size, duration and spacing per shape; on a shape change the current values are remembered
     -- for the old shape and the remembered ones (initially these defaults) are applied for the new shape.
@@ -150,9 +152,9 @@ function ns:ResetSettings()
     self:Apply()
 end
 
--- Color of a ring: class color or the configured color (r, g, b, a).
+-- Color of a ring: class color or the configured color (r, g, b, a). A gradient ring uses its own colors instead.
 function ns:GetRingColor(ringCfg)
-    if ringCfg.classColor and UnitClass then
+    if ringCfg.classColor and not ringCfg.gradient and UnitClass then
         local _, class = UnitClass("player")
         local c = class and C_ClassColor and C_ClassColor.GetClassColor(class)
         if c then return c.r, c.g, c.b, ringCfg.color[4] or 1 end
