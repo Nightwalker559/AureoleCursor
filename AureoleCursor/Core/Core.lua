@@ -56,7 +56,7 @@ end
 
 -- Formen der Mauspur (Blatt, Flocke, Stern) und des Mittelpunkts (Fadenkreuz, Punkt mit Ring, Funkeln); "dot" ist der normale Punkt.
 local SHAPE_RES = { { 30, 32 }, { 60, 64 }, { math.huge, 128 } }
-local SHAPE_FILE = { leaf = "Trail\\Leaf", snow = "Trail\\Snow", star = "Trail\\Star",
+local SHAPE_FILE = { leaf = "Trail\\Leaf", snow = "Trail\\Snow", star = "Trail\\Star", mist = "Trail\\Mist",
     gap = "Dot\\Gap", ring = "Dot\\DotRing", spark = "Dot\\Spark" }
 
 -- "Energie": Blizzard-Textur aus dem Spiel (FileID, wird nicht mitgeliefert), nahtlose Kachel mit Alpha-Kanal.

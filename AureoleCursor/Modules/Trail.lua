@@ -8,6 +8,7 @@ local POOL = 256           -- Punkte, die gleichzeitig sichtbar sein koennen
 local MAX_PER_FRAME = 40   -- Obergrenze je Frame; schnelle Mausbewegungen bleiben so lueckenlos, nur Spruenge werden gekappt
 local SHRINK_TO = 0.2
 local RAINBOW_LENGTH = 400   -- Strecke in Pixeln fuer einmal durch alle Farben
+local MIST_SIZE = 3            -- Nebel-Wolken sind so viel groesser als die eingestellte Groesse (sie sollen sich ueberlappen)
 local ENERGY_SPAN = 0.5      -- Energie-Form: Anteil der Kachel, den ein Punkt zeigt (Ausschnitt zufaellig)
 
 -- Jahreszeiten-Paletten: jeder Punkt bekommt zufaellig eine der Farben
@@ -163,7 +164,8 @@ function Trail:Apply()
     frame:SetFrameStrata(cfg.strata)
     ns:UpdateAlpha()
 
-    local texture = ns:ShapeTexture(t.shape, t.size)
+    local size = t.shape == "mist" and t.size * MIST_SIZE or t.size
+    local texture = ns:ShapeTexture(t.shape, size)
     -- Farbmodus: bunt oder Jahreszeit (Farbe pro Punkt in spawn), Klassenfarbe oder eigene Farbe
     local r, g, b, a = ns:GetRingColor({ classColor = t.colorMode == "class", color = t.color })
     rainbow, palette, colorAlpha = t.colorMode == "rainbow", PALETTES[t.colorMode], a
@@ -182,7 +184,7 @@ function Trail:Apply()
             d.tex:SetTexCoord(0, 1, 0, 1)
             removeMask(d)
         end
-        d.tex:SetSize(t.size, t.size)
+        d.tex:SetSize(size, size)
         d.tex:SetVertexColor(r, g, b, a)
         d.tex:SetRotation(0)
         d.fade:SetDuration(t.duration)
