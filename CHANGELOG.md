@@ -2,6 +2,13 @@
 
 ---
 
+## 0.6.0
+
+### New
+- Click pulse: a ring expands from the center mark and fades out when you press a mouse button. Options: on/off, mouse button (left, right or both) and the final size of the pulse.
+
+---
+
 ## 0.5.1
 
 ### New

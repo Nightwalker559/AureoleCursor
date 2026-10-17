@@ -15,7 +15,7 @@ ns.defaults = {
              combatTint = true, combatColor = { 1, 0.1, 0.1, 1 } }, -- im Kampf andere Farbe (Deckkraft bleibt)
     gcd  = { enabled = true, size = 28, thickness = 4, classColor = false, color = { 1, 0.82, 0, 1 }, track = true, trackAlpha = 0.25 },
     cast = { enabled = true, size = 40, thickness = 4, classColor = false, color = { 0.4, 0.8, 1, 1 }, track = true, trackAlpha = 0.25 },
-    dot  = { enabled = true, size = 8, shape = "dot", classColor = false, color = { 1, 1, 1, 0.9 } },
+    dot  = { enabled = true, size = 8, shape = "dot", pulse = true, pulseButton = "left", pulseSize = 3, classColor = false, color = { 1, 1, 1, 0.9 } },
     trail = { enabled = true, size = 16, duration = 0.45, spacing = 6, shrink = true, shape = "dot", colorMode = "rainbow", color = { 1, 1, 1, 0.5 } },
 }
 

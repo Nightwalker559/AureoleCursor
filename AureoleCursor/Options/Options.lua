@@ -186,6 +186,25 @@ local function dotOptions(category, key, child)
     shapeDropdown(category, key, child, L.dotShapeTip, {
         { "dot", L.shapeDot }, { "gap", L.shapeGap }, { "ring", L.shapeRing }, { "spark", L.shapeSpark },
     })
+
+    -- Klick-Impuls: Taste und Groesse sind nur bei aktivem Impuls bedienbar
+    local pulse = checkbox(category, key, "pulse", L.pulse, L.pulseTip)
+    child(pulse)
+    local function whenPulse()
+        return ns.cfg[key].enabled and ns.cfg[key].pulse
+    end
+    local button = proxy(category, key, "pulseButton", Settings.VarType.String, L.pulseButton)
+    local function buttons()
+        local c = Settings.CreateControlTextContainer()
+        c:Add("left", L.buttonLeft)
+        c:Add("right", L.buttonRight)
+        c:Add("both", L.buttonBoth)
+        return c:GetData()
+    end
+    Settings.CreateDropdown(category, button, buttons, L.pulseButtonTip):SetParentInitializer(pulse, whenPulse)
+    slider(category, key, "pulseSize", L.pulseSize, L.pulseSizeTip, 1.5, 6, 0.5, function(v)
+        return string.format("%.1fx", v)
+    end):SetParentInitializer(pulse, whenPulse)
 end
 
 local function trailOptions(category, key, child)

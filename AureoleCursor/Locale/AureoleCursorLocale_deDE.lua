@@ -76,6 +76,15 @@ L.dotShapeTip = "Form des Mittelpunkts: Punkt, Fadenkreuz mit Lücke, Punkt mit 
 L.shapeGap = "Fadenkreuz"
 L.shapeRing = "Punkt mit Ring"
 L.shapeSpark = "Funkeln"
+L.pulse = "Impuls bei Klick"
+L.pulseTip = "Beim Drücken der Maustaste wächst ein Ring aus dem Mittelpunkt und blendet aus."
+L.pulseButton = "Maustaste"
+L.pulseButtonTip = "Welche Maustaste den Impuls auslöst."
+L.buttonLeft = "Links"
+L.buttonRight = "Rechts"
+L.buttonBoth = "Beide"
+L.pulseSize = "Impuls-Größe"
+L.pulseSizeTip = "Endgröße des Impuls-Rings als Vielfaches des Mittelpunkts."
 
 -- Slash-Befehl
 L.slashReset = "Einstellungen zurückgesetzt."

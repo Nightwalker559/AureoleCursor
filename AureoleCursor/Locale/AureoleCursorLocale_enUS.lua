@@ -76,6 +76,15 @@ L.dotShapeTip = "Shape of the center mark: dot, crosshair with a gap, dot with a
 L.shapeGap = "Crosshair"
 L.shapeRing = "Dot with ring"
 L.shapeSpark = "Sparkle"
+L.pulse = "Pulse on click"
+L.pulseTip = "A ring expands from the center mark and fades out when you press the mouse button."
+L.pulseButton = "Mouse button"
+L.pulseButtonTip = "Which mouse button triggers the pulse."
+L.buttonLeft = "Left"
+L.buttonRight = "Right"
+L.buttonBoth = "Both"
+L.pulseSize = "Pulse size"
+L.pulseSizeTip = "Final size of the pulse ring as a multiple of the center mark."
 
 -- Slash command
 L.slashReset = "Settings reset."
