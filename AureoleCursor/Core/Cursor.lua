@@ -1,9 +1,9 @@
--- NW_CursorRing: Cursor-Anker. Ein Frame folgt der Maus; die Ringe haengen daran.
+-- Aureole Cursor: Cursor-Anker. Ein Frame folgt der Maus; die Ringe haengen daran.
 local ADDON, ns = ...
 
 local GetCursorPosition = GetCursorPosition
 
-local anchor = CreateFrame("Frame", "NW_CursorRingAnchor", UIParent)
+local anchor = CreateFrame("Frame", "AureoleCursorAnchor", UIParent)
 anchor:SetSize(1, 1)
 anchor:EnableMouse(false)
 anchor:Hide()

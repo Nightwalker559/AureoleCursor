@@ -1,15 +1,15 @@
 ## Interface: 120100, 120105
-## Title: NW_CursorRing
+## Title: Aureole Cursor
 ## Notes: Rings at the mouse cursor: Main Ring, GCD Ring, Cast Ring, center dot and mouse trail.
 ## Notes-deDE: Ringe am Mauszeiger: Main Ring, GCD-Ring, Cast-Ring, Mittelpunkt und Mauspur.
 ## Author: Nightwalker559
 ## Version: 0.4.2
 ## Category: Unit Frames
-## IconTexture: Interface\AddOns\NW_CursorRing\Media\Ring4_128
-## SavedVariables: NW_CursorRingDB
+## IconTexture: Interface\AddOns\AureoleCursor\Media\Ring4_128
+## SavedVariables: AureoleCursorDB
 
-Locale\NW_CursorRingLocale_enUS.lua
-Locale\NW_CursorRingLocale_deDE.lua
+Locale\AureoleCursorLocale_enUS.lua
+Locale\AureoleCursorLocale_deDE.lua
 Core\Core.lua
 Core\Cursor.lua
 Modules\Rings.lua

@@ -1,4 +1,4 @@
--- NW_CursorRing: Mauspur. Beim Bewegen der Maus entstehen in festem Abstand Punkte, die ausblenden
+-- Aureole Cursor: Mauspur. Beim Bewegen der Maus entstehen in festem Abstand Punkte, die ausblenden
 -- (und schrumpfen). Ein Pool aus Texturen mit Animationsgruppen: Position wird nur beim Erzeugen
 -- gesetzt, Ausblenden und Schrumpfen macht die Engine, es laeuft kein Lua pro Punkt und Frame.
 local ADDON, ns = ...
@@ -9,7 +9,7 @@ local MAX_PER_FRAME = 40   -- Obergrenze je Frame; schnelle Mausbewegungen bleib
 local SHRINK_TO = 0.2
 local RAINBOW_LENGTH = 400   -- Strecke in Pixeln fuer einmal durch alle Farben
 
-local frame = CreateFrame("Frame", "NW_CursorRingTrail", UIParent)
+local frame = CreateFrame("Frame", "AureoleCursorTrail", UIParent)
 frame:SetSize(1, 1)
 frame:EnableMouse(false)
 frame:Hide()

@@ -1,4 +1,4 @@
--- NW_CursorRing: Einstellungen in der Blizzard-Optionsoberflaeche (Vertical-Layout, Proxy-Settings).
+-- Aureole Cursor: Einstellungen in der Blizzard-Optionsoberflaeche (Vertical-Layout, Proxy-Settings).
 -- Alles liegt auf einer Seite; Abschnitte (Allgemein, je ein Ring, Mittelpunkt) haben Ueberschriften
 -- und werden in eigenen Funktionen aufgebaut, damit sich Optionen Schritt fuer Schritt ergaenzen lassen.
 local ADDON, ns = ...
@@ -18,7 +18,7 @@ local function defaultOf(key, field)
 end
 
 local function varName(key, field)
-    return string.upper("NW_CURSORRING_" .. (key or "GENERAL") .. "_" .. field)
+    return string.upper("AUREOLECURSOR_" .. (key or "GENERAL") .. "_" .. field)
 end
 
 -- Proxy-Setting: liest und schreibt immer in die aktuelle ns.cfg (die beim Reset ersetzt wird).
@@ -177,7 +177,7 @@ end
 local function build()
     if not (Settings and Settings.RegisterVerticalLayoutCategory) then return end
 
-    local category, layout = Settings.RegisterVerticalLayoutCategory("NW_CursorRing")
+    local category, layout = Settings.RegisterVerticalLayoutCategory("Aureole Cursor")
     ns.settingsCategory = category
 
     buildGeneral(category, layout)

@@ -1,4 +1,4 @@
--- NW_CursorRing: Mittelpunkt (Dot) im Zentrum der Ringe.
+-- Aureole Cursor: Mittelpunkt (Dot) im Zentrum der Ringe.
 local ADDON, ns = ...
 
 local dot = ns.anchor:CreateTexture(nil, "OVERLAY")

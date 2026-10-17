@@ -1,7 +1,7 @@
-package-as: NW_CursorRing
+package-as: AureoleCursor
 
 move-folders:
-  NW_CursorRing/NW_CursorRing: NW_CursorRing
+  AureoleCursor/AureoleCursor: AureoleCursor
 
 ignore:
   - .github/*

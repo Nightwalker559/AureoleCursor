@@ -1,4 +1,4 @@
--- NW_CursorRing: Kern. Namespace, Einstellungen (mit Defaults), Event-Verteiler, Module, Slash-Befehle.
+-- Aureole Cursor: Kern. Namespace, Einstellungen (mit Defaults), Event-Verteiler, Module, Slash-Befehle.
 local ADDON, ns = ...
 
 ns.modules = {}
@@ -21,7 +21,7 @@ ns.defaults = {
 
 -- Ring-Dicke in Stufen 1..8 (Prozent vom Radius, siehe make_media.py im Tools-Ordner)
 ns.MAX_THICKNESS = 8
-local MEDIA = "Interface\\AddOns\\NW_CursorRing\\Media\\"
+local MEDIA = "Interface\\AddOns\\AureoleCursor\\Media\\"
 
 -- Texturen gibt es in mehreren Aufloesungen, damit verkleinerte Ringe nicht verpixeln.
 -- Gewaehlt wird nach der Groesse in Bildschirm-Pixeln (siehe ns:ScreenPixels).
@@ -104,8 +104,8 @@ function ns:UpdateAlpha()
 end
 
 function ns:ResetSettings()
-    NW_CursorRingDB.cfg = copy(self.defaults)
-    self.cfg = NW_CursorRingDB.cfg
+    AureoleCursorDB.cfg = copy(self.defaults)
+    self.cfg = AureoleCursorDB.cfg
     self:Apply()
 end
 
@@ -146,8 +146,8 @@ end)
 
 ns:On("ADDON_LOADED", function(_, name)
     if name ~= ADDON then return end
-    NW_CursorRingDB = NW_CursorRingDB or {}
-    local db = NW_CursorRingDB
+    AureoleCursorDB = AureoleCursorDB or {}
+    local db = AureoleCursorDB
     db.runs, db.build = nil, nil -- Reste der Phase-0-Probe
     db.cfg = db.cfg or {}
     local tr = db.cfg.trail
@@ -183,7 +183,7 @@ end)
 ------------------------------------------------------------------------
 
 local L = ns.L
-local PREFIX = "|cff66ccffNW_CursorRing|r "
+local PREFIX = "|cff66ccffAureole Cursor|r "
 local RINGS = { main = true, gcd = true, cast = true, dot = true, trail = true }
 
 local function say(...)
@@ -195,8 +195,9 @@ local function onOff(s)
     if s == "off" then return false end
 end
 
-SLASH_NWCR1 = "/nwcr"
-SlashCmdList["NWCR"] = function(msg)
+SLASH_AUREOLECURSOR1 = "/aureole"
+SLASH_AUREOLECURSOR2 = "/aureolecursor"
+SlashCmdList["AUREOLECURSOR"] = function(msg)
     local cfg = ns.cfg
     if not cfg then return end
     local args = {}

@@ -1,4 +1,4 @@
--- NW_CursorRing: English (enUS). Fallback for all languages: missing keys in another locale show this text.
+-- Aureole Cursor: English (enUS). Fallback for all languages: missing keys in another locale show this text.
 local ADDON, ns = ...
 
 local L = {}
@@ -68,8 +68,8 @@ L.modeCustom = "Custom color"
 L.slashReset = "Settings reset."
 L.slashStatus = "scale %.2f, alpha %.2f, combat only: %s"
 L.slashElement = "  %s: %s, size %d"
-L.slashRingUsage = "/nwcr ring %s on | off | size <number>"
-L.slashHelp = "/nwcr config opens the settings. Shortcuts: scale <n> | alpha <n> | combat on|off | ring main|gcd|cast|dot|trail on|off|size <n> | reset"
+L.slashRingUsage = "/aureole ring %s on | off | size <number>"
+L.slashHelp = "/aureole config opens the settings. Shortcuts: scale <n> | alpha <n> | combat on|off | ring main|gcd|cast|dot|trail on|off|size <n> | reset"
 L.yes = "yes"
 L.no = "no"
 L.stateOn = "on"

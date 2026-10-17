@@ -1,4 +1,4 @@
--- NW_CursorRing: Deutsch (deDE). Fehlende Schlüssel zeigen den englischen Text aus enUS.lua.
+-- Aureole Cursor: Deutsch (deDE). Fehlende Schlüssel zeigen den englischen Text aus enUS.lua.
 if GetLocale() ~= "deDE" then return end
 local ADDON, ns = ...
 
@@ -68,8 +68,8 @@ L.modeCustom = "Eigene Farbe"
 L.slashReset = "Einstellungen zurückgesetzt."
 L.slashStatus = "Skalierung %.2f, Deckkraft %.2f, nur im Kampf: %s"
 L.slashElement = "  %s: %s, Größe %d"
-L.slashRingUsage = "/nwcr ring %s on | off | size <Zahl>"
-L.slashHelp = "/nwcr config öffnet die Einstellungen. Kurzbefehle: scale <n> | alpha <n> | combat on|off | ring main|gcd|cast|dot|trail on|off|size <n> | reset"
+L.slashRingUsage = "/aureole ring %s on | off | size <Zahl>"
+L.slashHelp = "/aureole config öffnet die Einstellungen. Kurzbefehle: scale <n> | alpha <n> | combat on|off | ring main|gcd|cast|dot|trail on|off|size <n> | reset"
 L.yes = "ja"
 L.no = "nein"
 L.stateOn = "an"

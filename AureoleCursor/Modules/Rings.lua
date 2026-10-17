@@ -1,4 +1,4 @@
--- NW_CursorRing: die drei Ringe. Main = fester Ring, GCD und Cast = Cooldown-Ringe
+-- Aureole Cursor: die drei Ringe. Main = fester Ring, GCD und Cast = Cooldown-Ringe
 -- (Swipe mit Ring-Textur). Zeiten kommen als Duration-Objekte, es wird nie mit Secret-Werten gerechnet.
 local ADDON, ns = ...
 
