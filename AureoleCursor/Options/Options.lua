@@ -27,6 +27,10 @@ local function proxy(category, key, field, vtype, label)
     local function set(value)
         section(key)[field] = value
         ns:Apply()
+        -- the extra trail colors depend on these (through the color count): tell them to re-evaluate
+        if key == "trail" and (field == "enabled" or field == "colorMode") and Settings.NotifyUpdate then
+            Settings.NotifyUpdate(varName(key, "colorCount"))
+        end
     end
     return Settings.RegisterProxySetting(category, varName(key, field), vtype, label, defaultOf(key, field), get, set)
 end
@@ -145,11 +149,27 @@ local function buildElement(category, layout, key, title, opts)
         local function colorable()
             return ns.cfg[key].enabled and ns.cfg[key].shape ~= "energy"
         end
+        local function custom()
+            return colorable() and ns.cfg[key].colorMode == "custom"
+        end
         local dropdown = Settings.CreateDropdown(category, mode, modes, L.colorModeTip)
         dropdown:SetParentInitializer(enable, colorable)
+        -- Custom color: 1-4 colors, blended along the trail (gradient) or picked at random per dot.
+        -- The extra colors hang off the color count so they follow it; the count itself reports changes of
+        -- the enable switch and the color mode (see proxy).
+        local count = slider(category, key, "colorCount", L.colorCount, L.colorCountTip, 1, 4, 1)
+        count:SetParentInitializer(dropdown, custom)
         local swatch = colorSwatch(category, key, L.color, L.colorTip)
-        swatch:SetParentInitializer(dropdown, function()
-            return colorable() and ns.cfg[key].colorMode == "custom"
+        swatch:SetParentInitializer(dropdown, custom)
+        for i = 2, 4 do
+            local extra = colorSwatch(category, key, L["color" .. i], L.colorTip, "color" .. i)
+            extra:SetParentInitializer(count, function()
+                return custom() and ns.cfg[key].colorCount >= i
+            end)
+        end
+        local blend = checkbox(category, key, "gradient", L.gradient, L.gradientTip)
+        blend:SetParentInitializer(count, function()
+            return custom() and ns.cfg[key].colorCount > 1
         end)
     else
         -- The color picker is greyed out while class color is active
@@ -196,6 +216,7 @@ local function shapeDropdown(category, key, child, tip, choices)
             -- Energy locks color mode and color: the parent toggle and color mode report the change to their children
             Settings.NotifyUpdate(varName(key, "enabled"))
             Settings.NotifyUpdate(varName(key, "colorMode"))
+            Settings.NotifyUpdate(varName(key, "colorCount"))
         end
     end
     local shape = Settings.RegisterProxySetting(category, varName(key, "shape"), Settings.VarType.String, L.shape,

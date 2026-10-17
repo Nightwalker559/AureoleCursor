@@ -19,6 +19,10 @@ ns.defaults = {
     -- presets: default size, duration and spacing per shape; on a shape change the current values are remembered
     -- for the old shape and the remembered ones (initially these defaults) are applied for the new shape.
     trail = { enabled = true, size = 16, duration = 0.45, spacing = 6, shrink = true, shape = "dot", colorMode = "rainbow", color = { 1, 1, 1, 0.5 },
+              -- custom color mode: colorCount colors (color, color2..color4); gradient blends between them along the
+              -- trail, otherwise every dot picks one of them at random. Opacity comes from color[4] for all of them.
+              colorCount = 1, gradient = true,
+              color2 = { 0.3, 0.6, 1, 0.5 }, color3 = { 0.8, 0.3, 1, 0.5 }, color4 = { 1, 0.4, 0.3, 0.5 },
               presets = {
                   dot = { size = 16, duration = 0.45, spacing = 6 },
                   leaf = { size = 20, duration = 0.9, spacing = 22 },

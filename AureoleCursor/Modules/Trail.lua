@@ -10,6 +10,7 @@ local SHRINK_TO = 0.2
 local RAINBOW_LENGTH = 400   -- distance in pixels for one pass through all colors
 local MIST_SIZE = 3            -- mist clouds are this many times larger than the configured size (so they overlap)
 local ENERGY_SPAN = 0.5      -- energy shape: share of the tile one dot shows (random section)
+local GRADIENT_SEGMENT = 200   -- distance in pixels to blend from one custom color to the next
 
 -- Seasonal palettes: each dot gets one of the colors at random
 local PALETTES = {
@@ -41,7 +42,7 @@ for i = 1, POOL do
 end
 
 local lastX, lastY
-local rainbow, palette, spin, energy, colorAlpha = false, nil, false, false, 1
+local rainbow, palette, gradient, spin, energy, colorAlpha = false, nil, nil, false, false, 1
 local travelled = 0
 
 -- Hue (0..1) at full saturation and brightness, as RGB
@@ -55,6 +56,16 @@ local function hue(h)
     elseif i == 3 then return 0, 1 - f, 1
     elseif i == 4 then return f, 0, 1
     else return 1, 0, 1 - f end
+end
+
+-- Color along a closed gradient through the list: blends from each color to the next, the last one back to the first.
+local function gradientColor(list, distance)
+    local pos = distance / GRADIENT_SEGMENT
+    local i = math.floor(pos)
+    local f = pos - i
+    local n = #list
+    local a, b = list[i % n + 1], list[(i + 1) % n + 1]
+    return a[1] + (b[1] - a[1]) * f, a[2] + (b[2] - a[2]) * f, a[3] + (b[3] - a[3]) * f
 end
 
 -- Energy shape: round mask per dot, created on first use. The mask is attached to the dot and gets
@@ -101,6 +112,9 @@ local function spawn(x, y)
     if palette then
         local c = palette[math.random(#palette)]
         d.tex:SetVertexColor(c[1], c[2], c[3], colorAlpha)
+    elseif gradient then
+        local r, g, b = gradientColor(gradient, travelled)
+        d.tex:SetVertexColor(r, g, b, colorAlpha)
     elseif rainbow then
         local r, g, b = hue(travelled / RAINBOW_LENGTH)
         d.tex:SetVertexColor(r, g, b, colorAlpha)
@@ -179,11 +193,20 @@ function Trail:Apply()
     local texture = ns:ShapeTexture(t.shape, size)
     -- Color mode: rainbow or season (color per dot in spawn), class color or custom color
     local r, g, b, a = ns:GetRingColor({ classColor = t.colorMode == "class", color = t.color })
-    rainbow, palette, colorAlpha = t.colorMode == "rainbow", PALETTES[t.colorMode], a
+    rainbow, palette, gradient, colorAlpha = t.colorMode == "rainbow", PALETTES[t.colorMode], nil, a
+    if t.colorMode == "custom" and (t.colorCount or 1) > 1 then
+        -- several custom colors: blended along the trail, or one picked at random per dot
+        local list = { { r, g, b } }
+        for i = 2, t.colorCount do
+            local c = t["color" .. i]
+            list[i] = { c[1], c[2], c[3] }
+        end
+        if t.gradient then gradient = list else palette = list end
+    end
     spin = t.shape ~= "dot" and t.shape ~= nil -- leaves, snowflakes and stars are randomly rotated
     energy = t.shape == "energy"
     if energy then -- energy keeps its original colors: color mode and color do not apply, only the opacity
-        rainbow, palette, r, g, b = false, nil, 1, 1, 1
+        rainbow, palette, gradient, r, g, b = false, nil, nil, 1, 1, 1
     end
     local target = t.shrink and SHRINK_TO or 1
     for _, d in ipairs(dots) do
