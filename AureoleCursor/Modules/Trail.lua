@@ -8,6 +8,7 @@ local POOL = 256           -- Punkte, die gleichzeitig sichtbar sein koennen
 local MAX_PER_FRAME = 40   -- Obergrenze je Frame; schnelle Mausbewegungen bleiben so lueckenlos, nur Spruenge werden gekappt
 local SHRINK_TO = 0.2
 local RAINBOW_LENGTH = 400   -- Strecke in Pixeln fuer einmal durch alle Farben
+local ENERGY_SPAN = 0.5      -- Energie-Form: Anteil der Kachel, den ein Punkt zeigt (Ausschnitt zufaellig)
 
 -- Jahreszeiten-Paletten: jeder Punkt bekommt zufaellig eine der Farben
 local PALETTES = {
@@ -39,7 +40,7 @@ for i = 1, POOL do
 end
 
 local lastX, lastY
-local rainbow, palette, spin, colorAlpha = false, nil, false, 1
+local rainbow, palette, spin, energy, colorAlpha = false, nil, false, false, 1
 local travelled = 0
 
 -- Farbton (0..1) bei voller Saettigung und Helligkeit in RGB
@@ -55,9 +56,38 @@ local function hue(h)
     else return 1, 0, 1 - f end
 end
 
+-- Energie-Form: Rundmaske je Punkt, erst beim ersten Bedarf angelegt. Die Maske haengt am Punkt und bekommt
+-- dieselbe Schrumpf-Animation, damit sie mit dem Punkt mitwaechst (Alpha-Ausblenden betrifft nur die Textur).
+local function applyMask(d, t)
+    if not d.mask then
+        d.mask = frame:CreateMaskTexture()
+        d.mask:SetTexture(ns.TRAIL_MASK, "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
+        d.mask:SetAllPoints(d.tex)
+        d.maskGroup = d.mask:CreateAnimationGroup()
+        d.maskShrink = d.maskGroup:CreateAnimation("Scale")
+        d.maskShrink:SetScaleFrom(1, 1)
+    end
+    if not d.masked then
+        d.tex:AddMaskTexture(d.mask)
+        d.masked = true
+    end
+    local target = t.shrink and SHRINK_TO or 1
+    d.maskShrink:SetDuration(t.duration)
+    d.maskShrink:SetScaleTo(target, target)
+end
+
+local function removeMask(d)
+    if d.masked then
+        d.tex:RemoveMaskTexture(d.mask)
+        d.masked = false
+        d.maskGroup:Stop()
+    end
+end
+
 local function stopAll()
     for _, d in ipairs(dots) do
         d.group:Stop()
+        if d.maskGroup then d.maskGroup:Stop() end
         d.tex:Hide()
     end
 end
@@ -66,6 +96,7 @@ local function spawn(x, y)
     local d = dots[nextDot]
     nextDot = nextDot % POOL + 1
     d.group:Stop()
+    if d.maskGroup then d.maskGroup:Stop() end
     if palette then
         local c = palette[math.random(#palette)]
         d.tex:SetVertexColor(c[1], c[2], c[3], colorAlpha)
@@ -74,10 +105,15 @@ local function spawn(x, y)
         d.tex:SetVertexColor(r, g, b, colorAlpha)
     end
     if spin then d.tex:SetRotation(math.random() * 2 * math.pi) end
+    if energy then
+        local u, v = math.random(), math.random() -- Kachel ist nahtlos (REPEAT), jeder Punkt zeigt einen anderen Ausschnitt
+        d.tex:SetTexCoord(u, u + ENERGY_SPAN, v, v + ENERGY_SPAN)
+    end
     d.tex:ClearAllPoints()
     d.tex:SetPoint("CENTER", UIParent, "BOTTOMLEFT", x, y)
     d.tex:Show()
     d.group:Play()
+    if energy and d.maskGroup then d.maskGroup:Play() end
 end
 
 frame:SetScript("OnUpdate", function()
@@ -132,9 +168,17 @@ function Trail:Apply()
     local r, g, b, a = ns:GetRingColor({ classColor = t.colorMode == "class", color = t.color })
     rainbow, palette, colorAlpha = t.colorMode == "rainbow", PALETTES[t.colorMode], a
     spin = t.shape ~= "dot" and t.shape ~= nil -- Blaetter, Flocken und Sterne liegen zufaellig gedreht
+    energy = t.shape == "energy"
     local target = t.shrink and SHRINK_TO or 1
     for _, d in ipairs(dots) do
-        d.tex:SetTexture(texture)
+        if energy then
+            d.tex:SetTexture(texture, "REPEAT", "REPEAT")
+            applyMask(d, t)
+        else
+            d.tex:SetTexture(texture)
+            d.tex:SetTexCoord(0, 1, 0, 1)
+            removeMask(d)
+        end
         d.tex:SetSize(t.size, t.size)
         d.tex:SetVertexColor(r, g, b, a)
         d.tex:SetRotation(0)

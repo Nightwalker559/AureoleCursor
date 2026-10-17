@@ -59,7 +59,13 @@ local SHAPE_RES = { { 30, 32 }, { 60, 64 }, { math.huge, 128 } }
 local SHAPE_FILE = { leaf = "Trail\\Leaf", snow = "Trail\\Snow", star = "Trail\\Star",
     gap = "Dot\\Gap", ring = "Dot\\DotRing", spark = "Dot\\Spark" }
 
+-- "Energie": Blizzard-Textur aus dem Spiel (FileID, wird nicht mitgeliefert), nahtlose Kachel mit Alpha-Kanal.
+ns.ENERGY_FILE_ID = 6735695
+-- Weiche Rundmaske, schneidet aus der Kachel einen runden Punkt.
+ns.TRAIL_MASK = MEDIA .. "Trail\\Mask_64.tga"
+
 function ns:ShapeTexture(shape, size)
+    if shape == "energy" then return self.ENERGY_FILE_ID end
     local file = SHAPE_FILE[shape]
     if not file then return self:DotTexture(size) end
     return MEDIA .. file .. "_" .. pickResolution(SHAPE_RES, self:ScreenPixels(size or 16)) .. ".tga"
