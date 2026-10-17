@@ -145,8 +145,13 @@ local function buildElement(category, layout, key, title, opts)
             return ns.cfg[key].enabled and ns.cfg[key].colorMode == "custom"
         end)
     else
-        child(checkbox(category, key, "classColor", L.classColor, L.classColorTip))
-        child(colorSwatch(category, key, L.color, L.colorTip))
+        -- Die Farbwahl ist bei aktiver Klassenfarbe ausgegraut
+        local class = checkbox(category, key, "classColor", L.classColor, L.classColorTip)
+        child(class)
+        local swatch = colorSwatch(category, key, L.color, L.colorTip)
+        swatch:SetParentInitializer(class, function()
+            return ns.cfg[key].enabled and not ns.cfg[key].classColor
+        end)
     end
     child(opacitySlider(category, key, L.opacity, L.opacityTip))
     if opts.combatTint then
