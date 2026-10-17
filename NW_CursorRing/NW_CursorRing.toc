@@ -8,12 +8,11 @@
 ## IconTexture: Interface\AddOns\NW_CursorRing\Media\Ring4_128
 ## SavedVariables: NW_CursorRingDB
 
-Locales\enUS.lua
-Locales\deDE.lua
-
-Core.lua
-Cursor.lua
-Rings.lua
-Dot.lua
-Trail.lua
-Config.lua
+Locale\NW_CursorRingLocale_enUS.lua
+Locale\NW_CursorRingLocale_deDE.lua
+Core\Core.lua
+Core\Cursor.lua
+Modules\Rings.lua
+Modules\Dot.lua
+Modules\Trail.lua
+Options\Options.lua
