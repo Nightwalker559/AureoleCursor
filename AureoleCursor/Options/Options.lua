@@ -141,11 +141,15 @@ local function buildElement(category, layout, key, title, opts)
             c:Add("custom", L.modeCustom)
             return c:GetData()
         end
+        -- Die Energie-Form hat feste Originalfarben: Farbmodus und Farbe sind dann ausgegraut
+        local function colorable()
+            return ns.cfg[key].enabled and ns.cfg[key].shape ~= "energy"
+        end
         local dropdown = Settings.CreateDropdown(category, mode, modes, L.colorModeTip)
-        child(dropdown)
+        dropdown:SetParentInitializer(enable, colorable)
         local swatch = colorSwatch(category, key, L.color, L.colorTip)
         swatch:SetParentInitializer(dropdown, function()
-            return ns.cfg[key].enabled and ns.cfg[key].colorMode == "custom"
+            return colorable() and ns.cfg[key].colorMode == "custom"
         end)
     else
         -- Die Farbwahl ist bei aktiver Klassenfarbe ausgegraut
@@ -182,6 +186,11 @@ local function shapeDropdown(category, key, child, tip, choices)
         ns:Apply()
         if key == "dot" and Settings.NotifyUpdate then
             Settings.NotifyUpdate(varName(key, "size")) -- Groessenregler zeigt die Groesse der neuen Form
+        end
+        if key == "trail" and Settings.NotifyUpdate then
+            -- Energie sperrt Farbmodus und Farbe: Elternschalter und Farbmodus melden die Aenderung an ihre Kinder
+            Settings.NotifyUpdate(varName(key, "enabled"))
+            Settings.NotifyUpdate(varName(key, "colorMode"))
         end
     end
     local shape = Settings.RegisterProxySetting(category, varName(key, "shape"), Settings.VarType.String, L.shape,

@@ -169,6 +169,9 @@ function Trail:Apply()
     rainbow, palette, colorAlpha = t.colorMode == "rainbow", PALETTES[t.colorMode], a
     spin = t.shape ~= "dot" and t.shape ~= nil -- Blaetter, Flocken und Sterne liegen zufaellig gedreht
     energy = t.shape == "energy"
+    if energy then -- Energie behaelt ihre Originalfarben: Farbmodus und Farbe gelten nicht, nur die Deckkraft
+        rainbow, palette, r, g, b = false, nil, 1, 1, 1
+    end
     local target = t.shrink and SHRINK_TO or 1
     for _, d in ipairs(dots) do
         if energy then
