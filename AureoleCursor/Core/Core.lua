@@ -47,16 +47,17 @@ end
 
 function ns:RingTexture(level, size)
     level = math.max(1, math.min(ns.MAX_THICKNESS, math.floor(level or 4)))
-    return MEDIA .. "Ring" .. level .. "_" .. pickResolution(RING_RES, self:ScreenPixels(size or 40)) .. ".tga"
+    return MEDIA .. "Rings\\Ring" .. level .. "_" .. pickResolution(RING_RES, self:ScreenPixels(size or 40)) .. ".tga"
 end
 
 function ns:DotTexture(size)
-    return MEDIA .. "Dot_" .. pickResolution(DOT_RES, self:ScreenPixels(size or 8)) .. ".tga"
+    return MEDIA .. "Dot\\Dot_" .. pickResolution(DOT_RES, self:ScreenPixels(size or 8)) .. ".tga"
 end
 
 -- Formen der Mauspur (Blatt, Flocke, Stern) und des Mittelpunkts (Fadenkreuz, Punkt mit Ring, Funkeln); "dot" ist der normale Punkt.
 local SHAPE_RES = { { 30, 32 }, { 60, 64 }, { math.huge, 128 } }
-local SHAPE_FILE = { leaf = "Leaf", snow = "Snow", star = "Star", gap = "Gap", ring = "DotRing", spark = "Spark" }
+local SHAPE_FILE = { leaf = "Trail\\Leaf", snow = "Trail\\Snow", star = "Trail\\Star",
+    gap = "Dot\\Gap", ring = "Dot\\DotRing", spark = "Dot\\Spark" }
 
 function ns:ShapeTexture(shape, size)
     local file = SHAPE_FILE[shape]
