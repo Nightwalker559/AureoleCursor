@@ -15,7 +15,7 @@ ns.defaults = {
              combatTint = false, combatColor = { 1, 0.1, 0.1, 1 } }, -- im Kampf andere Farbe (Deckkraft bleibt)
     gcd  = { enabled = true, size = 28, thickness = 6, classColor = false, color = { 1, 0.82, 0, 1 }, track = true, trackAlpha = 0.5 },
     cast = { enabled = true, size = 54, thickness = 6, classColor = false, color = { 1, 1, 1, 1 }, track = true, trackAlpha = 0.5 },
-    dot  = { enabled = true, size = 8, shape = "dot", sizes = { dot = 8, gap = 22, ring = 18, spark = 18 }, pulse = true, pulseButton = "left", pulseSize = 3, classColor = false, color = { 1, 1, 1, 0.9 } },
+    dot  = { enabled = true, size = 10, shape = "dot", sizes = { dot = 10, gap = 22, ring = 24, spark = 24 }, pulse = true, pulseButton = "both", pulseSize = 4, classColor = false, color = { 1, 1, 1, 0.9 } },
     -- presets: Standardgroesse, -dauer und -abstand je Form; beim Formwechsel werden die aktuellen Werte fuer die alte
     -- Form gemerkt und die gemerkten (zuerst diese Standardwerte) der neuen Form uebernommen.
     trail = { enabled = true, size = 16, duration = 0.45, spacing = 6, shrink = true, shape = "dot", colorMode = "rainbow", color = { 1, 1, 1, 0.5 },
@@ -25,7 +25,7 @@ ns.defaults = {
                   snow = { size = 18, duration = 0.9, spacing = 16 },
                   star = { size = 18, duration = 0.7, spacing = 14 },
                   mist = { size = 14, duration = 1.0, spacing = 5 },
-                  energy = { size = 28, duration = 0.55, spacing = 8 },
+                  energy = { size = 28, duration = 0.55, spacing = 5 },
               } },
 }
 
