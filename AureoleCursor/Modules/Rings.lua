@@ -48,7 +48,7 @@ ns.gcdCooldown, ns.castCooldown = gcdCD, castCD
 -- While the GCD is running, set the swipe from the duration object of the GCD spell.
 -- Once it is over, the swipe ends by itself.
 local function updateGCD()
-    if not ns.cfg or not ns.cfg.gcd.enabled then return end
+    if not ns.cfg or not ns.cfg.gcd.enabled or not ns:RingActive("gcd") then return end
     local info = C_Spell.GetSpellCooldown(GCD_SPELL)
     if info and info.isActive then
         local d = C_Spell.GetSpellCooldownDuration(GCD_SPELL)
@@ -66,7 +66,7 @@ ns:On("SPELL_UPDATE_COOLDOWN", updateGCD)
 -- Always read the state fresh: if something is running, set the swipe, otherwise clear it.
 -- A cast fills up, a channel drains.
 local function updateCast()
-    if not ns.cfg or not ns.cfg.cast.enabled then return end
+    if not ns.cfg or not ns.cfg.cast.enabled or not ns:RingActive("cast") then return end
     local d = UnitCastingDuration("player")
     local channel = false
     if not d then
@@ -133,18 +133,19 @@ function Rings:Apply()
     applyMainColor()
     mainRing:SetShown(m.enabled)
 
-    for _, trio in ipairs({ { gcdCD, cfg.gcd, gcdTrack }, { castCD, cfg.cast, castTrack } }) do
+    for _, trio in ipairs({ { gcdCD, cfg.gcd, gcdTrack, "gcd" }, { castCD, cfg.cast, castTrack, "cast" } }) do
         local cd, ring, track = trio[1], trio[2], trio[3]
+        local active = ring.enabled and ns:RingActive(trio[4]) -- the ring layout can switch a ring off
         track:SetTexture(ns:RingTexture(ring.thickness, ring.size))
         track:SetSize(ring.size, ring.size)
         local r, g, b = ns:GetRingColor(ring)
         track:SetVertexColor(r, g, b, ring.trackAlpha)
-        track:SetShown(ring.enabled and ring.track)
+        track:SetShown(active and ring.track)
         cd:SetFrameStrata(strata)
         cd:SetSwipeTexture(ns:RingTexture(ring.thickness, ring.size))
         cd:SetSize(ring.size, ring.size)
         cd:SetSwipeColor(ns:GetRingColor(ring))
-        if ring.enabled then cd:Show() else cd:Clear(); cd:Hide() end
+        if active then cd:Show() else cd:Clear(); cd:Hide() end
     end
     gcdCD:SetReverse(false)
 

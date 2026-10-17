@@ -7,6 +7,15 @@ local L = ns.L
 
 local STRATA = { "BACKGROUND", "LOW", "MEDIUM", "HIGH", "DIALOG", "FULLSCREEN", "FULLSCREEN_DIALOG", "TOOLTIP" }
 
+-- While a section is being built, the helpers below collect their initializers here, so the whole section
+-- (header included) can get a shown predicate afterwards (see buildElement).
+local sectionItems
+
+local function track(initializer)
+    if sectionItems then sectionItems[#sectionItems + 1] = initializer end
+    return initializer
+end
+
 local function section(key)
     if key == nil then return ns.cfg end
     return ns.cfg[key]
@@ -37,14 +46,14 @@ end
 
 local function checkbox(category, key, field, label, tip)
     local s = proxy(category, key, field, Settings.VarType.Boolean, label)
-    return Settings.CreateCheckbox(category, s, tip)
+    return track(Settings.CreateCheckbox(category, s, tip))
 end
 
 local function slider(category, key, field, label, tip, min, max, step, formatter)
     local s = proxy(category, key, field, Settings.VarType.Number, label)
     local options = Settings.CreateSliderOptions(min, max, step)
     options:SetLabelFormatter(MinimalSliderWithSteppersMixin.Label.Right, formatter)
-    return Settings.CreateSlider(category, s, options, tip)
+    return track(Settings.CreateSlider(category, s, options, tip))
 end
 
 local function percent(v)
@@ -78,7 +87,7 @@ local function colorSetting(category, key, label, field)
 end
 
 local function colorSwatch(category, key, label, tip, field)
-    return Settings.CreateColorSwatch(category, colorSetting(category, key, label, field), tip)
+    return track(Settings.CreateColorSwatch(category, colorSetting(category, key, label, field), tip))
 end
 
 local function opacitySlider(category, key, label, tip)
@@ -91,7 +100,7 @@ local function opacitySlider(category, key, label, tip)
         ns.defaults[key].color[4], get, set)
     local options = Settings.CreateSliderOptions(0.05, 1, 0.05)
     options:SetLabelFormatter(MinimalSliderWithSteppersMixin.Label.Right, percent)
-    return Settings.CreateSlider(category, s, options, tip)
+    return track(Settings.CreateSlider(category, s, options, tip))
 end
 
 ------------------------------------------------------------------------
@@ -99,11 +108,25 @@ end
 ------------------------------------------------------------------------
 
 local function header(layout, title)
-    layout:AddInitializer(CreateSettingsListSectionHeaderInitializer(title))
+    local initializer = CreateSettingsListSectionHeaderInitializer(title)
+    layout:AddInitializer(initializer)
+    track(initializer)
 end
 
 local function buildGeneral(category, layout)
     header(layout, L.general)
+
+    -- Ring layout: which rings are used at all; the options of a ring that is switched off are hidden
+    local layoutSetting = proxy(category, nil, "ringLayout", Settings.VarType.String, L.ringLayout)
+    local function layouts()
+        local c = Settings.CreateControlTextContainer()
+        c:Add("individual", L.layoutIndividual)
+        c:Add("maincast", L.layoutMainCast)
+        c:Add("maingcd", L.layoutMainGcd)
+        return c:GetData()
+    end
+    Settings.CreateDropdown(category, layoutSetting, layouts, L.ringLayoutTip)
+
     slider(category, nil, "scale", L.scale, L.scaleTip, 0.5, 3, 0.05, twoDecimals)
     slider(category, nil, "alpha", L.alpha, L.alphaTip, 0.1, 1, 0.05, percent)
     slider(category, nil, "idleAlpha", L.idleAlpha, L.idleAlphaTip, 0, 1, 0.05, percent)
@@ -123,6 +146,7 @@ end
 -- opts: size = { min, max, step }, thickness (ring thickness), track (background track),
 --       extra = function(category, key, child) for element-specific options.
 local function buildElement(category, layout, key, title, opts)
+    sectionItems = opts.ring and {} or nil
     header(layout, title)
     local enable = checkbox(category, key, "enabled", L.enabled, L[key .. "Tip"])
     local function child(initializer)
@@ -199,6 +223,14 @@ local function buildElement(category, layout, key, title, opts)
     if opts.track then
         child(checkbox(category, key, "track", L.track, L.trackTip))
         child(slider(category, key, "trackAlpha", L.trackAlpha, L.trackAlphaTip, 0.05, 1, 0.05, percent))
+    end
+    if sectionItems then
+        -- ring sections disappear completely when the ring layout does not use the ring; the panel
+        -- re-evaluates shown predicates after every setting change
+        for _, item in ipairs(sectionItems) do
+            item:AddShownPredicate(function() return ns:RingActive(key) end)
+        end
+        sectionItems = nil
     end
 end
 
@@ -279,8 +311,8 @@ local function build()
 
     buildGeneral(category, layout)
     buildElement(category, layout, "main", L.main, { thickness = true, combatTint = true })
-    buildElement(category, layout, "gcd", L.gcd, { thickness = true, track = true })
-    buildElement(category, layout, "cast", L.cast, { thickness = true, track = true })
+    buildElement(category, layout, "gcd", L.gcd, { thickness = true, track = true, ring = true })
+    buildElement(category, layout, "cast", L.cast, { thickness = true, track = true, ring = true })
     buildElement(category, layout, "dot", L.dot, { extra = dotOptions })
     buildElement(category, layout, "trail", L.trail, { size = { 4, 64, 1 }, colorMode = true, extra = trailOptions })
 

@@ -11,6 +11,7 @@ ns.defaults = {
     combatOnly = false,
     idleAlpha = 1.0,          -- share of the opacity applied out of combat
     hideOnMouselook = false,  -- hide while the camera is being turned with the mouse
+    ringLayout = "individual", -- "individual" (every ring on its own), "maincast" (Main + Cast Ring) or "maingcd" (Main + GCD Ring)
     main = { enabled = true, size = 40, thickness = 6, classColor = false, color = { 1, 1, 1, 0.8 },
              combatTint = false, combatColor = { 1, 0.1, 0.1, 1 } }, -- different color in combat (opacity is kept)
     gcd  = { enabled = true, size = 28, thickness = 6, classColor = false, color = { 1, 0.82, 0, 1 }, track = true, trackAlpha = 0.5 },
@@ -111,6 +112,15 @@ function ns:Apply()
     for _, m in ipairs(self.modules) do
         if m.Apply then m:Apply() end
     end
+end
+
+-- Ring layout (General): "individual" = every ring has its own switch, "maincast" / "maingcd" = Main Ring plus only
+-- the Cast or only the GCD ring. The other ring is off then and its options are hidden; its own settings stay untouched.
+function ns:RingActive(key)
+    local layout = self.cfg.ringLayout
+    if key == "gcd" then return layout ~= "maincast" end
+    if key == "cast" then return layout ~= "maingcd" end
+    return true
 end
 
 function ns:UpdateVisibility()

@@ -6,7 +6,12 @@ ns.L = L
 
 -- Settings: general
 L.general = "General"
-L.scale = "Scale"
+L.ringLayout = "Ring layout"
+L.ringLayoutTip = "Which rings are used. \"Individual rings\" lets you switch every ring on or off yourself. With \"Main + Cast Ring\" or \"Main + GCD Ring\" the other ring is turned off and its options are hidden."
+L.layoutIndividual = "Individual rings"
+L.layoutMainCast = "Main + Cast Ring"
+L.layoutMainGcd = "Main + GCD Ring"
+L.scale ="Scale"
 L.scaleTip = "Scales all rings and the center dot together."
 L.alpha = "Overall opacity"
 L.alphaTip = "Overall transparency of all elements at the cursor."

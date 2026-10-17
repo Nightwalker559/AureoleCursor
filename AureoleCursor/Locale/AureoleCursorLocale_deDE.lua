@@ -6,7 +6,12 @@ local L = ns.L
 
 -- Settings: general
 L.general = "Allgemein"
-L.scale = "Skalierung"
+L.ringLayout = "Ring-Layout"
+L.ringLayoutTip = "Welche Ringe verwendet werden. Bei \"Einzelne Ringe\" schaltest du jeden Ring selbst ein oder aus. Bei \"Main + Cast-Ring\" oder \"Main + GCD-Ring\" ist der jeweils andere Ring aus und seine Optionen sind ausgeblendet."
+L.layoutIndividual = "Einzelne Ringe"
+L.layoutMainCast = "Main + Cast-Ring"
+L.layoutMainGcd = "Main + GCD-Ring"
+L.scale ="Skalierung"
 L.scaleTip = "Skaliert alle Ringe und den Mittelpunkt gemeinsam."
 L.alpha = "Deckkraft gesamt"
 L.alphaTip = "Gesamt-Transparenz aller Elemente am Mauszeiger."
