@@ -180,6 +180,7 @@ function ns:UpdateAlpha()
     local a = self:CurrentAlpha()
     self.anchor:SetAlpha(a)
     if self.trailFrame then self.trailFrame:SetAlpha(a) end
+    if self.UpdatePointerIcon then self.UpdatePointerIcon() end -- the pointer copy ignores the anchor's alpha
 end
 
 function ns:ResetSettings()

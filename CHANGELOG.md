@@ -2,6 +2,13 @@
 
 ---
 
+## 1.0.4
+
+### Pointer glow
+- The copy of the pointer shown while the game hides the cursor (right mouse button held, camera turned) is now always fully opaque. It no longer follows the overall opacity, only the glow does. It is still hidden when everything else is invisible (overall opacity 0).
+
+---
+
 ## 1.0.3
 
 ### Mouse trail

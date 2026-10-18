@@ -37,7 +37,9 @@ local COLOR_FIELDS = { "color", "color2" }
 -- Position of the glow in units of the anchor: top left corner relative to the anchor's center, width and height (set in Apply)
 local geometry
 
+-- The pointer copy is always fully opaque: it ignores the overall opacity of the anchor (only the glow is faded by it).
 local icon = ns.anchor:CreateTexture(nil, "OVERLAY", nil, 7)
+icon:SetIgnoreParentAlpha(true)
 icon:Hide()
 ns.pointerIcon = icon
 
@@ -53,10 +55,14 @@ ns:RegisterModule(Glow)
 -- The game reports when it starts and stops hiding the pointer (looking = mouselook, turning = right mouse button).
 local looking, turning = false, false
 
+-- Since the copy ignores the anchor's opacity, it is hidden by hand when everything else is invisible (overall opacity 0,
+-- e.g. hidden while mouselooking or out of combat).
 local function updateIcon()
     local cfg = ns.cfg and ns.cfg.glow
-    icon:SetShown(cfg and cfg.showWhileLooking and ns:RingActive("glow") and (looking or turning) or false)
+    icon:SetShown(cfg and cfg.showWhileLooking and ns:RingActive("glow") and (looking or turning)
+        and ns:CurrentAlpha() > 0 or false)
 end
+ns.UpdatePointerIcon = updateIcon
 
 -- Shows the glow in its colors: in combat one color, the combat color, if it is switched on for the glow (General); otherwise
 -- one or two colors across the texture, top to bottom or left to right. With the gradient (blend) the two colors are blended
