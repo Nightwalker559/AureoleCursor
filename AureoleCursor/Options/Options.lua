@@ -218,7 +218,8 @@ local function buildElement(category, layout, key, title, opts)
         -- Color mode as a dropdown; the colors are only active for "Custom color"
         local modeDD = dropdown(category, key, "colorMode", L.colorMode, L.colorModeTip, {
             { "rainbow", L.modeRainbow }, { "class", L.modeClass }, { "autumn", L.modeAutumn },
-            { "winter", L.modeWinter }, { "christmas", L.modeChristmas }, { "custom", L.modeCustom },
+            { "winter", L.modeWinter }, { "christmas", L.modeChristmas }, { "fire", L.modeFire }, { "love", L.modeLove },
+            { "ocean", L.modeOcean }, { "gold", L.modeGold }, { "custom", L.modeCustom },
         })
         modeDD:SetParentInitializer(enable, colorable)
         -- Custom color: 1-4 colors, blended along the trail (gradient) or picked at random per dot.
@@ -346,7 +347,8 @@ end
 local function trailOptions(category, key, child)
     shapeDropdown(category, key, child, L.shapeTip, {
         { "dot", L.shapeDot }, { "leaf", L.shapeLeaf }, { "snow", L.shapeSnow }, { "star", L.shapeStar },
-        { "mist", L.shapeMist }, { "energy", L.shapeEnergy },
+        { "mist", L.shapeMist }, { "energy", L.shapeEnergy }, { "flame", L.shapeFlame }, { "heart", L.shapeHeart },
+        { "bubble", L.shapeBubble }, { "glitter", L.shapeGlitter },
     })
     child(slider(category, key, "duration", L.duration, L.durationTip, 0.1, 1.5, 0.05, seconds))
     child(slider(category, key, "spacing", L.spacing, L.spacingTip, 2, 40, 1))

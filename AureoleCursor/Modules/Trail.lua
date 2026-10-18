@@ -17,6 +17,22 @@ local PALETTES = {
     autumn = { { 0.85, 0.33, 0.10 }, { 0.95, 0.60, 0.12 }, { 0.70, 0.15, 0.10 }, { 0.90, 0.75, 0.20 }, { 0.50, 0.28, 0.10 } },
     winter = { { 1, 1, 1 }, { 0.85, 0.95, 1 }, { 0.70, 0.86, 1 }, { 0.55, 0.78, 1 } },
     christmas = { { 0.85, 0.10, 0.10 }, { 0.10, 0.60, 0.20 }, { 1, 0.85, 0.30 }, { 1, 1, 1 } },
+    -- default palettes of the themed shapes (flame, heart, bubble, glitter)
+    fire = { { 1, 0.85, 0.20 }, { 1, 0.55, 0.10 }, { 0.95, 0.30, 0.08 }, { 0.80, 0.12, 0.05 } },
+    love = { { 1, 0.35, 0.50 }, { 0.95, 0.15, 0.30 }, { 1, 0.60, 0.75 }, { 0.85, 0.10, 0.25 } },
+    ocean = { { 0.55, 0.85, 1 }, { 0.30, 0.65, 1 }, { 0.75, 0.95, 1 }, { 0.40, 0.80, 0.90 } },
+    gold = { { 1, 0.90, 0.50 }, { 1, 0.80, 0.25 }, { 1, 1, 0.85 }, { 1, 0.70, 0.20 } },
+}
+
+-- Motion of the themed shapes, in multiples of the dot size. All of it is played by the engine (animations), Lua only sets
+-- random values when a dot is spawned. rise = distance the dot floats up while it fades (negative: falls), sway = random
+-- sideways drift, jitter = random offset of the start position around the cursor, spin = degrees the dot turns while it
+-- fades (random direction), tilt = largest random angle in radians (default: any angle), add = additive blending (glows).
+local MOTION = {
+    flame = { rise = 2.2, sway = 0.5, jitter = 0.3, tilt = 0.35, add = true },
+    heart = { rise = 1.6, sway = 0.6, tilt = 0.45 },
+    bubble = { rise = 1.8, sway = 0.8, jitter = 0.2, tilt = 0 },
+    glitter = { jitter = 0.8, spin = 120, add = true },
 }
 
 local frame = CreateFrame("Frame", "AureoleCursorTrail", UIParent)
@@ -37,12 +53,17 @@ for i = 1, POOL do
     fade:SetToAlpha(0)
     local shrink = group:CreateAnimation("Scale")
     shrink:SetScaleFrom(1, 1)
+    local move = group:CreateAnimation("Translation")
+    move:SetOffset(0, 0)
+    local turn = group:CreateAnimation("Rotation")
+    turn:SetDegrees(0)
     group:SetScript("OnFinished", function() tex:Hide() end)
-    dots[i] = { tex = tex, group = group, fade = fade, shrink = shrink }
+    dots[i] = { tex = tex, group = group, fade = fade, shrink = shrink, move = move, turn = turn }
 end
 
 local lastX, lastY
 local rainbow, palette, gradient, spin, energy, colorAlpha = false, nil, nil, false, false, 1
+local motion, tilt, dotSize -- MOTION of the current shape, its tilt limit and the dot size in pixels
 local travelled = 0
 
 -- Hue (0..1) at full saturation and brightness, as RGB
@@ -119,7 +140,16 @@ local function spawn(x, y)
         local r, g, b = hue(travelled / RAINBOW_LENGTH)
         d.tex:SetVertexColor(r, g, b, colorAlpha)
     end
-    if spin then d.tex:SetRotation(math.random() * 2 * math.pi) end
+    if spin then d.tex:SetRotation(tilt and (math.random() * 2 - 1) * tilt or math.random() * 2 * math.pi) end
+    if motion then
+        local s = dotSize
+        if motion.jitter then
+            x = x + (math.random() * 2 - 1) * motion.jitter * s
+            y = y + (math.random() * 2 - 1) * motion.jitter * s
+        end
+        d.move:SetOffset((math.random() * 2 - 1) * (motion.sway or 0) * s, (motion.rise or 0) * s * (0.7 + 0.6 * math.random()))
+        if motion.spin then d.turn:SetDegrees((math.random() < 0.5 and -1 or 1) * motion.spin * (0.5 + math.random())) end
+    end
     if energy then
         local u, v = math.random(), math.random() -- tile is seamless (REPEAT), each dot shows a different section
         d.tex:SetTexCoord(u, u + ENERGY_SPAN, v, v + ENERGY_SPAN)
@@ -169,10 +199,13 @@ frame:SetScript("OnHide", stopAll)
 function ns:SetTrailShape(shape)
     local t = self.cfg.trail
     if t.shape == shape then return end
-    t.presets[t.shape] = { size = t.size, duration = t.duration, spacing = t.spacing }
+    t.presets[t.shape] = { size = t.size, duration = t.duration, spacing = t.spacing, colorMode = t.colorMode }
     t.shape = shape
     local p = t.presets[shape]
-    if p then t.size, t.duration, t.spacing = p.size, p.duration, p.spacing end
+    if p then
+        t.size, t.duration, t.spacing = p.size, p.duration, p.spacing
+        if p.colorMode then t.colorMode = p.colorMode end -- themed shapes start with their palette, every shape remembers its mode
+    end
 end
 
 local Trail = {}
@@ -204,6 +237,9 @@ function Trail:Apply()
         if t.gradient then gradient = list else palette = list end
     end
     spin = t.shape ~= "dot" -- every shape except the plain dot is randomly rotated
+    motion = MOTION[t.shape]
+    tilt = motion and motion.tilt
+    dotSize = size
     energy = t.shape == "energy"
     if energy then -- energy keeps its original colors: color mode and color do not apply, only the opacity
         rainbow, palette, gradient, r, g, b = false, nil, nil, 1, 1, 1
@@ -224,6 +260,13 @@ function Trail:Apply()
         d.fade:SetDuration(t.duration)
         d.shrink:SetDuration(t.duration)
         d.shrink:SetScaleTo(target, target)
+        d.move:SetDuration(t.duration)
+        d.turn:SetDuration(t.duration)
+        d.tex:SetBlendMode(motion and motion.add and "ADD" or "BLEND")
+        if not motion then
+            d.move:SetOffset(0, 0)
+            d.turn:SetDegrees(0)
+        end
     end
     lastX, lastY = nil, nil
     self:UpdateVisibility()

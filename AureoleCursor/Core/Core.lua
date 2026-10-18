@@ -28,8 +28,9 @@ ns.defaults = {
              -- one color or two (colorCount, color and color2) from top to bottom ("vertical") or left to right ("horizontal"):
              -- blend = smooth gradient, otherwise two hard halves. The opacity comes from color[4] for both.
              colorCount = 1, blend = true, gradientDir = "vertical", color2 = { 0.75, 0.3, 1, 0.8 } },
-    -- presets: default size, duration and spacing per shape; on a shape change the current values are remembered
-    -- for the old shape and the remembered ones (initially these defaults) are applied for the new shape.
+    -- presets: default size, duration and spacing per shape (and a color mode for the themed shapes); on a shape change the
+    -- current values (including the color mode) are remembered for the old shape and the remembered ones (initially these
+    -- defaults) are applied for the new shape.
     trail = { enabled = true, size = 16, duration = 0.45, spacing = 6, shrink = true, shape = "dot", colorMode = "rainbow", color = { 1, 1, 1, 0.5 },
               -- custom color mode: colorCount colors (color, color2..color4); gradient blends between them along the
               -- trail, otherwise every dot picks one of them at random. Opacity comes from color[4] for all of them.
@@ -42,6 +43,10 @@ ns.defaults = {
                   star = { size = 18, duration = 0.7, spacing = 14 },
                   mist = { size = 14, duration = 1.0, spacing = 5 },
                   energy = { size = 28, duration = 0.55, spacing = 5 },
+                  flame = { size = 22, duration = 0.6, spacing = 7, colorMode = "fire" },
+                  heart = { size = 20, duration = 1.0, spacing = 18, colorMode = "love" },
+                  bubble = { size = 22, duration = 1.2, spacing = 14, colorMode = "ocean" },
+                  glitter = { size = 16, duration = 0.7, spacing = 8, colorMode = "gold" },
               } },
 }
 
@@ -80,9 +85,10 @@ function ns:DotTexture(size)
     return MEDIA .. "Dot\\Dot_" .. pickResolution(DOT_RES, self:ScreenPixels(size or 8)) .. ".tga"
 end
 
--- Shapes of the mouse trail (leaf, snowflake, star) and of the center dot (crosshair, dot with ring, sparkle); "dot" is the plain dot.
+-- Shapes of the mouse trail (leaf, snowflake, star, mist, flame, heart, bubble, glitter) and of the center dot (crosshair, dot with ring, sparkle); "dot" is the plain dot.
 local SHAPE_RES = { { 30, 32 }, { 60, 64 }, { math.huge, 128 } }
 local SHAPE_FILE = { leaf = "Trail\\Leaf", snow = "Trail\\Snow", star = "Trail\\Star", mist = "Trail\\Mist",
+    flame = "Trail\\Flame", heart = "Trail\\Heart", bubble = "Trail\\Bubble", glitter = "Trail\\Glitter",
     gap = "Dot\\Gap", ring = "Dot\\DotRing", spark = "Dot\\Spark" }
 
 -- "Energy": Blizzard texture from the game (FileID, not shipped with the addon), seamless tile with alpha channel.

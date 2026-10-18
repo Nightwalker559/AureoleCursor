@@ -4,6 +4,11 @@
 
 ## 1.0.3
 
+### Mouse trail
+- Four new themed shapes: **Flame** (rises and glows, fire colors), **Heart** (floats up, pink and red), **Bubble** (a ring with a highlight that rises, blue tones) and **Glitter** (small four-point sparks scattered around the cursor that spin and glow, gold). Flame and glitter use additive blending so overlapping dots glow brighter. The motion is played by the engine like the fading, so it costs next to nothing per frame.
+- Four matching color modes: **Fire**, **Love**, **Water** and **Gold** pick a color of the palette for every dot, like Autumn, Winter and Christmas.
+- Every shape now remembers its own color mode (like its size, duration and spacing). Flame, heart, bubble and glitter start with their own palette, all other shapes keep the color mode you have.
+
 ### Pointer glow
 - New **Main style** option in General: the cursor is surrounded either by the **Main Ring** (as before, still the default) or by the new **pointer glow**, a soft halo in the shape of the game's mouse pointer. With the glow there are no rings and no center dot: Main, GCD and Cast Ring, the center dot, the ring layout and their options are hidden. The mouse trail works independently of it. The settings of the hidden elements are kept, so switching back restores them.
 - The glow is slightly larger than the pointer and follows the game's cursor size automatically (Options > Accessibility > Cursor Size), has its own color, class color and opacity, and a horizontal and vertical offset to fine-tune how it sits around the pointer.
