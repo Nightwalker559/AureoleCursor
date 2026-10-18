@@ -176,7 +176,7 @@ function Rings:Apply()
     mainRing:SetTexture(ns:RingTexture(m.thickness, m.size))
     mainRing:SetSize(m.size, m.size)
     applyMainColor()
-    mainRing:SetShown(m.enabled)
+    mainRing:SetShown(m.enabled and ns:RingActive("main"))
 
     for _, trio in ipairs({ { gcdCD, cfg.gcd, gcdTrack, "gcd" }, { castCD, cfg.cast, castTrack, "cast" } }) do
         local cd, ring, track = trio[1], trio[2], trio[3]

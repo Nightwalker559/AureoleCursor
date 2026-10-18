@@ -155,10 +155,15 @@ end
 local function buildGeneral(category, layout)
     header(layout, L.general)
 
+    -- Main style: the Main Ring or the pointer glow surrounds the cursor; the options of the other one are hidden
+    dropdown(category, nil, "mainStyle", L.mainStyle, L.mainStyleTip, {
+        { "ring", L.main }, { "glow", L.glow },
+    })
+
     -- Ring layout: which rings are used at all; the options of a ring that is switched off are hidden
     dropdown(category, nil, "ringLayout", L.ringLayout, L.ringLayoutTip, {
         { "individual", L.layoutIndividual }, { "maincast", L.layoutMainCast }, { "maingcd", L.layoutMainGcd },
-    })
+    }):AddShownPredicate(function() return ns.cfg.mainStyle ~= "glow" end) -- no rings with the pointer glow
 
     slider(category, nil, "scale", L.scale, L.scaleTip, 0.5, 3, 0.05, twoDecimals)
     slider(category, nil, "alpha", L.alpha, L.alphaTip, 0.1, 1, 0.05, percent)
@@ -169,27 +174,34 @@ local function buildGeneral(category, layout)
     -- Combat color: choose whether the Main Ring or the center dot switches to the combat color in combat
     local tint = checkbox(category, nil, "combatTint", L.combatTint, L.combatTintTip)
     local function tintOn() return ns.cfg.combatTint end
-    dropdown(category, nil, "combatTarget", L.combatTarget, L.combatTargetTip, {
-        { "main", L.targetMain }, { "dot", L.targetDot },
-    }):SetParentInitializer(tint, tintOn)
+    -- With the pointer glow the glow always takes the combat color, so there is nothing to choose
+    local target = dropdown(category, nil, "combatTarget", L.combatTarget, L.combatTargetTip, {
+        { "main", L.main }, { "dot", L.targetDot },
+    })
+    target:SetParentInitializer(tint, tintOn)
+    target:AddShownPredicate(function() return ns.cfg.mainStyle ~= "glow" end)
     colorSwatch(category, nil, L.combatColor, L.combatColorTip, "combatColor"):SetParentInitializer(tint, tintOn)
 
     dropdown(category, nil, "strata", L.strata, L.strataTip, STRATA)
 end
 
 -- Section for one element; the options below are only active while "Show" is on.
--- opts: size = { min, max, step }, thickness (ring thickness), track (background track),
+-- opts: size = { min, max, step } (false: no size slider), noEnable (no "Show" switch), thickness (ring thickness), track (background track),
 --       extra = function(category, key, child) for element-specific options.
 local function buildElement(category, layout, key, title, opts)
     sectionItems = opts.ring and {} or nil
     header(layout, title)
-    local enable = checkbox(category, key, "enabled", L.enabled, L[key .. "Tip"])
+    -- opts.noEnable: the element has no switch of its own (the pointer glow follows the main style in General)
+    local enable = not opts.noEnable and checkbox(category, key, "enabled", L.enabled, L[key .. "Tip"]) or nil
+    local function on() return opts.noEnable or ns.cfg[key].enabled end
     local function child(initializer)
-        initializer:SetParentInitializer(enable, function() return ns.cfg[key].enabled end)
+        if enable then initializer:SetParentInitializer(enable, on) end
     end
 
-    local size = opts.size or { 8, 400, 2 }
-    child(slider(category, key, "size", L.size, L.sizeTip, size[1], size[2], size[3]))
+    if opts.size ~= false then
+        local size = opts.size or { 8, 400, 2 }
+        child(slider(category, key, "size", L.size, L.sizeTip, size[1], size[2], size[3]))
+    end
     if opts.thickness then
         child(slider(category, key, "thickness", L.thickness, L.thicknessTip, 1, ns.MAX_THICKNESS, 1))
     end
@@ -197,7 +209,7 @@ local function buildElement(category, layout, key, title, opts)
     if opts.colorMode then
         -- The energy shape has fixed original colors: color mode and color are greyed out
         local function colorable()
-            return ns.cfg[key].enabled and ns.cfg[key].shape ~= "energy"
+            return on() and ns.cfg[key].shape ~= "energy"
         end
         local function custom()
             return colorable() and ns.cfg[key].colorMode == "custom"
@@ -230,12 +242,12 @@ local function buildElement(category, layout, key, title, opts)
         child(blend)
         local class = checkbox(category, key, "classColor", L.classColor, L.classColorTip)
         class:SetParentInitializer(blend, function()
-            return ns.cfg[key].enabled and not ns.cfg[key].gradient
+            return on() and not ns.cfg[key].gradient
         end)
         local entries = { colorEntry(category, key, "color", L.color), colorEntry(category, key, "color2", L.color2) }
         colorRow(layout, L.colors, L.castColorsTip, entries, function() return ns.cfg[key].gradient and 2 or 1 end)
             :SetParentInitializer(class, function()
-                return ns.cfg[key].enabled and (ns.cfg[key].gradient or not ns.cfg[key].classColor)
+                return on() and (ns.cfg[key].gradient or not ns.cfg[key].classColor)
             end)
     else
         -- The color picker is greyed out while class color is active
@@ -243,7 +255,7 @@ local function buildElement(category, layout, key, title, opts)
         child(class)
         local swatch = colorSwatch(category, key, L.color, L.colorTip)
         swatch:SetParentInitializer(class, function()
-            return ns.cfg[key].enabled and not ns.cfg[key].classColor
+            return on() and not ns.cfg[key].classColor
         end)
     end
     child(opacitySlider(category, key, L.opacity, L.opacityTip))
@@ -308,6 +320,19 @@ local function dotOptions(category, key, child)
     end):SetParentInitializer(pulse, whenPulse)
 end
 
+-- Pointer glow: pointer size (the game's own setting or fixed), a copy of the pointer while the game hides it and a pixel offset
+-- for the alignment.
+local function glowOptions(category, key, child)
+    local sizes = { { "auto", L.cursorSizeAuto } }
+    for _, px in ipairs({ 32, 48, 64, 96, 128 }) do
+        sizes[#sizes + 1] = { tostring(px), px .. "x" .. px }
+    end
+    child(dropdown(category, key, "cursorSize", L.glowCursorSize, L.glowCursorSizeTip, sizes))
+    child(checkbox(category, key, "showWhileLooking", L.glowLooking, L.glowLookingTip))
+    child(slider(category, key, "offsetX", L.glowOffsetX, L.glowOffsetXTip, -20, 20, 1))
+    child(slider(category, key, "offsetY", L.glowOffsetY, L.glowOffsetYTip, -20, 20, 1))
+end
+
 local function trailOptions(category, key, child)
     shapeDropdown(category, key, child, L.shapeTip, {
         { "dot", L.shapeDot }, { "leaf", L.shapeLeaf }, { "snow", L.shapeSnow }, { "star", L.shapeStar },
@@ -325,10 +350,11 @@ local function build()
     ns.settingsCategory = category
 
     buildGeneral(category, layout)
-    buildElement(category, layout, "main", L.main, { thickness = true })
+    buildElement(category, layout, "main", L.main, { thickness = true, ring = true })
     buildElement(category, layout, "gcd", L.gcd, { thickness = true, track = true, ring = true })
     buildElement(category, layout, "cast", L.cast, { thickness = true, track = true, ring = true, gradient = true })
-    buildElement(category, layout, "dot", L.dot, { extra = dotOptions })
+    buildElement(category, layout, "dot", L.dot, { extra = dotOptions, ring = true })
+    buildElement(category, layout, "glow", L.glow, { size = false, noEnable = true, ring = true, extra = glowOptions })
     buildElement(category, layout, "trail", L.trail, { size = { 4, 64, 1 }, colorMode = true, extra = trailOptions })
 
     Settings.RegisterAddOnCategory(category)

@@ -30,7 +30,7 @@ ns.pulse, ns.pulseGroup, ns.pulseScale = pulse, pulseGroup, pulseScale
 
 ns:On("GLOBAL_MOUSE_DOWN", function(_, button)
     local cfg = ns.cfg and ns.cfg.dot
-    if not cfg or not cfg.enabled or not cfg.pulse or not PULSE_BUTTONS[cfg.pulseButton][button] then return end
+    if not cfg or not cfg.enabled or not ns:RingActive("dot") or not cfg.pulse or not PULSE_BUTTONS[cfg.pulseButton][button] then return end
     if not ns.anchor:IsShown() then return end
     pulseGroup:Stop()
     pulse:Show()
@@ -65,7 +65,8 @@ function Dot:Apply()
     local cfg = ns.cfg.dot
     dot:SetTexture(ns:ShapeTexture(cfg.shape, cfg.size))
     dot:SetSize(cfg.size, cfg.size)
-    dot:SetShown(cfg.enabled)
+    local active = cfg.enabled and ns:RingActive("dot") -- the pointer glow replaces the rings and the center dot
+    dot:SetShown(active)
 
     -- Pulse: the ring ends at dot size * pulseSize and grows from the dot to that size
     local final = cfg.size * cfg.pulseSize
@@ -74,7 +75,7 @@ function Dot:Apply()
     applyColor()
     pulseScale:SetScaleFrom(1 / cfg.pulseSize, 1 / cfg.pulseSize)
     pulseScale:SetScaleTo(1, 1)
-    if not cfg.enabled then
+    if not active then
         pulseGroup:Stop()
         pulse:Hide()
     end

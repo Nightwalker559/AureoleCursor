@@ -12,7 +12,8 @@ ns.defaults = {
     idleAlpha = 1.0,          -- share of the opacity applied out of combat
     hideOnMouselook = false,  -- hide while the camera is being turned with the mouse
     ringLayout = "individual", -- "individual" (every ring on its own), "maincast" (Main + Cast Ring) or "maingcd" (Main + GCD Ring)
-    -- combat color: in combat, combatTarget ("main" ring or center "dot") switches to combatColor (its opacity is kept)
+    mainStyle = "ring",       -- what surrounds the cursor: the Main Ring ("ring") or the pointer glow ("glow")
+    -- combat color: in combat, combatTarget ("main" ring or center "dot"; with the pointer glow the glow always) switches to combatColor (its opacity is kept)
     combatTint = false, combatTarget = "main", combatColor = { 1, 0.1, 0.1, 1 },
     main = { enabled = true, size = 40, thickness = 6, classColor = false, color = { 1, 1, 1, 0.8 } },
     gcd  = { enabled = true, size = 28, thickness = 6, classColor = false, color = { 1, 0.82, 0, 1 }, track = true, trackAlpha = 0.5 },
@@ -20,6 +21,10 @@ ns.defaults = {
     cast = { enabled = true, size = 54, thickness = 6, classColor = false, color = { 1, 1, 1, 1 }, track = true, trackAlpha = 0.5,
              gradient = false, color2 = { 0.3, 0.8, 1, 1 } },
     dot  = { enabled = true, size = 10, shape = "dot", sizes = { dot = 10, gap = 22, ring = 24, spark = 24 }, pulse = true, pulseButton = "both", pulseSize = 4, classColor = false, color = { 1, 1, 1, 0.9 } },
+    -- glow: halo in the shape of the game's mouse pointer (replaces the Main Ring, see mainStyle); cursorSize "auto" follows the game's cursor size setting,
+    -- otherwise 32/48/64/96/128 (pixels); showWhileLooking draws a copy of the pointer while the game hides it (mouselook, right
+    -- mouse button); offsetX/offsetY (screen pixels) fine-tune the alignment with the pointer
+    glow = { cursorSize = "auto", showWhileLooking = true, offsetX = 0, offsetY = 0, classColor = false, color = { 0.35, 0.7, 1, 0.8 } },
     -- presets: default size, duration and spacing per shape; on a shape change the current values are remembered
     -- for the old shape and the remembered ones (initially these defaults) are applied for the new shape.
     trail = { enabled = true, size = 16, duration = 0.45, spacing = 6, shrink = true, shape = "dot", colorMode = "rainbow", color = { 1, 1, 1, 0.5 },
@@ -119,8 +124,14 @@ end
 
 -- Ring layout (General): "individual" = every ring has its own switch, "maincast" / "maingcd" = Main Ring plus only
 -- the Cast or only the GCD ring. The other ring is off then and its options are hidden; its own settings stay untouched.
+-- The rings (with the center dot) and the pointer glow take turns (mainStyle): with "glow" there are no rings at all (Main, GCD and
+-- Cast Ring and the center dot are off, their options and the ring layout are hidden), with "ring" the glow is off and its options
+-- are hidden.
 function ns:RingActive(key)
     local layout = self.cfg.ringLayout
+    local glow = self.cfg.mainStyle == "glow"
+    if key == "glow" then return glow end
+    if glow then return false end
     if key == "gcd" then return layout ~= "maincast" end
     if key == "cast" then return layout ~= "maingcd" end
     return true
@@ -132,12 +143,13 @@ function ns:UpdateVisibility()
     end
 end
 
--- Color of the Main Ring or the center dot ("main" / "dot"): its own color, or the combat color while in combat if the
--- combat color (General) is switched on for that element. Opacity always comes from the element itself.
+-- Color of the Main Ring, the center dot or the pointer glow ("main" / "dot" / "glow"): its own color, or the combat color while in combat if the
+-- combat color (General) is switched on for that element (the pointer glow always follows it, the target setting only chooses between
+-- Main Ring and center dot). Opacity always comes from the element itself.
 function ns:ElementColor(key)
     local cfg = self.cfg
     local element = cfg[key]
-    if cfg.combatTint and cfg.combatTarget == key and self.inCombat then
+    if cfg.combatTint and (key == "glow" or cfg.combatTarget == key) and self.inCombat then
         local c = cfg.combatColor
         return c[1], c[2], c[3], element.color[4] or 1
     end
