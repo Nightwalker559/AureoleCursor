@@ -17,6 +17,9 @@
 - While the game hides the pointer (right mouse button held, camera turned with the mouse) a copy of the pointer is shown at the same spot, so the glow does not hang around an invisible cursor. It can be switched off ("Show pointer while turning").
 - The glow always has the shape of the normal pointer, also when the game shows a sword, a bag or a pickaxe; the game does not tell addons about those cursors.
 
+### Code
+- Release check: the display-change events (UI scale, resolution) moved from the rings to the core because they serve every element; shared helpers for the color rows in the settings and for stopping and shrinking trail dots; clearer option names and comments.
+
 ---
 
 ## 1.0.2

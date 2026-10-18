@@ -89,6 +89,16 @@ local function gradientColor(list, distance)
     return a[1] + (b[1] - a[1]) * f, a[2] + (b[2] - a[2]) * f, a[3] + (b[3] - a[3]) * f
 end
 
+local function shrinkTarget(t)
+    return t.shrink and SHRINK_TO or 1
+end
+
+-- Stops the animations of a dot (and its mask, see applyMask).
+local function stopDot(d)
+    d.group:Stop()
+    if d.maskGroup then d.maskGroup:Stop() end
+end
+
 -- Energy shape: round mask per dot, created on first use. The mask is attached to the dot and gets
 -- the same shrink animation so it scales with the dot (the alpha fade only affects the texture).
 local function applyMask(d, t)
@@ -104,7 +114,7 @@ local function applyMask(d, t)
         d.tex:AddMaskTexture(d.mask)
         d.masked = true
     end
-    local target = t.shrink and SHRINK_TO or 1
+    local target = shrinkTarget(t)
     d.maskShrink:SetDuration(t.duration)
     d.maskShrink:SetScaleTo(target, target)
 end
@@ -119,8 +129,7 @@ end
 
 local function stopAll()
     for _, d in ipairs(dots) do
-        d.group:Stop()
-        if d.maskGroup then d.maskGroup:Stop() end
+        stopDot(d)
         d.tex:Hide()
     end
 end
@@ -128,8 +137,7 @@ end
 local function spawn(x, y)
     local d = dots[nextDot]
     nextDot = nextDot % POOL + 1
-    d.group:Stop()
-    if d.maskGroup then d.maskGroup:Stop() end
+    stopDot(d)
     if palette then
         local c = palette[math.random(#palette)]
         d.tex:SetVertexColor(c[1], c[2], c[3], colorAlpha)
@@ -244,7 +252,7 @@ function Trail:Apply()
     if energy then -- energy keeps its original colors: color mode and color do not apply, only the opacity
         rainbow, palette, gradient, r, g, b = false, nil, nil, 1, 1, 1
     end
-    local target = t.shrink and SHRINK_TO or 1
+    local target = shrinkTarget(t)
     for _, d in ipairs(dots) do
         if energy then
             d.tex:SetTexture(texture, "REPEAT", "REPEAT")

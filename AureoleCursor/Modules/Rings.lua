@@ -152,13 +152,6 @@ end
 local Rings = {}
 ns:RegisterModule(Rings)
 
--- If the pixel size changes (UI scale, resolution), the texture resolution has to be re-picked.
-local function reapply()
-    if ns.cfg then ns:Apply() end
-end
-ns:On("UI_SCALE_CHANGED", reapply)
-ns:On("DISPLAY_SIZE_CHANGED", reapply)
-
 -- Main Ring: in combat it uses the combat color if that is switched on for the ring (General), with the ring's opacity.
 local function applyMainColor()
     mainRing:SetVertexColor(ns:ElementColor("main"))

@@ -121,6 +121,13 @@ local function colorEntry(category, key, field, name)
     return { setting = colorSetting(category, key, name, field), name = name, tooltip = L.colorTip }
 end
 
+-- The swatches of a color row: color, color2 ... up to the given number.
+local function colorEntries(category, key, number)
+    local entries = { colorEntry(category, key, "color", L.color) }
+    for i = 2, number do entries[i] = colorEntry(category, key, "color" .. i, L["color" .. i]) end
+    return entries
+end
+
 local function colorRow(layout, name, tip, entries, count)
     local row = Settings.CreateElementInitializer("AureoleCursorColorRowTemplate", {
         name = name, tooltip = tip, entries = entries, count = count,
@@ -186,11 +193,12 @@ local function buildGeneral(category, layout)
 end
 
 -- Section for one element; the options below are only active while "Show" is on.
--- opts: size = { min, max, step } (false: no size slider), noEnable (no "Show" switch), colorRow (one or two colors in a row,
---       with gradient and direction: pointer glow), thickness (ring thickness), track (background track),
---       extra = function(category, key, child) for element-specific options.
+-- opts: size = { min, max, step } (false: no size slider), noEnable (no "Show" switch), thickness (ring thickness),
+--       track (background track), gradient (cast ring: color gradient over the cast), colorMode (trail: color modes),
+--       colorRow (pointer glow: one or two colors in a row with gradient and direction), ringActive (the whole section
+--       is hidden while ns:RingActive(key) is false), extra = function(category, key, child) for element-specific options.
 local function buildElement(category, layout, key, title, opts)
-    sectionItems = opts.ring and {} or nil
+    sectionItems = opts.ringActive and {} or nil
     header(layout, title)
     -- opts.noEnable: the element has no switch of its own (the pointer glow follows the main style in General)
     local enable = not opts.noEnable and checkbox(category, key, "enabled", L.enabled, L[key .. "Tip"]) or nil
@@ -227,9 +235,7 @@ local function buildElement(category, layout, key, title, opts)
         -- count says; the count itself reports changes of the enable switch and the color mode (see proxy).
         local count = slider(category, key, "colorCount", L.colorCount, L.colorCountTip, 1, 4, 1)
         count:SetParentInitializer(modeDD, custom)
-        local entries = { colorEntry(category, key, "color", L.color) }
-        for i = 2, 4 do entries[i] = colorEntry(category, key, "color" .. i, L["color" .. i]) end
-        colorRow(layout, L.colors, L.colorsTip, entries, function() return ns.cfg[key].colorCount end)
+        colorRow(layout, L.colors, L.colorsTip, colorEntries(category, key, 4), function() return ns.cfg[key].colorCount end)
             :SetParentInitializer(count, custom)
         local blend = checkbox(category, key, "gradient", L.gradient, L.gradientTip)
         blend:SetParentInitializer(count, function()
@@ -246,8 +252,7 @@ local function buildElement(category, layout, key, title, opts)
         class:SetParentInitializer(blend, function()
             return on() and not ns.cfg[key].gradient
         end)
-        local entries = { colorEntry(category, key, "color", L.color), colorEntry(category, key, "color2", L.color2) }
-        colorRow(layout, L.colors, L.castColorsTip, entries, function() return ns.cfg[key].gradient and 2 or 1 end)
+        colorRow(layout, L.colors, L.castColorsTip, colorEntries(category, key, 2), function() return ns.cfg[key].gradient and 2 or 1 end)
             :SetParentInitializer(class, function()
                 return on() and (ns.cfg[key].gradient or not ns.cfg[key].classColor)
             end)
@@ -257,8 +262,7 @@ local function buildElement(category, layout, key, title, opts)
         child(checkbox(category, key, "classColor", L.classColor, L.glowClassColorTip))
         local count = slider(category, key, "colorCount", L.colorCount, L.glowColorCountTip, 1, 2, 1)
         child(count)
-        local entries = { colorEntry(category, key, "color", L.color), colorEntry(category, key, "color2", L.color2) }
-        colorRow(layout, L.colors, L.glowColorsTip, entries, function() return ns.cfg[key].colorCount end)
+        colorRow(layout, L.colors, L.glowColorsTip, colorEntries(category, key, 2), function() return ns.cfg[key].colorCount end)
             :SetParentInitializer(count, function() return true end)
         local function two() return ns.cfg[key].colorCount > 1 end
         checkbox(category, key, "blend", L.glowGradient, L.glowGradientTip):SetParentInitializer(count, two)
@@ -280,7 +284,7 @@ local function buildElement(category, layout, key, title, opts)
         child(slider(category, key, "trackAlpha", L.trackAlpha, L.trackAlphaTip, 0.05, 1, 0.05, percent))
     end
     if sectionItems then
-        -- ring sections disappear completely when the ring layout does not use the ring; the panel
+        -- sections of elements that are not in use disappear completely (see ns:RingActive); the panel
         -- re-evaluates shown predicates after every setting change
         for _, item in ipairs(sectionItems) do
             item:AddShownPredicate(function() return ns:RingActive(key) end)
@@ -336,8 +340,7 @@ local function dotOptions(category, key, child)
     end):SetParentInitializer(pulse, whenPulse)
 end
 
--- Pointer glow: a copy of the pointer while the game hides it and a pixel offset
--- for the alignment.
+-- Pointer glow: a copy of the pointer while the game hides it and a pixel offset for the alignment.
 local function glowOptions(category, key, child)
     child(checkbox(category, key, "showWhileLooking", L.glowLooking, L.glowLookingTip))
     child(slider(category, key, "offsetX", L.glowOffsetX, L.glowOffsetXTip, -20, 20, 1))
@@ -362,11 +365,11 @@ local function build()
     ns.settingsCategory = category
 
     buildGeneral(category, layout)
-    buildElement(category, layout, "main", L.main, { thickness = true, ring = true })
-    buildElement(category, layout, "gcd", L.gcd, { thickness = true, track = true, ring = true })
-    buildElement(category, layout, "cast", L.cast, { thickness = true, track = true, ring = true, gradient = true })
-    buildElement(category, layout, "dot", L.dot, { extra = dotOptions, ring = true })
-    buildElement(category, layout, "glow", L.glow, { size = false, noEnable = true, ring = true, extra = glowOptions, colorRow = true })
+    buildElement(category, layout, "main", L.main, { thickness = true, ringActive = true })
+    buildElement(category, layout, "gcd", L.gcd, { thickness = true, track = true, ringActive = true })
+    buildElement(category, layout, "cast", L.cast, { thickness = true, track = true, ringActive = true, gradient = true })
+    buildElement(category, layout, "dot", L.dot, { extra = dotOptions, ringActive = true })
+    buildElement(category, layout, "glow", L.glow, { size = false, noEnable = true, ringActive = true, extra = glowOptions, colorRow = true })
     buildElement(category, layout, "trail", L.trail, { size = { 4, 64, 1 }, colorMode = true, extra = trailOptions })
 
     Settings.RegisterAddOnCategory(category)
