@@ -6,8 +6,9 @@
 
 ### Pointer glow
 - New **Main style** option in General: the cursor is surrounded either by the **Main Ring** (as before, still the default) or by the new **pointer glow**, a soft halo in the shape of the game's mouse pointer. With the glow there are no rings and no center dot: Main, GCD and Cast Ring, the center dot, the ring layout and their options are hidden. The mouse trail works independently of it. The settings of the hidden elements are kept, so switching back restores them.
-- The glow follows the game's cursor size (Options > Accessibility > Cursor Size, or choose 32 to 128 pixels yourself), has its own color, class color and opacity, and a horizontal and vertical offset to fine-tune how it sits around the pointer.
-- In combat the glow takes the combat color automatically (if "Tint automatically in combat" is on).
+- The glow is slightly larger than the pointer and follows the game's cursor size automatically (Options > Accessibility > Cursor Size), has its own color, class color and opacity, and a horizontal and vertical offset to fine-tune how it sits around the pointer.
+- The glow can use **one or two colors**, set up like the custom colors of the mouse trail (number of colors and a color row). With two colors they blend smoothly from top to bottom or from left to right (**Gradient** on) or fill one half each (off). The opacity setting applies to both colors; class color replaces color 1.
+- In combat the glow takes the combat color automatically (if "Tint automatically in combat" is on); the gradient is replaced by that color until the fight ends.
 - While the game hides the pointer (right mouse button held, camera turned with the mouse) a copy of the pointer is shown at the same spot, so the glow does not hang around an invisible cursor. It can be switched off ("Show pointer while turning").
 - The glow always has the shape of the normal pointer, also when the game shows a sword, a bag or a pickaxe; the game does not tell addons about those cursors.
 

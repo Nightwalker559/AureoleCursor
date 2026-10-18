@@ -15,23 +15,34 @@ local CANVAS = { [32] = 64, [48] = 128, [64] = 128, [96] = 256, [128] = 256 }
 -- cursorSizePreferred CVar: -1 = game default, 0..4 = the sizes above
 local CVAR_SIZES = { [0] = 32, [1] = 48, [2] = 64, [3] = 96, [4] = 128 }
 local DEFAULT_SIZE = 32
+-- The glow is this much larger than the pointer (the texture is scaled around the center of the pointer), so the halo is
+-- clearly visible. Fixed, it always follows the pointer size.
+local GLOW_SCALE = 1.25
+ns.GLOW_SCALE = GLOW_SCALE
 
 -- The pointer itself: Blizzard's cursor atlas (512 x 256), top left corner of the sprite per cursor size
 local ATLAS = "Interface/cursor/UICursor2x"
 local SPRITE = { [32] = { 261, 67 }, [48] = { 393, 1 }, [64] = { 261, 1 }, [96] = { 1, 131 }, [128] = { 1, 1 } }
 
+-- The glow is one texture, or two textures side by side along the gradient direction for two hard-edged color halves
+-- (every part shows its slice of the glow texture, see paint). parts[1] is the glow itself.
 local glow = ns.anchor:CreateTexture(nil, "BACKGROUND", nil, -8)
 glow:Hide()
 ns.glow = glow
+local parts = { glow }
+ns.glowParts = parts
+parts[2] = ns.anchor:CreateTexture(nil, "BACKGROUND", nil, -8)
+parts[2]:Hide()
+local COLOR_FIELDS = { "color", "color2" }
+-- Position of the glow in units of the anchor: top left corner relative to the anchor's center, width and height (set in Apply)
+local geometry
 
 local icon = ns.anchor:CreateTexture(nil, "OVERLAY", nil, 7)
 icon:Hide()
 ns.pointerIcon = icon
 
--- Pointer size in screen pixels: the configured one, or the one the game uses.
+-- Pointer size in screen pixels: the one the game uses (Accessibility > Cursor Size).
 local function cursorPixels()
-    local choice = tonumber(ns.cfg.glow.cursorSize)
-    if choice and CANVAS[choice] then return choice end
     local cvar = C_CVar and C_CVar.GetCVar and tonumber(C_CVar.GetCVar("cursorSizePreferred"))
     return CVAR_SIZES[cvar] or DEFAULT_SIZE
 end
@@ -47,35 +58,75 @@ local function updateIcon()
     icon:SetShown(cfg and cfg.showWhileLooking and ns:RingActive("glow") and (looking or turning) or false)
 end
 
--- Color of the glow: in combat the combat color if it is switched on for the glow (General).
-local function applyColor()
-    glow:SetVertexColor(ns:ElementColor("glow"))
+-- Shows the glow in its colors: in combat one color, the combat color, if it is switched on for the glow (General); otherwise
+-- one or two colors across the texture, top to bottom or left to right. With the gradient (blend) the two colors are blended
+-- (one part), without it each color gets one half (two parts). The opacity comes from the first color for both.
+local function paint()
+    local cfg = ns.cfg.glow
+    local active = geometry and ns:RingActive("glow")
+    local r, g, b, a = ns:ElementColor("glow")
+    local combat = ns.cfg.combatTint and ns.inCombat
+    local count = combat and 1 or math.max(1, math.min(2, cfg.colorCount or 1))
+    local n = count == 1 and 1 or (cfg.blend and count - 1 or count)
+    local horizontal = cfg.gradientDir == "horizontal"
+    local colors = { { r, g, b } }
+    for i = 2, count do colors[i] = cfg[COLOR_FIELDS[i]] end
+
+    for i, part in ipairs(parts) do
+        if active and i <= n then
+            local from, to = (i - 1) / n, i / n -- slice of the texture
+            part:ClearAllPoints()
+            if horizontal then
+                part:SetSize(geometry.w / n, geometry.h)
+                part:SetPoint("TOPLEFT", ns.anchor, "CENTER", geometry.x + geometry.w * from, geometry.y)
+                part:SetTexCoord(from, to, 0, 1)
+            else
+                part:SetSize(geometry.w, geometry.h / n)
+                part:SetPoint("TOPLEFT", ns.anchor, "CENTER", geometry.x, geometry.y - geometry.h * from)
+                part:SetTexCoord(0, 1, from, to)
+            end
+            local c1, c2 = colors[i], colors[i + 1]
+            if cfg.blend and count > 1 then
+                local first, second = CreateColor(c1[1], c1[2], c1[3], a), CreateColor(c2[1], c2[2], c2[3], a)
+                if horizontal then
+                    part:SetGradient("HORIZONTAL", first, second) -- the first color is the left one
+                else
+                    part:SetGradient("VERTICAL", second, first) -- the first color is the top one
+                end
+            else
+                part:SetVertexColor(c1[1], c1[2], c1[3], a) -- also removes a gradient
+            end
+            part:Show()
+        else
+            part:Hide()
+        end
+    end
 end
 
 function Glow:UpdateVisibility()
-    applyColor()
+    paint()
 end
 
 function Glow:Apply()
     local cfg = ns.cfg.glow
-    local active = ns:RingActive("glow")
-    glow:SetShown(active)
-    if not active then
+    if not ns:RingActive("glow") then
+        geometry = nil
+        paint()
         updateIcon()
         return
     end
 
     local px = cursorPixels()
-    local canvas = CANVAS[px]
-    local pad = (canvas - px) / 2
+    local size = CANVAS[px] * GLOW_SCALE -- edge length of the glow texture in pixels
     local unit = 1 / ns:ScreenPixels(1) -- one screen pixel in units of the anchor
-    glow:SetTexture(MEDIA .. "Glow_" .. px .. ".tga")
-    glow:SetSize(canvas * unit, canvas * unit)
     -- The pointer's tip is the cursor position (the center of the anchor); its image starts at the top left of the
-    -- sprite, so the texture reaches pad pixels further to the left and up.
-    glow:ClearAllPoints()
-    glow:SetPoint("TOPLEFT", ns.anchor, "CENTER", (cfg.offsetX - pad) * unit, (cfg.offsetY + pad) * unit)
-    applyColor()
+    -- sprite. The glow texture has the pointer in its middle, so it is centered on the sprite and grows from there.
+    geometry = {
+        x = (cfg.offsetX + (px - size) / 2) * unit, y = (cfg.offsetY - (px - size) / 2) * unit,
+        w = size * unit, h = size * unit,
+    }
+    for _, part in ipairs(parts) do part:SetTexture(MEDIA .. "Glow_" .. px .. ".tga") end
+    paint()
 
     -- Pointer copy: the sprite's top left corner is the cursor position
     local x, y = SPRITE[px][1], SPRITE[px][2]

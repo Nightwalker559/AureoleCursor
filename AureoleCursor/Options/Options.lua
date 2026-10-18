@@ -186,7 +186,8 @@ local function buildGeneral(category, layout)
 end
 
 -- Section for one element; the options below are only active while "Show" is on.
--- opts: size = { min, max, step } (false: no size slider), noEnable (no "Show" switch), thickness (ring thickness), track (background track),
+-- opts: size = { min, max, step } (false: no size slider), noEnable (no "Show" switch), colorRow (one or two colors in a row,
+--       with gradient and direction: pointer glow), thickness (ring thickness), track (background track),
 --       extra = function(category, key, child) for element-specific options.
 local function buildElement(category, layout, key, title, opts)
     sectionItems = opts.ring and {} or nil
@@ -249,6 +250,20 @@ local function buildElement(category, layout, key, title, opts)
             :SetParentInitializer(class, function()
                 return on() and (ns.cfg[key].gradient or not ns.cfg[key].classColor)
             end)
+    elseif opts.colorRow then
+        -- Pointer glow: one or two colors in one row like the custom colors of the trail. Class color replaces color 1.
+        -- Two colors are blended (gradient) or shown as two halves, from top to bottom or from left to right.
+        child(checkbox(category, key, "classColor", L.classColor, L.glowClassColorTip))
+        local count = slider(category, key, "colorCount", L.colorCount, L.glowColorCountTip, 1, 2, 1)
+        child(count)
+        local entries = { colorEntry(category, key, "color", L.color), colorEntry(category, key, "color2", L.color2) }
+        colorRow(layout, L.colors, L.glowColorsTip, entries, function() return ns.cfg[key].colorCount end)
+            :SetParentInitializer(count, function() return true end)
+        local function two() return ns.cfg[key].colorCount > 1 end
+        checkbox(category, key, "blend", L.glowGradient, L.glowGradientTip):SetParentInitializer(count, two)
+        dropdown(category, key, "gradientDir", L.glowDirection, L.glowDirectionTip, {
+            { "vertical", L.dirVertical }, { "horizontal", L.dirHorizontal },
+        }):SetParentInitializer(count, two)
     else
         -- The color picker is greyed out while class color is active
         local class = checkbox(category, key, "classColor", L.classColor, L.classColorTip)
@@ -320,14 +335,9 @@ local function dotOptions(category, key, child)
     end):SetParentInitializer(pulse, whenPulse)
 end
 
--- Pointer glow: pointer size (the game's own setting or fixed), a copy of the pointer while the game hides it and a pixel offset
+-- Pointer glow: a copy of the pointer while the game hides it and a pixel offset
 -- for the alignment.
 local function glowOptions(category, key, child)
-    local sizes = { { "auto", L.cursorSizeAuto } }
-    for _, px in ipairs({ 32, 48, 64, 96, 128 }) do
-        sizes[#sizes + 1] = { tostring(px), px .. "x" .. px }
-    end
-    child(dropdown(category, key, "cursorSize", L.glowCursorSize, L.glowCursorSizeTip, sizes))
     child(checkbox(category, key, "showWhileLooking", L.glowLooking, L.glowLookingTip))
     child(slider(category, key, "offsetX", L.glowOffsetX, L.glowOffsetXTip, -20, 20, 1))
     child(slider(category, key, "offsetY", L.glowOffsetY, L.glowOffsetYTip, -20, 20, 1))
@@ -354,7 +364,7 @@ local function build()
     buildElement(category, layout, "gcd", L.gcd, { thickness = true, track = true, ring = true })
     buildElement(category, layout, "cast", L.cast, { thickness = true, track = true, ring = true, gradient = true })
     buildElement(category, layout, "dot", L.dot, { extra = dotOptions, ring = true })
-    buildElement(category, layout, "glow", L.glow, { size = false, noEnable = true, ring = true, extra = glowOptions })
+    buildElement(category, layout, "glow", L.glow, { size = false, noEnable = true, ring = true, extra = glowOptions, colorRow = true })
     buildElement(category, layout, "trail", L.trail, { size = { 4, 64, 1 }, colorMode = true, extra = trailOptions })
 
     Settings.RegisterAddOnCategory(category)

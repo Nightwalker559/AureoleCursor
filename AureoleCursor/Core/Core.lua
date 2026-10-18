@@ -21,10 +21,13 @@ ns.defaults = {
     cast = { enabled = true, size = 54, thickness = 6, classColor = false, color = { 1, 1, 1, 1 }, track = true, trackAlpha = 0.5,
              gradient = false, color2 = { 0.3, 0.8, 1, 1 } },
     dot  = { enabled = true, size = 10, shape = "dot", sizes = { dot = 10, gap = 22, ring = 24, spark = 24 }, pulse = true, pulseButton = "both", pulseSize = 4, classColor = false, color = { 1, 1, 1, 0.9 } },
-    -- glow: halo in the shape of the game's mouse pointer (replaces the Main Ring, see mainStyle); cursorSize "auto" follows the game's cursor size setting,
-    -- otherwise 32/48/64/96/128 (pixels); showWhileLooking draws a copy of the pointer while the game hides it (mouselook, right
+    -- glow: halo in the shape of the game's mouse pointer (replaces the Main Ring, see mainStyle); it follows the game's cursor size setting;
+    -- showWhileLooking draws a copy of the pointer while the game hides it (mouselook, right
     -- mouse button); offsetX/offsetY (screen pixels) fine-tune the alignment with the pointer
-    glow = { cursorSize = "auto", showWhileLooking = true, offsetX = 0, offsetY = 0, classColor = false, color = { 0.35, 0.7, 1, 0.8 } },
+    glow = { showWhileLooking = true, offsetX = 0, offsetY = 0, classColor = false, color = { 0.35, 0.7, 1, 0.8 },
+             -- one color or two (colorCount, color and color2) from top to bottom ("vertical") or left to right ("horizontal"):
+             -- blend = smooth gradient, otherwise two hard halves. The opacity comes from color[4] for both.
+             colorCount = 1, blend = true, gradientDir = "vertical", color2 = { 0.75, 0.3, 1, 0.8 } },
     -- presets: default size, duration and spacing per shape; on a shape change the current values are remembered
     -- for the old shape and the remembered ones (initially these defaults) are applied for the new shape.
     trail = { enabled = true, size = 16, duration = 0.45, spacing = 6, shrink = true, shape = "dot", colorMode = "rainbow", color = { 1, 1, 1, 0.5 },
