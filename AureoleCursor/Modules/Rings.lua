@@ -1,6 +1,6 @@
 -- Aureole Cursor: the three rings. Main = fixed ring, GCD and Cast = cooldown rings
 -- (swipe with ring texture). Times come as duration objects, secret values are never used in calculations.
-local ADDON, ns = ...
+local _, ns = ...
 
 local DEFAULT_RING_TEXTURE = ns:RingTexture(4)
 local GCD_SPELL = 61304
@@ -183,13 +183,13 @@ function Rings:Apply()
         local active = ring.enabled and ns:RingActive(trio[4]) -- the ring layout can switch a ring off
         track:SetTexture(ns:RingTexture(ring.thickness, ring.size))
         track:SetSize(ring.size, ring.size)
-        local r, g, b = ns:GetRingColor(ring)
+        local r, g, b, a = ns:GetRingColor(ring)
         track:SetVertexColor(r, g, b, ring.trackAlpha)
         track:SetShown(active and ring.track)
         cd:SetFrameStrata(strata)
         cd:SetSwipeTexture(ns:RingTexture(ring.thickness, ring.size))
         cd:SetSize(ring.size, ring.size)
-        cd:SetSwipeColor(ns:GetRingColor(ring))
+        cd:SetSwipeColor(r, g, b, a)
         if active then cd:Show() else cd:Clear(); cd:Hide() end
     end
     gcdCD:SetReverse(false)

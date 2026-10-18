@@ -6,12 +6,14 @@ Built for Midnight (12.1.5). The timers use Blizzard's duration objects, so the 
 
 ## Features
 
-- **Main Ring:** a fixed ring around the cursor. It can switch to a combat color automatically while you are in combat and back afterwards.
+- **Main Ring:** a fixed ring around the cursor.
 - **GCD Ring:** shows the global cooldown and drains while it runs.
-- **Cast Ring:** shows casts (fills up), channels (drains) and empowered spells.
+- **Cast Ring:** shows casts (fills up), channels (drains) and empowered spells. Optionally it fades from one color to another while the cast progresses (color gradient).
+- **Ring layout:** use every ring on its own, or only Main + Cast Ring, or only Main + GCD Ring. The options of a ring you do not use are hidden.
+- **Combat color:** in combat the Main Ring or the center dot switches to a color of your choice automatically and back afterwards.
 - **Background track:** an optional faint full ring behind the GCD and Cast ring, so you can see how much is left.
 - **Center mark:** a dot in the middle of the rings, or a crosshair with a gap, a dot with a ring or a sparkle. It can give a click pulse: a ring that expands from the center when you press the left, right or both mouse buttons.
-- **Mouse trail:** a trail of dots behind the cursor that fades out and shrinks. Color mode: rainbow, autumn, winter, Christmas, class color or a custom color. Shape: dot, leaf, snowflake, star, mist (a soft tintable cloud) or energy (a glowing energy pattern from the game files, nothing extra is shipped), so the trail can fit the season. Duration, spacing and size are adjustable, and every shape has its own defaults for them (your changes are remembered per shape). Fast mouse movements stay gap-free.
+- **Mouse trail:** a trail of dots behind the cursor that fades out and shrinks. Color mode: rainbow, autumn, winter, Christmas, class color or custom colors (up to four, blended as a gradient along the trail or picked at random per dot). Shape: dot, leaf, snowflake, star, mist (a soft tintable cloud) or energy (a glowing energy pattern from the game files, nothing extra is shipped), so the trail can fit the season. Duration, spacing and size are adjustable, and every shape has its own defaults for them (your changes are remembered per shape). Fast mouse movements stay gap-free.
 - **Sharp at any size:** the textures come in several resolutions and are picked by the size on your screen, so small rings do not turn pixelated. Ring thickness has eight steps.
 - **Colors:** every element has its own color, opacity and class color option.
 - **Visibility:** overall opacity, a separate opacity out of combat, "show in combat only", hide while mouse-looking, and the frame layer.

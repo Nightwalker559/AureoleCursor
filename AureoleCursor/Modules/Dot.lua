@@ -1,5 +1,5 @@
 -- Aureole Cursor: center dot in the middle of the rings.
-local ADDON, ns = ...
+local _, ns = ...
 
 local dot = ns.anchor:CreateTexture(nil, "OVERLAY")
 dot:SetTexture(ns:DotTexture(8))
@@ -52,8 +52,9 @@ ns:RegisterModule(Dot)
 
 -- Dot and click pulse: in combat they use the combat color if that is switched on for the dot (General).
 local function applyColor()
-    dot:SetVertexColor(ns:ElementColor("dot"))
-    pulse:SetVertexColor(ns:ElementColor("dot"))
+    local r, g, b, a = ns:ElementColor("dot")
+    dot:SetVertexColor(r, g, b, a)
+    pulse:SetVertexColor(r, g, b, a)
 end
 
 function Dot:UpdateVisibility()

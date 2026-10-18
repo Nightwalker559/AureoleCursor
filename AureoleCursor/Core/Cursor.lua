@@ -1,5 +1,5 @@
 -- Aureole Cursor: cursor anchor. One frame follows the mouse; the rings hang off it.
-local ADDON, ns = ...
+local _, ns = ...
 
 local GetCursorPosition = GetCursorPosition
 

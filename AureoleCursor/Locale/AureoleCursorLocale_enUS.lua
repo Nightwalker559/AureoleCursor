@@ -1,5 +1,5 @@
 -- Aureole Cursor: English (enUS). Fallback for all languages: missing keys in another locale show this text.
-local ADDON, ns = ...
+local _, ns = ...
 
 local L = {}
 ns.L = L
@@ -11,7 +11,7 @@ L.ringLayoutTip = "Which rings are used. \"Individual rings\" lets you switch ev
 L.layoutIndividual = "Individual rings"
 L.layoutMainCast = "Main + Cast Ring"
 L.layoutMainGcd = "Main + GCD Ring"
-L.scale ="Scale"
+L.scale = "Scale"
 L.scaleTip = "Scales all rings and the center dot together."
 L.alpha = "Overall opacity"
 L.alphaTip = "Overall transparency of all elements at the cursor."

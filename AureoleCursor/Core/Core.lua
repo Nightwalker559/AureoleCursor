@@ -12,7 +12,7 @@ ns.defaults = {
     idleAlpha = 1.0,          -- share of the opacity applied out of combat
     hideOnMouselook = false,  -- hide while the camera is being turned with the mouse
     ringLayout = "individual", -- "individual" (every ring on its own), "maincast" (Main + Cast Ring) or "maingcd" (Main + GCD Ring)
-    -- combat color: while in combat, combatTarget ("main" ring or center "dot") switches to combatColor (its opacity is kept)
+    -- combat color: in combat, combatTarget ("main" ring or center "dot") switches to combatColor (its opacity is kept)
     combatTint = false, combatTarget = "main", combatColor = { 1, 0.1, 0.1, 1 },
     main = { enabled = true, size = 40, thickness = 6, classColor = false, color = { 1, 1, 1, 0.8 } },
     gcd  = { enabled = true, size = 28, thickness = 6, classColor = false, color = { 1, 0.82, 0, 1 }, track = true, trackAlpha = 0.5 },
@@ -204,14 +204,7 @@ ns:On("ADDON_LOADED", function(_, name)
     if name ~= ADDON then return end
     AureoleCursorDB = AureoleCursorDB or {}
     local db = AureoleCursorDB
-    db.runs, db.build = nil, nil -- leftovers of the phase 0 probe
     db.cfg = db.cfg or {}
-    local tr = db.cfg.trail
-    if tr and tr.colorMode == nil then -- state of 0.3.x: class color / rainbow checkboxes
-        if tr.classColor then tr.colorMode = "class"
-        elseif tr.rainbow == false then tr.colorMode = "custom" end
-    end
-    if tr then tr.classColor, tr.rainbow = nil, nil end
     local main = db.cfg.main
     if main then
         -- up to 1.0.1 the combat color belonged to the Main Ring; it is a general option now
@@ -221,9 +214,6 @@ ns:On("ADDON_LOADED", function(_, name)
         main.combatTint, main.combatColor = nil, nil
     end
     fillDefaults(db.cfg, ns.defaults)
-    for _, key in ipairs({ "main", "gcd", "cast", "dot" }) do
-        db.cfg[key].style = nil -- leftover of the removed edge style
-    end
     ns.cfg = db.cfg
 end)
 
@@ -243,7 +233,7 @@ ns:On("PLAYER_REGEN_ENABLED", function()
 end)
 
 ------------------------------------------------------------------------
--- Slash commands (interim solution until the config UI is built step by step)
+-- Slash commands (the settings page is the main UI; these are shortcuts)
 ------------------------------------------------------------------------
 
 local L = ns.L

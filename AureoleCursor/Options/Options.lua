@@ -5,7 +5,11 @@ local ADDON, ns = ...
 
 local L = ns.L
 
-local STRATA = { "BACKGROUND", "LOW", "MEDIUM", "HIGH", "DIALOG", "FULLSCREEN", "FULLSCREEN_DIALOG", "TOOLTIP" }
+-- Frame strata as dropdown choices ({ value, text })
+local STRATA = {}
+for _, name in ipairs({ "BACKGROUND", "LOW", "MEDIUM", "HIGH", "DIALOG", "FULLSCREEN", "FULLSCREEN_DIALOG", "TOOLTIP" }) do
+    STRATA[#STRATA + 1] = { name, name }
+end
 
 -- While a section is being built, the helpers below collect their initializers here, so the whole section
 -- (header included) can get a shown predicate afterwards (see buildElement).
@@ -33,7 +37,6 @@ end
 -- Some options hang off a different setting than the one they really depend on (the Blizzard panel only re-evaluates
 -- children of the setting that changed). After a change, tell that intermediate setting to refresh its children.
 local function notifyDependents(key, field)
-    if not Settings.NotifyUpdate then return end
     if key == "trail" and (field == "enabled" or field == "colorMode") then
         Settings.NotifyUpdate(varName(key, "colorCount")) -- the extra trail colors follow the color count
     elseif key == "cast" and (field == "enabled" or field == "gradient") then
@@ -56,6 +59,20 @@ end
 local function checkbox(category, key, field, label, tip)
     local s = proxy(category, key, field, Settings.VarType.Boolean, label)
     return track(Settings.CreateCheckbox(category, s, tip))
+end
+
+-- Dropdown options from a list of { value, text } choices.
+local function choiceList(choices)
+    return function()
+        local c = Settings.CreateControlTextContainer()
+        for _, choice in ipairs(choices) do c:Add(choice[1], choice[2]) end
+        return c:GetData()
+    end
+end
+
+local function dropdown(category, key, field, label, tip, choices)
+    local s = proxy(category, key, field, Settings.VarType.String, label)
+    return track(Settings.CreateDropdown(category, s, choiceList(choices), tip))
 end
 
 local function slider(category, key, field, label, tip, min, max, step, formatter)
@@ -99,6 +116,19 @@ local function colorSwatch(category, key, label, tip, field)
     return track(Settings.CreateColorSwatch(category, colorSetting(category, key, label, field), tip))
 end
 
+-- Several swatches side by side in one row (ColorRow.xml); count() says how many of the entries are shown.
+local function colorEntry(category, key, field, name)
+    return { setting = colorSetting(category, key, name, field), name = name, tooltip = L.colorTip }
+end
+
+local function colorRow(layout, name, tip, entries, count)
+    local row = Settings.CreateElementInitializer("AureoleCursorColorRowTemplate", {
+        name = name, tooltip = tip, entries = entries, count = count,
+    })
+    layout:AddInitializer(row)
+    return track(row)
+end
+
 local function opacitySlider(category, key, label, tip)
     local function get() return section(key).color[4] end
     local function set(value)
@@ -126,15 +156,9 @@ local function buildGeneral(category, layout)
     header(layout, L.general)
 
     -- Ring layout: which rings are used at all; the options of a ring that is switched off are hidden
-    local layoutSetting = proxy(category, nil, "ringLayout", Settings.VarType.String, L.ringLayout)
-    local function layouts()
-        local c = Settings.CreateControlTextContainer()
-        c:Add("individual", L.layoutIndividual)
-        c:Add("maincast", L.layoutMainCast)
-        c:Add("maingcd", L.layoutMainGcd)
-        return c:GetData()
-    end
-    Settings.CreateDropdown(category, layoutSetting, layouts, L.ringLayoutTip)
+    dropdown(category, nil, "ringLayout", L.ringLayout, L.ringLayoutTip, {
+        { "individual", L.layoutIndividual }, { "maincast", L.layoutMainCast }, { "maingcd", L.layoutMainGcd },
+    })
 
     slider(category, nil, "scale", L.scale, L.scaleTip, 0.5, 3, 0.05, twoDecimals)
     slider(category, nil, "alpha", L.alpha, L.alphaTip, 0.1, 1, 0.05, percent)
@@ -145,23 +169,12 @@ local function buildGeneral(category, layout)
     -- Combat color: choose whether the Main Ring or the center dot switches to the combat color in combat
     local tint = checkbox(category, nil, "combatTint", L.combatTint, L.combatTintTip)
     local function tintOn() return ns.cfg.combatTint end
-    local targetSetting = proxy(category, nil, "combatTarget", Settings.VarType.String, L.combatTarget)
-    local function targets()
-        local c = Settings.CreateControlTextContainer()
-        c:Add("main", L.targetMain)
-        c:Add("dot", L.targetDot)
-        return c:GetData()
-    end
-    Settings.CreateDropdown(category, targetSetting, targets, L.combatTargetTip):SetParentInitializer(tint, tintOn)
+    dropdown(category, nil, "combatTarget", L.combatTarget, L.combatTargetTip, {
+        { "main", L.targetMain }, { "dot", L.targetDot },
+    }):SetParentInitializer(tint, tintOn)
     colorSwatch(category, nil, L.combatColor, L.combatColorTip, "combatColor"):SetParentInitializer(tint, tintOn)
 
-    local s = proxy(category, nil, "strata", Settings.VarType.String, L.strata)
-    local function options()
-        local c = Settings.CreateControlTextContainer()
-        for _, name in ipairs(STRATA) do c:Add(name, name) end
-        return c:GetData()
-    end
-    Settings.CreateDropdown(category, s, options, L.strataTip)
+    dropdown(category, nil, "strata", L.strata, L.strataTip, STRATA)
 end
 
 -- Section for one element; the options below are only active while "Show" is on.
@@ -182,18 +195,6 @@ local function buildElement(category, layout, key, title, opts)
     end
     if opts.extra then opts.extra(category, key, child) end
     if opts.colorMode then
-        -- Color mode as a dropdown; the color picker is only active for "Custom color"
-        local mode = proxy(category, key, "colorMode", Settings.VarType.String, L.colorMode)
-        local function modes()
-            local c = Settings.CreateControlTextContainer()
-            c:Add("rainbow", L.modeRainbow)
-            c:Add("class", L.modeClass)
-            c:Add("autumn", L.modeAutumn)
-            c:Add("winter", L.modeWinter)
-            c:Add("christmas", L.modeChristmas)
-            c:Add("custom", L.modeCustom)
-            return c:GetData()
-        end
         -- The energy shape has fixed original colors: color mode and color are greyed out
         local function colorable()
             return ns.cfg[key].enabled and ns.cfg[key].shape ~= "energy"
@@ -201,26 +202,21 @@ local function buildElement(category, layout, key, title, opts)
         local function custom()
             return colorable() and ns.cfg[key].colorMode == "custom"
         end
-        local dropdown = Settings.CreateDropdown(category, mode, modes, L.colorModeTip)
-        dropdown:SetParentInitializer(enable, colorable)
+        -- Color mode as a dropdown; the colors are only active for "Custom color"
+        local modeDD = dropdown(category, key, "colorMode", L.colorMode, L.colorModeTip, {
+            { "rainbow", L.modeRainbow }, { "class", L.modeClass }, { "autumn", L.modeAutumn },
+            { "winter", L.modeWinter }, { "christmas", L.modeChristmas }, { "custom", L.modeCustom },
+        })
+        modeDD:SetParentInitializer(enable, colorable)
         -- Custom color: 1-4 colors, blended along the trail (gradient) or picked at random per dot.
         -- The colors share one row (ColorRow.xml) that hangs off the color count and shows as many swatches as the
         -- count says; the count itself reports changes of the enable switch and the color mode (see proxy).
         local count = slider(category, key, "colorCount", L.colorCount, L.colorCountTip, 1, 4, 1)
-        count:SetParentInitializer(dropdown, custom)
-        local entries = {}
-        for i = 1, 4 do
-            local field = i == 1 and "color" or "color" .. i
-            local name = i == 1 and L.color or L["color" .. i]
-            entries[i] = { setting = colorSetting(category, key, name, field), name = name, tooltip = L.colorTip }
-        end
-        local row = Settings.CreateElementInitializer("AureoleCursorColorRowTemplate", {
-            name = L.colors, tooltip = L.colorsTip, entries = entries,
-            count = function() return ns.cfg[key].colorCount end,
-        })
-        layout:AddInitializer(row)
-        track(row)
-        row:SetParentInitializer(count, custom)
+        count:SetParentInitializer(modeDD, custom)
+        local entries = { colorEntry(category, key, "color", L.color) }
+        for i = 2, 4 do entries[i] = colorEntry(category, key, "color" .. i, L["color" .. i]) end
+        colorRow(layout, L.colors, L.colorsTip, entries, function() return ns.cfg[key].colorCount end)
+            :SetParentInitializer(count, custom)
         local blend = checkbox(category, key, "gradient", L.gradient, L.gradientTip)
         blend:SetParentInitializer(count, function()
             return custom() and ns.cfg[key].colorCount > 1
@@ -236,19 +232,11 @@ local function buildElement(category, layout, key, title, opts)
         class:SetParentInitializer(blend, function()
             return ns.cfg[key].enabled and not ns.cfg[key].gradient
         end)
-        local entries = {
-            { setting = colorSetting(category, key, L.color, "color"), name = L.color, tooltip = L.colorTip },
-            { setting = colorSetting(category, key, L.color2, "color2"), name = L.color2, tooltip = L.colorTip },
-        }
-        local row = Settings.CreateElementInitializer("AureoleCursorColorRowTemplate", {
-            name = L.colors, tooltip = L.castColorsTip, entries = entries,
-            count = function() return ns.cfg[key].gradient and 2 or 1 end,
-        })
-        layout:AddInitializer(row)
-        track(row)
-        row:SetParentInitializer(class, function()
-            return ns.cfg[key].enabled and (ns.cfg[key].gradient or not ns.cfg[key].classColor)
-        end)
+        local entries = { colorEntry(category, key, "color", L.color), colorEntry(category, key, "color2", L.color2) }
+        colorRow(layout, L.colors, L.castColorsTip, entries, function() return ns.cfg[key].gradient and 2 or 1 end)
+            :SetParentInitializer(class, function()
+                return ns.cfg[key].enabled and (ns.cfg[key].gradient or not ns.cfg[key].classColor)
+            end)
     else
         -- The color picker is greyed out while class color is active
         local class = checkbox(category, key, "classColor", L.classColor, L.classColorTip)
@@ -284,10 +272,9 @@ local function shapeDropdown(category, key, child, tip, choices)
             section(key).shape = value
         end
         ns:Apply()
-        if key == "dot" and Settings.NotifyUpdate then
+        if key == "dot" then
             Settings.NotifyUpdate(varName(key, "size")) -- size slider shows the size of the new shape
-        end
-        if key == "trail" and Settings.NotifyUpdate then
+        elseif key == "trail" then
             for _, field in ipairs({ "size", "duration", "spacing" }) do
                 Settings.NotifyUpdate(varName(key, field)) -- sliders show the values of the new shape
             end
@@ -299,12 +286,7 @@ local function shapeDropdown(category, key, child, tip, choices)
     end
     local shape = Settings.RegisterProxySetting(category, varName(key, "shape"), Settings.VarType.String, L.shape,
         defaultOf(key, "shape"), function() return section(key).shape end, setShape)
-    local function shapes()
-        local c = Settings.CreateControlTextContainer()
-        for _, choice in ipairs(choices) do c:Add(choice[1], choice[2]) end
-        return c:GetData()
-    end
-    child(Settings.CreateDropdown(category, shape, shapes, tip))
+    child(track(Settings.CreateDropdown(category, shape, choiceList(choices), tip)))
 end
 
 local function dotOptions(category, key, child)
@@ -318,15 +300,9 @@ local function dotOptions(category, key, child)
     local function whenPulse()
         return ns.cfg[key].enabled and ns.cfg[key].pulse
     end
-    local button = proxy(category, key, "pulseButton", Settings.VarType.String, L.pulseButton)
-    local function buttons()
-        local c = Settings.CreateControlTextContainer()
-        c:Add("left", L.buttonLeft)
-        c:Add("right", L.buttonRight)
-        c:Add("both", L.buttonBoth)
-        return c:GetData()
-    end
-    Settings.CreateDropdown(category, button, buttons, L.pulseButtonTip):SetParentInitializer(pulse, whenPulse)
+    dropdown(category, key, "pulseButton", L.pulseButton, L.pulseButtonTip, {
+        { "left", L.buttonLeft }, { "right", L.buttonRight }, { "both", L.buttonBoth },
+    }):SetParentInitializer(pulse, whenPulse)
     slider(category, key, "pulseSize", L.pulseSize, L.pulseSizeTip, 1.5, 6, 0.5, function(v)
         return string.format("%.1fx", v)
     end):SetParentInitializer(pulse, whenPulse)

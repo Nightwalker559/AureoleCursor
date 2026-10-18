@@ -9,14 +9,14 @@
 
 ### Rings
 - New **Ring layout** option in General: "Individual rings" (as before), "Main + Cast Ring" or "Main + GCD Ring". The ring that is not used is turned off and its options are hidden in the settings. Its own settings are kept, so switching back restores them.
-
 - The Cast Ring can now use a **color gradient** between two colors: it starts with color 1 and moves to color 2 while the cast progresses (works for casts, channels and empowered spells). The opacity applies to both colors, class color is ignored while the gradient is on.
 
 ### General
 - The combat color moved to General and can now be applied to either the **Main Ring** or the **center dot** (including its click pulse). Your existing Main Ring combat color settings are carried over.
 
 ### Code
-- All code comments are now in English. No functional changes.
+- All code comments are now in English.
+- Cleanup: removed settings migrations from versions before the first release, merged duplicated code in the settings page.
 
 ---
 

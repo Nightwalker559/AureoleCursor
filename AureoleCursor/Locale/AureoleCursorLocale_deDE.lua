@@ -1,6 +1,6 @@
 -- Aureole Cursor: German (deDE). Missing keys show the English text from enUS.lua.
 if GetLocale() ~= "deDE" then return end
-local ADDON, ns = ...
+local _, ns = ...
 
 local L = ns.L
 
@@ -11,7 +11,7 @@ L.ringLayoutTip = "Welche Ringe verwendet werden. Bei \"Einzelne Ringe\" schalte
 L.layoutIndividual = "Einzelne Ringe"
 L.layoutMainCast = "Main + Cast-Ring"
 L.layoutMainGcd = "Main + GCD-Ring"
-L.scale ="Skalierung"
+L.scale = "Skalierung"
 L.scaleTip = "Skaliert alle Ringe und den Mittelpunkt gemeinsam."
 L.alpha = "Deckkraft gesamt"
 L.alphaTip = "Gesamt-Transparenz aller Elemente am Mauszeiger."

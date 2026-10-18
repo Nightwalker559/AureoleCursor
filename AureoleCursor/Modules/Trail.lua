@@ -1,7 +1,7 @@
 -- Aureole Cursor: mouse trail. Moving the mouse spawns dots at a fixed spacing that fade out
 -- (and shrink). A pool of textures with animation groups: the position is only set on spawn,
 -- fading and shrinking are done by the engine, no Lua runs per dot and frame.
-local ADDON, ns = ...
+local _, ns = ...
 
 local GetCursorPosition = GetCursorPosition
 local POOL = 256           -- dots that can be visible at the same time
@@ -203,7 +203,7 @@ function Trail:Apply()
         end
         if t.gradient then gradient = list else palette = list end
     end
-    spin = t.shape ~= "dot" and t.shape ~= nil -- leaves, snowflakes and stars are randomly rotated
+    spin = t.shape ~= "dot" -- every shape except the plain dot is randomly rotated
     energy = t.shape == "energy"
     if energy then -- energy keeps its original colors: color mode and color do not apply, only the opacity
         rainbow, palette, gradient, r, g, b = false, nil, nil, 1, 1, 1
