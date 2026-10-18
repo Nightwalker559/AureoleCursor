@@ -1,6 +1,6 @@
 # Aureole Cursor
 
-Rings around your mouse cursor: a fixed ring, a global cooldown ring, a cast ring, a center dot and an optional mouse trail. Sharp edges at every size, all settings on one page.
+Rings around your mouse cursor: a fixed ring, a global cooldown ring, a cast ring, a center dot and an optional mouse trail. Or, instead of the rings, a glow in the shape of the pointer. Sharp edges at every size, all settings on one page.
 
 Built for Midnight (12.1.5). The timers use Blizzard's duration objects, so the rings keep working when combat values are restricted.
 
@@ -10,7 +10,9 @@ Built for Midnight (12.1.5). The timers use Blizzard's duration objects, so the 
 - **GCD Ring:** shows the global cooldown and drains while it runs.
 - **Cast Ring:** shows casts (fills up), channels (drains) and empowered spells. Optionally it fades from one color to another while the cast progresses (color gradient).
 - **Ring layout:** use every ring on its own, or only Main + Cast Ring, or only Main + GCD Ring. The options of a ring you do not use are hidden.
-- **Combat color:** in combat the Main Ring or the center dot switches to a color of your choice automatically and back afterwards.
+- **Main style:** the cursor is surrounded by the rings (default) or by the pointer glow, never both.
+- **Pointer glow:** a soft halo in the shape of the game's mouse pointer, in your own color or class color. It follows the game's cursor size and can be nudged by pixels. It replaces the rings and the center dot; the mouse trail still works. While the game hides the pointer (right mouse button, turning the camera) a copy of the pointer is drawn so the glow does not hang around an invisible cursor.
+- **Combat color:** in combat the Main Ring or the center dot (with the pointer glow: the glow) switches to a color of your choice automatically and back afterwards.
 - **Background track:** an optional faint full ring behind the GCD and Cast ring, so you can see how much is left.
 - **Center mark:** a dot in the middle of the rings, or a crosshair with a gap, a dot with a ring or a sparkle. It can give a click pulse: a ring that expands from the center when you press the left, right or both mouse buttons.
 - **Mouse trail:** a trail of dots behind the cursor that fades out and shrinks. Color mode: rainbow, autumn, winter, Christmas, class color or custom colors (up to four, blended as a gradient along the trail or picked at random per dot). Shape: dot, leaf, snowflake, star, mist (a soft tintable cloud) or energy (a glowing energy pattern from the game files, nothing extra is shipped), so the trail can fit the season. Duration, spacing and size are adjustable, and every shape has its own defaults for them (your changes are remembered per shape). Fast mouse movements stay gap-free.

@@ -1,9 +1,9 @@
 ## Interface: 120100, 120105
 ## Title: Aureole Cursor
-## Notes: Rings at the mouse cursor: Main Ring, GCD Ring, Cast Ring, center dot and mouse trail.
-## Notes-deDE: Ringe am Mauszeiger: Main Ring, GCD-Ring, Cast-Ring, Mittelpunkt und Mauspur.
+## Notes: Rings or a glow at the mouse cursor: Main Ring, GCD Ring, Cast Ring, center dot, pointer glow and mouse trail.
+## Notes-deDE: Ringe oder ein Glow am Mauszeiger: Main Ring, GCD-Ring, Cast-Ring, Mittelpunkt, Zeiger-Glow und Mauspur.
 ## Author: Nightwalker559
-## Version: 1.0.2
+## Version: 1.0.3
 ## X-Curse-Project-ID: 1749710
 ## Category: Unit Frames
 ## IconTexture: Interface\AddOns\AureoleCursor\Media\Icon
