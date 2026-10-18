@@ -12,6 +12,9 @@
 
 - The Cast Ring can now use a **color gradient** between two colors: it starts with color 1 and moves to color 2 while the cast progresses (works for casts, channels and empowered spells). The opacity applies to both colors, class color is ignored while the gradient is on.
 
+### General
+- The combat color moved to General and can now be applied to either the **Main Ring** or the **center dot** (including its click pulse). Your existing Main Ring combat color settings are carried over.
+
 ### Code
 - All code comments are now in English. No functional changes.
 

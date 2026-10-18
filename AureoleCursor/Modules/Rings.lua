@@ -159,15 +159,9 @@ end
 ns:On("UI_SCALE_CHANGED", reapply)
 ns:On("DISPLAY_SIZE_CHANGED", reapply)
 
--- Main Ring: in combat (if enabled) uses the combat color, with the ring's opacity.
+-- Main Ring: in combat it uses the combat color if that is switched on for the ring (General), with the ring's opacity.
 local function applyMainColor()
-    local m = ns.cfg.main
-    if m.combatTint and ns.inCombat then
-        local c = m.combatColor
-        mainRing:SetVertexColor(c[1], c[2], c[3], m.color[4] or 1)
-    else
-        mainRing:SetVertexColor(ns:GetRingColor(m))
-    end
+    mainRing:SetVertexColor(ns:ElementColor("main"))
 end
 
 function Rings:UpdateVisibility()

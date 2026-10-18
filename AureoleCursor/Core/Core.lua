@@ -12,8 +12,9 @@ ns.defaults = {
     idleAlpha = 1.0,          -- share of the opacity applied out of combat
     hideOnMouselook = false,  -- hide while the camera is being turned with the mouse
     ringLayout = "individual", -- "individual" (every ring on its own), "maincast" (Main + Cast Ring) or "maingcd" (Main + GCD Ring)
-    main = { enabled = true, size = 40, thickness = 6, classColor = false, color = { 1, 1, 1, 0.8 },
-             combatTint = false, combatColor = { 1, 0.1, 0.1, 1 } }, -- different color in combat (opacity is kept)
+    -- combat color: while in combat, combatTarget ("main" ring or center "dot") switches to combatColor (its opacity is kept)
+    combatTint = false, combatTarget = "main", combatColor = { 1, 0.1, 0.1, 1 },
+    main = { enabled = true, size = 40, thickness = 6, classColor = false, color = { 1, 1, 1, 0.8 } },
     gcd  = { enabled = true, size = 28, thickness = 6, classColor = false, color = { 1, 0.82, 0, 1 }, track = true, trackAlpha = 0.5 },
     -- gradient: the swipe color moves from color to color2 while the cast progresses (class color is ignored then)
     cast = { enabled = true, size = 54, thickness = 6, classColor = false, color = { 1, 1, 1, 1 }, track = true, trackAlpha = 0.5,
@@ -131,6 +132,18 @@ function ns:UpdateVisibility()
     end
 end
 
+-- Color of the Main Ring or the center dot ("main" / "dot"): its own color, or the combat color while in combat if the
+-- combat color (General) is switched on for that element. Opacity always comes from the element itself.
+function ns:ElementColor(key)
+    local cfg = self.cfg
+    local element = cfg[key]
+    if cfg.combatTint and cfg.combatTarget == key and self.inCombat then
+        local c = cfg.combatColor
+        return c[1], c[2], c[3], element.color[4] or 1
+    end
+    return self:GetRingColor(element)
+end
+
 -- Overall opacity: base value, multiplied by idleAlpha out of combat, 0 while mouselooking if configured.
 function ns:CurrentAlpha()
     local cfg = self.cfg
@@ -199,6 +212,14 @@ ns:On("ADDON_LOADED", function(_, name)
         elseif tr.rainbow == false then tr.colorMode = "custom" end
     end
     if tr then tr.classColor, tr.rainbow = nil, nil end
+    local main = db.cfg.main
+    if main then
+        -- up to 1.0.1 the combat color belonged to the Main Ring; it is a general option now
+        if main.combatTint ~= nil and db.cfg.combatTint == nil then
+            db.cfg.combatTint, db.cfg.combatColor, db.cfg.combatTarget = main.combatTint, main.combatColor, "main"
+        end
+        main.combatTint, main.combatColor = nil, nil
+    end
     fillDefaults(db.cfg, ns.defaults)
     for _, key in ipairs({ "main", "gcd", "cast", "dot" }) do
         db.cfg[key].style = nil -- leftover of the removed edge style

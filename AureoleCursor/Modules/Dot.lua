@@ -50,18 +50,27 @@ end
 local Dot = {}
 ns:RegisterModule(Dot)
 
+-- Dot and click pulse: in combat they use the combat color if that is switched on for the dot (General).
+local function applyColor()
+    dot:SetVertexColor(ns:ElementColor("dot"))
+    pulse:SetVertexColor(ns:ElementColor("dot"))
+end
+
+function Dot:UpdateVisibility()
+    applyColor()
+end
+
 function Dot:Apply()
     local cfg = ns.cfg.dot
     dot:SetTexture(ns:ShapeTexture(cfg.shape, cfg.size))
     dot:SetSize(cfg.size, cfg.size)
-    dot:SetVertexColor(ns:GetRingColor(cfg))
     dot:SetShown(cfg.enabled)
 
     -- Pulse: the ring ends at dot size * pulseSize and grows from the dot to that size
     local final = cfg.size * cfg.pulseSize
     pulse:SetTexture(ns:RingTexture(3, final))
     pulse:SetSize(final, final)
-    pulse:SetVertexColor(ns:GetRingColor(cfg))
+    applyColor()
     pulseScale:SetScaleFrom(1 / cfg.pulseSize, 1 / cfg.pulseSize)
     pulseScale:SetScaleTo(1, 1)
     if not cfg.enabled then

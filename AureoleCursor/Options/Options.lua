@@ -92,7 +92,7 @@ local function colorSetting(category, key, label, field)
         ns:Apply()
     end
     return Settings.RegisterProxySetting(category, varName(key, field), Settings.VarType.String, label,
-        hexOf(ns.defaults[key][field]), get, set)
+        hexOf(defaultOf(key, field)), get, set)
 end
 
 local function colorSwatch(category, key, label, tip, field)
@@ -141,6 +141,19 @@ local function buildGeneral(category, layout)
     slider(category, nil, "idleAlpha", L.idleAlpha, L.idleAlphaTip, 0, 1, 0.05, percent)
     checkbox(category, nil, "combatOnly", L.combatOnly, L.combatOnlyTip)
     checkbox(category, nil, "hideOnMouselook", L.hideOnMouselook, L.hideOnMouselookTip)
+
+    -- Combat color: choose whether the Main Ring or the center dot switches to the combat color in combat
+    local tint = checkbox(category, nil, "combatTint", L.combatTint, L.combatTintTip)
+    local function tintOn() return ns.cfg.combatTint end
+    local targetSetting = proxy(category, nil, "combatTarget", Settings.VarType.String, L.combatTarget)
+    local function targets()
+        local c = Settings.CreateControlTextContainer()
+        c:Add("main", L.targetMain)
+        c:Add("dot", L.targetDot)
+        return c:GetData()
+    end
+    Settings.CreateDropdown(category, targetSetting, targets, L.combatTargetTip):SetParentInitializer(tint, tintOn)
+    colorSwatch(category, nil, L.combatColor, L.combatColorTip, "combatColor"):SetParentInitializer(tint, tintOn)
 
     local s = proxy(category, nil, "strata", Settings.VarType.String, L.strata)
     local function options()
@@ -246,14 +259,6 @@ local function buildElement(category, layout, key, title, opts)
         end)
     end
     child(opacitySlider(category, key, L.opacity, L.opacityTip))
-    if opts.combatTint then
-        local tint = checkbox(category, key, "combatTint", L.combatTint, L.combatTintTip)
-        child(tint)
-        local swatch = colorSwatch(category, key, L.combatColor, L.combatColorTip, "combatColor")
-        swatch:SetParentInitializer(tint, function()
-            return ns.cfg[key].enabled and ns.cfg[key].combatTint
-        end)
-    end
     if opts.track then
         child(checkbox(category, key, "track", L.track, L.trackTip))
         child(slider(category, key, "trackAlpha", L.trackAlpha, L.trackAlphaTip, 0.05, 1, 0.05, percent))
@@ -344,7 +349,7 @@ local function build()
     ns.settingsCategory = category
 
     buildGeneral(category, layout)
-    buildElement(category, layout, "main", L.main, { thickness = true, combatTint = true })
+    buildElement(category, layout, "main", L.main, { thickness = true })
     buildElement(category, layout, "gcd", L.gcd, { thickness = true, track = true, ring = true })
     buildElement(category, layout, "cast", L.cast, { thickness = true, track = true, ring = true, gradient = true })
     buildElement(category, layout, "dot", L.dot, { extra = dotOptions })
