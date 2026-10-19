@@ -77,7 +77,7 @@ L.glowOffsetYTip = "Verschiebt den Glow nach oben (positiv) oder unten (negativ)
 
 -- Settings: mouse trail
 L.ghost = "Geist"
-L.ghostTip = "Solange du tot bist, schwebt ein Geist über dem Mauszeiger. Er folgt der Gesamt-Deckkraft und den Sichtbarkeits-Einstellungen."
+L.ghostTip = "Solange du tot bist, schwebt ein Geist über dem Mauszeiger. Er folgt der Gesamt-Größe und -Deckkraft, erscheint aber auch bei \"Nur im Kampf anzeigen\" und außerhalb des Kampfes."
 L.ghostHeight = "Höhe über dem Mauszeiger"
 L.ghostHeightTip = "Abstand zwischen der Mauszeiger-Position und der Unterkante des Geists, in Pixeln."
 L.ghostFloat = "Auf und ab schweben"

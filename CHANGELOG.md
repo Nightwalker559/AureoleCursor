@@ -5,7 +5,7 @@
 ## 1.0.4
 
 ### Ghost
-- New **Ghost** section: while you are dead (corpse or spirit) a ghost floats above the cursor and bobs gently up and down. Off by default. Size, height above the cursor, color (or class color), opacity and the floating motion can be set. It works with the rings and with the pointer glow, follows the overall opacity and the visibility settings, and the bobbing is played by the engine.
+- New **Ghost** section: while you are dead (corpse or spirit) a ghost floats above the cursor and bobs gently up and down. Off by default. Size, height above the cursor, color (or class color), opacity and the floating motion can be set. It works with the rings and with the pointer glow and follows the overall scale and opacity. It has a frame of its own, so it also shows when "Show in combat only" is on (you are not in combat when you are dead). Feigning death does not count. The bobbing is played by the engine.
 
 ### Pointer glow
 - The copy of the pointer shown while the game hides the cursor (right mouse button held, camera turned) is now always fully opaque. It no longer follows the overall opacity, only the glow does. It is still hidden when everything else is invisible (overall opacity 0).

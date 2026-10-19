@@ -77,7 +77,7 @@ L.glowOffsetYTip = "Moves the glow up (positive) or down (negative), in screen p
 
 -- Settings: mouse trail
 L.ghost = "Ghost"
-L.ghostTip = "While you are dead, a ghost floats above the cursor. It follows the overall opacity and the visibility settings."
+L.ghostTip = "While you are dead, a ghost floats above the cursor. It follows the overall scale and opacity, but also shows when \"Show in combat only\" is on and out of combat."
 L.ghostHeight = "Height above the cursor"
 L.ghostHeightTip = "Distance between the cursor position and the bottom of the ghost, in pixels."
 L.ghostFloat = "Float up and down"
