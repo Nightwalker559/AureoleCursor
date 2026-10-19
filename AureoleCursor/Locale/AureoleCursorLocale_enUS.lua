@@ -76,6 +76,12 @@ L.glowOffsetY = "Offset vertical"
 L.glowOffsetYTip = "Moves the glow up (positive) or down (negative), in screen pixels. Use it if the glow does not sit exactly around the pointer."
 
 -- Settings: mouse trail
+L.ghost = "Ghost"
+L.ghostTip = "While you are dead, a ghost floats above the cursor. It follows the overall opacity and the visibility settings."
+L.ghostHeight = "Height above the cursor"
+L.ghostHeightTip = "Distance between the cursor position and the bottom of the ghost, in pixels."
+L.ghostFloat = "Float up and down"
+L.ghostFloatTip = "The ghost bobs gently up and down."
 L.trail = "Mouse trail"
 L.trailTip = "Leaves a trail of dots behind the cursor while you move the mouse; they fade out."
 L.duration = "Duration"

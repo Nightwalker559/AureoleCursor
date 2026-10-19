@@ -76,6 +76,12 @@ L.glowOffsetY = "Versatz vertikal"
 L.glowOffsetYTip = "Verschiebt den Glow nach oben (positiv) oder unten (negativ), in Bildschirmpixeln. Nutze das, wenn der Glow nicht genau um den Zeiger sitzt."
 
 -- Settings: mouse trail
+L.ghost = "Geist"
+L.ghostTip = "Solange du tot bist, schwebt ein Geist über dem Mauszeiger. Er folgt der Gesamt-Deckkraft und den Sichtbarkeits-Einstellungen."
+L.ghostHeight = "Höhe über dem Mauszeiger"
+L.ghostHeightTip = "Abstand zwischen der Mauszeiger-Position und der Unterkante des Geists, in Pixeln."
+L.ghostFloat = "Auf und ab schweben"
+L.ghostFloatTip = "Der Geist wippt sanft auf und ab."
 L.trail = "Mauspur"
 L.trailTip = "Hinterlässt beim Bewegen der Maus eine Spur aus Punkten, die ausblendet."
 L.duration = "Dauer"

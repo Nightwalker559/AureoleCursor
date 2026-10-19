@@ -22,6 +22,9 @@ ns.defaults = {
     cast = { enabled = true, size = 54, thickness = 6, classColor = false, color = { 1, 1, 1, 1 }, track = true, trackAlpha = 0.5,
              gradient = false, color2 = { 0.3, 0.8, 1, 1 } },
     dot  = { enabled = true, size = 10, shape = "dot", sizes = { dot = 10, gap = 22, ring = 24, spark = 24 }, pulse = true, pulseButton = "both", pulseSize = 4, classColor = false, color = { 1, 1, 1, 0.9 } },
+    -- ghost: while the player is dead a ghost floats above the cursor; height = pixels above the cursor position,
+    -- float = it bobs up and down
+    ghost = { enabled = false, size = 28, height = 4, float = true, classColor = false, color = { 1, 1, 1, 0.9 } },
     -- glow: halo in the shape of the game's mouse pointer, replaces the rings (see mainStyle) and follows the game's cursor size;
     -- showWhileLooking draws a copy of the pointer while the game hides it (right mouse button, mouselook);
     -- offsetX/offsetY (screen pixels) fine-tune the alignment with the pointer
@@ -86,12 +89,12 @@ function ns:DotTexture(size)
     return MEDIA .. "Dot\\Dot_" .. pickResolution(DOT_RES, self:ScreenPixels(size or 8)) .. ".tga"
 end
 
--- Shapes of the mouse trail (leaf, snowflake, star, mist, flame, heart, bubble, glitter) and of the center dot
--- (crosshair, dot with ring, sparkle); "dot" is the plain dot.
+-- Shapes of the mouse trail (leaf, snowflake, star, mist, flame, heart, bubble, glitter), of the center dot
+-- (crosshair, dot with ring, sparkle) and the ghost; "dot" is the plain dot.
 local SHAPE_RES = { { 30, 32 }, { 60, 64 }, { math.huge, 128 } }
 local SHAPE_FILE = { leaf = "Trail\\Leaf", snow = "Trail\\Snow", star = "Trail\\Star", mist = "Trail\\Mist",
     flame = "Trail\\Flame", heart = "Trail\\Heart", bubble = "Trail\\Bubble", glitter = "Trail\\Glitter",
-    gap = "Dot\\Gap", ring = "Dot\\DotRing", spark = "Dot\\Spark" }
+    gap = "Dot\\Gap", ring = "Dot\\DotRing", spark = "Dot\\Spark", ghost = "Ghost\\Ghost" }
 
 -- "Energy": Blizzard texture from the game (FileID, not shipped with the addon), seamless tile with alpha channel.
 ns.ENERGY_FILE_ID = 6735695

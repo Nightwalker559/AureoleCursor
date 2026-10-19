@@ -347,6 +347,12 @@ local function glowOptions(category, key, child)
     child(slider(category, key, "offsetY", L.glowOffsetY, L.glowOffsetYTip, -20, 20, 1))
 end
 
+-- Ghost: height above the cursor and the floating motion.
+local function ghostOptions(category, key, child)
+    child(slider(category, key, "height", L.ghostHeight, L.ghostHeightTip, -20, 60, 1))
+    child(checkbox(category, key, "float", L.ghostFloat, L.ghostFloatTip))
+end
+
 local function trailOptions(category, key, child)
     shapeDropdown(category, key, child, L.shapeTip, {
         { "dot", L.shapeDot }, { "leaf", L.shapeLeaf }, { "snow", L.shapeSnow }, { "star", L.shapeStar },
@@ -370,6 +376,7 @@ local function build()
     buildElement(category, layout, "cast", L.cast, { thickness = true, track = true, ringActive = true, gradient = true })
     buildElement(category, layout, "dot", L.dot, { extra = dotOptions, ringActive = true })
     buildElement(category, layout, "glow", L.glow, { size = false, noEnable = true, ringActive = true, extra = glowOptions, colorRow = true })
+    buildElement(category, layout, "ghost", L.ghost, { size = { 8, 128, 1 }, extra = ghostOptions })
     buildElement(category, layout, "trail", L.trail, { size = { 4, 64, 1 }, colorMode = true, extra = trailOptions })
 
     Settings.RegisterAddOnCategory(category)

@@ -16,6 +16,7 @@ Core\Cursor.lua
 Modules\Rings.lua
 Modules\Dot.lua
 Modules\Glow.lua
+Modules\Ghost.lua
 Modules\Trail.lua
 Options\ColorRow.xml
 Options\Options.lua
