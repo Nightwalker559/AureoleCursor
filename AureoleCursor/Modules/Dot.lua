@@ -50,11 +50,19 @@ end
 local Dot = {}
 ns:RegisterModule(Dot)
 
+-- GCD in the ring (shape "ring", see ns:GcdOnDot): the dot texture is split into the plain center dot, a ring (background
+-- track, faint) and a cooldown swipe on the ring (the GCD). Sizes as a share of the shape's size, taken from the geometry of
+-- DotRing (make_shapes.py: dot radius 0.11, ring 0.30 to 0.43 of the edge); RING_LEVEL is the ring thickness level whose
+-- inner radius is about 70 % of the outer one (like 0.30 / 0.43).
+local CORE_SIZE, RING_SIZE, RING_LEVEL = 0.22, 0.86, 7
+
 -- Dot and click pulse: in combat they use the combat color if that is switched on for the dot (General).
 local function applyColor()
     local r, g, b, a = ns:ElementColor("dot")
     dot:SetVertexColor(r, g, b, a)
     pulse:SetVertexColor(r, g, b, a)
+    ns.dotCooldown:SetSwipeColor(r, g, b, a)
+    ns.dotTrack:SetVertexColor(r, g, b, a * ns.cfg.dot.gcdTrackAlpha)
 end
 
 function Dot:UpdateVisibility()
@@ -63,9 +71,28 @@ end
 
 function Dot:Apply()
     local cfg = ns.cfg.dot
-    dot:SetTexture(ns:ShapeTexture(cfg.shape, cfg.size))
-    dot:SetSize(cfg.size, cfg.size)
     local active = cfg.enabled and ns:RingActive("dot") -- the pointer glow replaces the rings and the center dot
+    local onDot = active and ns:GcdOnDot()
+    local cd, track = ns.dotCooldown, ns.dotTrack
+    if onDot then
+        local core, ring = cfg.size * CORE_SIZE, cfg.size * RING_SIZE
+        dot:SetTexture(ns:DotTexture(core))
+        dot:SetSize(core, core)
+        track:SetTexture(ns:RingTexture(RING_LEVEL, ring))
+        track:SetSize(ring, ring)
+        track:Show()
+        cd:SetFrameStrata(ns.cfg.strata)
+        cd:SetSwipeTexture(ns:RingTexture(RING_LEVEL, ring))
+        cd:SetSize(ring, ring)
+        cd:SetReverse(false)
+        cd:Show()
+    else
+        dot:SetTexture(ns:ShapeTexture(cfg.shape, cfg.size))
+        dot:SetSize(cfg.size, cfg.size)
+        track:Hide()
+        cd:Clear()
+        cd:Hide()
+    end
     dot:SetShown(active)
 
     -- Pulse: the ring ends at dot size * pulseSize and grows from the dot to that size

@@ -21,7 +21,10 @@ ns.defaults = {
     -- gradient: the swipe color moves from color to color2 while the cast progresses (class color is ignored then)
     cast = { enabled = true, size = 54, thickness = 6, classColor = false, color = { 1, 1, 1, 1 }, track = true, trackAlpha = 0.5,
              gradient = false, color2 = { 0.3, 0.8, 1, 1 } },
-    dot  = { enabled = true, size = 10, shape = "dot", sizes = { dot = 10, gap = 22, ring = 24, spark = 24 }, pulse = true, pulseButton = "both", pulseSize = 4, classColor = false, color = { 1, 1, 1, 0.9 } },
+    dot  = { enabled = true, size = 10, shape = "dot", sizes = { dot = 10, gap = 22, ring = 24, spark = 24 }, pulse = true, pulseButton = "both", pulseSize = 4, classColor = false, color = { 1, 1, 1, 0.9 },
+             -- gcd: with the shape "ring" the GCD runs as progress in the ring of the dot (the GCD ring is off then);
+             -- gcdTrackAlpha: opacity of the ring at rest, as a share of the dot's opacity
+             gcd = false, gcdTrackAlpha = 0.5 },
     -- ghost: while the player is dead a ghost floats above the cursor; height = pixels above the cursor position,
     -- float = it bobs up and down
     ghost = { enabled = false, size = 28, height = 4, float = true, classColor = false, color = { 1, 1, 1, 0.9 } },
@@ -151,9 +154,16 @@ function ns:RingActive(key)
     local glow = self.cfg.mainStyle == "glow"
     if key == "glow" then return glow end
     if glow then return false end
-    if key == "gcd" then return layout ~= "maincast" end
+    if key == "gcd" then return layout ~= "maincast" and not self:GcdOnDot() end
     if key == "cast" then return layout ~= "maingcd" end
     return true
+end
+
+-- Does the GCD run in the ring of the center dot (shape "ring") instead of on its own GCD ring? Then the GCD ring is off
+-- and its options are hidden; color and opacity come from the center dot.
+function ns:GcdOnDot()
+    local dot = self.cfg.dot
+    return dot.gcd and dot.enabled and dot.shape == "ring" and self.cfg.mainStyle ~= "glow" or false
 end
 
 function ns:UpdateVisibility()

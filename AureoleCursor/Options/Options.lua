@@ -326,6 +326,15 @@ local function dotOptions(category, key, child)
         { "dot", L.shapeDot }, { "gap", L.shapeGap }, { "ring", L.shapeRing }, { "spark", L.shapeSpark },
     })
 
+    -- GCD in the ring: only for the shape "ring" (the GCD ring is off then and its options are hidden)
+    local function ringShape() return ns.cfg[key].shape == "ring" end
+    local gcd = checkbox(category, key, "gcd", L.dotGcd, L.dotGcdTip)
+    child(gcd)
+    gcd:AddShownPredicate(ringShape)
+    local gcdTrack = slider(category, key, "gcdTrackAlpha", L.dotGcdTrack, L.dotGcdTrackTip, 0.05, 1, 0.05, percent)
+    gcdTrack:SetParentInitializer(gcd, function() return ns.cfg[key].enabled and ns.cfg[key].gcd end)
+    gcdTrack:AddShownPredicate(ringShape)
+
     -- Click pulse: button and size are only usable while the pulse is active
     local pulse = checkbox(category, key, "pulse", L.pulse, L.pulseTip)
     child(pulse)

@@ -7,6 +7,9 @@
 ### Pointer glow
 - New slider **Lead** (0 to 3 frames, default 0.8, 0 = off). The game draws its pointer at the very end of the frame, while the glow can only use the position read at the start of it, so the glow trails behind the pointer when you move the mouse. Lead places the glow ahead along the movement of the last frame by that many frames (1 = the distance the mouse moved in the last frame). Because it counts frames, it follows your frame rate on its own. For very fast movements the shift is limited softly to about the size of the pointer, so a flick does not pull the glow far ahead. Jumps of more than 600 pixels in one frame are not treated as movement.
 
+### Center dot
+- New option **GCD in the ring** for the shape "Dot with ring". The global cooldown then runs as progress in the ring of the center dot, so the dot does the job of the GCD ring. The GCD ring is switched off and its options are hidden; color, opacity and the combat color come from the center dot. **Ring opacity at rest** sets how visible the ring is while no GCD runs.
+
 ---
 
 ## 1.0.5

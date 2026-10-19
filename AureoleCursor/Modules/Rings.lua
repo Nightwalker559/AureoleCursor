@@ -41,6 +41,14 @@ local gcdCD = createCooldown(1)
 local castCD = createCooldown(2)
 ns.gcdCooldown, ns.castCooldown = gcdCD, castCD
 
+-- GCD in the ring of the center dot (shape "ring", see ns:GcdOnDot): a second cooldown with the same time as the GCD ring,
+-- styled by Dot.lua.
+local dotCD = createCooldown(1)
+dotCD:Hide()
+local dotTrack = createTrack()
+dotTrack:Hide()
+ns.dotCooldown, ns.dotTrack = dotCD, dotTrack
+
 ------------------------------------------------------------------------
 -- GCD
 ------------------------------------------------------------------------
@@ -48,11 +56,17 @@ ns.gcdCooldown, ns.castCooldown = gcdCD, castCD
 -- While the GCD is running, set the swipe from the duration object of the GCD spell.
 -- Once it is over, the swipe ends by itself.
 local function updateGCD()
-    if not ns.cfg or not ns.cfg.gcd.enabled or not ns:RingActive("gcd") then return end
+    if not ns.cfg then return end
+    local ring = ns.cfg.gcd.enabled and ns:RingActive("gcd")
+    local onDot = ns:GcdOnDot()
+    if not ring and not onDot then return end
     local info = C_Spell.GetSpellCooldown(GCD_SPELL)
     if info and info.isActive then
         local d = C_Spell.GetSpellCooldownDuration(GCD_SPELL)
-        if d then gcdCD:SetCooldownFromDurationObject(d) end
+        if d then
+            if ring then gcdCD:SetCooldownFromDurationObject(d) end
+            if onDot then dotCD:SetCooldownFromDurationObject(d) end
+        end
     end
 end
 
