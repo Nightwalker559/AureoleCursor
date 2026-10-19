@@ -136,13 +136,6 @@ local function colorRow(layout, name, tip, entries, count)
     return track(row)
 end
 
--- Preview row of the mouse trail (TrailPreview.xml): redraws itself on every settings change.
-local function previewRow(layout, name, tip)
-    local row = Settings.CreateElementInitializer("AureoleCursorTrailPreviewTemplate", { name = name, tooltip = tip })
-    layout:AddInitializer(row)
-    return track(row)
-end
-
 local function opacitySlider(category, key, label, tip)
     local function get() return section(key).color[4] end
     local function set(value)
@@ -202,7 +195,6 @@ end
 -- Section for one element; the options below are only active while "Show" is on.
 -- opts: size = { min, max, step } (false: no size slider), noEnable (no "Show" switch), thickness (ring thickness),
 --       track (background track), gradient (cast ring: color gradient over the cast), colorMode (trail: color modes),
---       preview (trail: a row that shows the dots with the current settings),
 --       colorRow (pointer glow: one or two colors in a row with gradient and direction), ringActive (the whole section
 --       is hidden while ns:RingActive(key) is false), extra = function(category, key, child) for element-specific options.
 local function buildElement(category, layout, key, title, opts)
@@ -215,7 +207,6 @@ local function buildElement(category, layout, key, title, opts)
         if enable then initializer:SetParentInitializer(enable, on) end
     end
 
-    if opts.preview then child(previewRow(layout, L.preview, L.previewTip)) end
     if opts.size ~= false then
         local size = opts.size or { 8, 400, 2 }
         child(slider(category, key, "size", L.size, L.sizeTip, size[1], size[2], size[3]))
@@ -386,7 +377,7 @@ local function build()
     buildElement(category, layout, "dot", L.dot, { extra = dotOptions, ringActive = true })
     buildElement(category, layout, "glow", L.glow, { size = false, noEnable = true, ringActive = true, extra = glowOptions, colorRow = true })
     buildElement(category, layout, "ghost", L.ghost, { size = { 8, 128, 1 }, extra = ghostOptions })
-    buildElement(category, layout, "trail", L.trail, { size = { 4, 64, 1 }, colorMode = true, extra = trailOptions, preview = true })
+    buildElement(category, layout, "trail", L.trail, { size = { 4, 64, 1 }, colorMode = true, extra = trailOptions })
 
     Settings.RegisterAddOnCategory(category)
 end

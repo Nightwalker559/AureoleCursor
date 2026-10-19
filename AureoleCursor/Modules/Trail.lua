@@ -228,67 +228,6 @@ function Trail:UpdateVisibility()
     frame:SetShown(cfg.trail.enabled and (not cfg.combatOnly or ns.inCombat))
 end
 
--- Color mode: rainbow or season (color per dot in spawn), class color or custom color. Returns rainbow, palette, gradient (the
--- list of colors for the one that applies, otherwise nil) and the base color r, g, b with the opacity a.
-local function colorSetup(t)
-    local r, g, b, a = ns:GetRingColor({ classColor = t.colorMode == "class", color = t.color })
-    local isRainbow, colors, blend = t.colorMode == "rainbow", PALETTES[t.colorMode], nil
-    if t.colorMode == "custom" and (t.colorCount or 1) > 1 then
-        -- several custom colors: blended along the trail, or one picked at random per dot
-        local list = { { r, g, b } }
-        for i = 2, t.colorCount do
-            local c = t["color" .. i]
-            list[i] = { c[1], c[2], c[3] }
-        end
-        if t.gradient then blend = list else colors = list end
-    end
-    if t.shape == "energy" then -- energy keeps its original colors: color mode and color do not apply, only the opacity
-        return false, nil, nil, 1, 1, 1, a
-    end
-    return isRainbow, colors, blend, r, g, b, a
-end
-
--- The settings page shows a preview row (Options\TrailPreview.lua): a short line of dots the way the trail draws them with
--- the current settings, newest first. Fixed "random" values keep it from changing on every refresh.
-local PREVIEW_DOTS = 9
-local PREVIEW_RANDOM = { { 0.13, 0.71 }, { 0.82, 0.27 }, { 0.42, 0.93 }, { 0.67, 0.05 }, { 0.28, 0.58 },
-    { 0.95, 0.36 }, { 0.05, 0.84 }, { 0.55, 0.19 }, { 0.36, 0.64 } }
-ns.TRAIL_PREVIEW_DOTS = PREVIEW_DOTS
-
-function ns:TrailPreview()
-    local t = self.cfg.trail
-    local isRainbow, colors, blend, r, g, b, a = colorSetup(t)
-    local m = MOTION[t.shape]
-    local size = t.shape == "mist" and t.size * MIST_SIZE or t.size
-    local dots = {}
-    for i = 1, PREVIEW_DOTS do
-        local f = (i - 1) / (PREVIEW_DOTS - 1) -- age: 0 = newest, 1 = oldest
-        local rnd = PREVIEW_RANDOM[i]
-        local d = { r = r, g = g, b = b, alpha = a * (1 - 0.8 * f), scale = t.shrink and (1 - (1 - SHRINK_TO) * f) or 1,
-            x = 0, y = 0, rotation = 0 }
-        if colors then
-            local c = colors[(i - 1) % #colors + 1]
-            d.r, d.g, d.b = c[1], c[2], c[3]
-        elseif blend then
-            d.r, d.g, d.b = gradientColor(blend, (i - 1) * GRADIENT_SEGMENT * #blend / PREVIEW_DOTS)
-        elseif isRainbow then
-            d.r, d.g, d.b = hue((i - 1) / PREVIEW_DOTS)
-        end
-        if t.shape ~= "dot" then
-            local limit = m and m.tilt
-            d.rotation = limit and (rnd[2] * 2 - 1) * limit or rnd[2] * 2 * math.pi
-        end
-        if m then
-            d.x = ((rnd[1] * 2 - 1) * (m.sway or 0) * f + (rnd[2] * 2 - 1) * (m.jitter or 0)) * size
-            d.y = ((m.rise or 0) * f + (rnd[1] * 2 - 1) * (m.jitter or 0)) * size
-            if m.spin then d.rotation = d.rotation + (rnd[1] < 0.5 and -1 or 1) * math.rad(m.spin) * f end
-        end
-        dots[i] = d
-    end
-    return { dots = dots, texture = self:ShapeTexture(t.shape, size), size = size, energy = t.shape == "energy",
-        add = m and m.add or false }
-end
-
 function Trail:Apply()
     local cfg = ns.cfg
     local t = cfg.trail
@@ -297,14 +236,26 @@ function Trail:Apply()
 
     local size = t.shape == "mist" and t.size * MIST_SIZE or t.size
     local texture = ns:ShapeTexture(t.shape, size)
-    local r, g, b, a
-    rainbow, palette, gradient, r, g, b, a = colorSetup(t)
-    colorAlpha = a
+    -- Color mode: rainbow or season (color per dot in spawn), class color or custom color
+    local r, g, b, a = ns:GetRingColor({ classColor = t.colorMode == "class", color = t.color })
+    rainbow, palette, gradient, colorAlpha = t.colorMode == "rainbow", PALETTES[t.colorMode], nil, a
+    if t.colorMode == "custom" and (t.colorCount or 1) > 1 then
+        -- several custom colors: blended along the trail, or one picked at random per dot
+        local list = { { r, g, b } }
+        for i = 2, t.colorCount do
+            local c = t["color" .. i]
+            list[i] = { c[1], c[2], c[3] }
+        end
+        if t.gradient then gradient = list else palette = list end
+    end
     spin = t.shape ~= "dot" -- every shape except the plain dot is randomly rotated
     motion = MOTION[t.shape]
     tilt = motion and motion.tilt
     dotSize = size
     energy = t.shape == "energy"
+    if energy then -- energy keeps its original colors: color mode and color do not apply, only the opacity
+        rainbow, palette, gradient, r, g, b = false, nil, nil, 1, 1, 1
+    end
     local target = shrinkTarget(t)
     for _, d in ipairs(dots) do
         if energy then
@@ -331,5 +282,4 @@ function Trail:Apply()
     end
     lastX, lastY = nil, nil
     self:UpdateVisibility()
-    if ns.RefreshTrailPreview then ns:RefreshTrailPreview() end -- the settings page may show a preview
 end
