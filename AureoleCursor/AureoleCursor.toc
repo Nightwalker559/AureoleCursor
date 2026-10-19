@@ -19,4 +19,5 @@ Modules\Glow.lua
 Modules\Ghost.lua
 Modules\Trail.lua
 Options\ColorRow.xml
+Options\TrailPreview.xml
 Options\Options.lua
