@@ -276,6 +276,10 @@ end)
 local L = ns.L
 local PREFIX = "|cff66ccffAureole Cursor|r "
 local RINGS = { main = true, gcd = true, cast = true, dot = true, trail = true }
+-- Limits of the shortcuts: the same ranges as the sliders on the settings page (Options.lua)
+local MIN_SCALE, MAX_SCALE, MIN_ALPHA = 0.5, 3, 0.1
+local SIZE_LIMITS = { trail = { 4, 64 } }
+local DEFAULT_SIZE_LIMITS = { 8, 400 }
 
 local function say(...)
     print(PREFIX .. string.format(...))
@@ -297,10 +301,10 @@ SlashCmdList["AUREOLECURSOR"] = function(msg)
     local cmd = args[1]
 
     if cmd == "scale" and tonumber(args[2]) then
-        cfg.scale = math.max(0.3, math.min(5, tonumber(args[2])))
+        cfg.scale = math.max(MIN_SCALE, math.min(MAX_SCALE, tonumber(args[2])))
         ns:Apply()
     elseif cmd == "alpha" and tonumber(args[2]) then
-        cfg.alpha = math.max(0.05, math.min(1, tonumber(args[2])))
+        cfg.alpha = math.max(MIN_ALPHA, math.min(1, tonumber(args[2])))
         ns:Apply()
     elseif cmd == "combat" and onOff(args[2]) ~= nil then
         cfg.combatOnly = onOff(args[2])
@@ -310,7 +314,8 @@ SlashCmdList["AUREOLECURSOR"] = function(msg)
         if onOff(args[3]) ~= nil then
             ring.enabled = onOff(args[3])
         elseif args[3] == "size" and tonumber(args[4]) then
-            ring.size = math.max(8, math.min(512, tonumber(args[4])))
+            local limits = SIZE_LIMITS[args[2]] or DEFAULT_SIZE_LIMITS
+            ring.size = math.max(limits[1], math.min(limits[2], tonumber(args[4])))
         else
             say(L.slashRingUsage, args[2])
             return

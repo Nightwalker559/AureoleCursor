@@ -33,7 +33,7 @@ Open the settings with `/ac` or `/aureole` (`/aureolecursor` works too). Everyth
 | `/ac` or `/aureole` | Open the settings |
 | `/aureole help` | Show the current state and the command list |
 | `/aureole scale <n>` | Overall scale |
-| `/aureole alpha <n>` | Overall opacity (0.05 to 1) |
+| `/aureole alpha <n>` | Overall opacity (0.1 to 1) |
 | `/aureole combat on\|off` | Show only in combat |
 | `/aureole ring main\|gcd\|cast\|dot\|trail on\|off` | Switch an element on or off |
 | `/aureole ring <element> size <n>` | Change the size of an element |

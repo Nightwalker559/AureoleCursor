@@ -13,6 +13,9 @@
 ### Pointer glow
 - The copy of the pointer shown while the game hides the cursor (right mouse button held, camera turned) is now always fully opaque. It no longer follows the overall opacity, only the glow does. It is still hidden when everything else is invisible (overall opacity 0).
 
+### Slash commands
+- The shortcuts `/aureole scale`, `alpha` and `ring <element> size` now accept the same ranges as the sliders on the settings page (scale 0.5 to 3, opacity 0.1 to 1, size 8 to 400, mouse trail 4 to 64). Before, they could set values the slider could not show.
+
 ---
 
 ## 1.0.3
