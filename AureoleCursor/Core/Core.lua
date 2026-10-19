@@ -28,8 +28,9 @@ ns.defaults = {
     -- glow: halo in the shape of the game's mouse pointer, replaces the rings (see mainStyle) and follows the game's cursor size;
     -- showWhileLooking draws a copy of the pointer while the game hides it (right mouse button, mouselook);
     -- offsetX/offsetY (screen pixels) fine-tune the alignment with the pointer;
-    -- lead (milliseconds) places the glow ahead along the mouse movement, to make up for the pointer being drawn later
-    glow = { showWhileLooking = true, offsetX = 0, offsetY = 0, lead = 0, classColor = false, color = { 0.35, 0.7, 1, 0.8 },
+    -- leadFrames places the glow ahead along the mouse movement (movement of the last frame times this), to make up for the
+    -- pointer being drawn later; it follows the frame rate by itself
+    glow = { showWhileLooking = true, offsetX = 0, offsetY = 0, leadFrames = 0, classColor = false, color = { 0.35, 0.7, 1, 0.8 },
              -- one color or two (colorCount, color and color2) from top to bottom ("vertical") or left to right ("horizontal"):
              -- blend = smooth gradient, otherwise two hard halves. The opacity comes from color[4] for both.
              colorCount = 1, blend = true, gradientDir = "vertical", color2 = { 0.75, 0.3, 1, 0.8 } },

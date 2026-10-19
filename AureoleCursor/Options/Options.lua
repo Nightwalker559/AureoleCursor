@@ -345,8 +345,8 @@ local function glowOptions(category, key, child)
     child(checkbox(category, key, "showWhileLooking", L.glowLooking, L.glowLookingTip))
     child(slider(category, key, "offsetX", L.glowOffsetX, L.glowOffsetXTip, -20, 20, 1))
     child(slider(category, key, "offsetY", L.glowOffsetY, L.glowOffsetYTip, -20, 20, 1))
-    child(slider(category, key, "lead", L.glowLead, L.glowLeadTip, 0, 50, 1, function(v)
-        return string.format("%d ms", v)
+    child(slider(category, key, "leadFrames", L.glowLead, L.glowLeadTip, 0, 3, 0.1, function(v)
+        return string.format("%.1f", v)
     end))
 end
 

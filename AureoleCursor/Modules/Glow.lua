@@ -19,6 +19,8 @@ local DEFAULT_SIZE = 32
 -- clearly visible. Fixed, it always follows the pointer size.
 local GLOW_SCALE = 1.25
 ns.GLOW_SCALE = GLOW_SCALE
+-- Upper limit of how far the lead may shift the glow, as a share of the pointer size
+local LEAD_LIMIT = 0.75
 
 -- The pointer itself: Blizzard's cursor atlas (512 x 256), top left corner of the sprite per cursor size
 local ATLAS = "Interface/cursor/UICursor2x"
@@ -125,6 +127,7 @@ function Glow:Apply()
     local px = cursorPixels()
     local size = CANVAS[px] * GLOW_SCALE -- edge length of the glow texture in pixels
     local unit = 1 / ns:ScreenPixels(1) -- one screen pixel in units of the anchor
+    ns.leadLimit = px * LEAD_LIMIT * unit -- the lead (Cursor.lua) never pulls the glow much farther ahead than this
     -- The pointer's tip is the cursor position (the center of the anchor); its image starts at the top left of the
     -- sprite. The glow texture has the pointer in its middle, so it is centered on the sprite and grows from there.
     geometry = {
