@@ -43,7 +43,7 @@ frame:SetScript("OnUpdate", function(self)
         lastX, lastY, lastScale = x, y, scale
         self:SetPoint("CENTER", UIParent, "BOTTOMLEFT", x / scale, y / scale)
     end
-    local hide = ns.cfg.hideOnMouselook and IsMouselooking and IsMouselooking() and true or false
+    local hide = ns.cfg.hideOnMouselook and ns.mouselooking and true or false -- ns.mouselooking is kept by Core\Cursor.lua (events)
     if hide ~= hidden then
         hidden = hide
         self:SetAlpha(hide and 0 or ns.cfg.alpha)

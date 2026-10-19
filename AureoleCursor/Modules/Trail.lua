@@ -4,7 +4,10 @@
 local _, ns = ...
 
 local GetCursorPosition = GetCursorPosition
-local POOL = 256           -- dots that can be visible at the same time
+local GetFramerate = GetFramerate
+local FPS_FULL = 45        -- from this frame rate up the trail is drawn as configured
+local FPS_OFF = 20         -- below this it is paused; in between it gets sparser (up to twice the spacing, half the dots per frame)
+local POOL = 256          -- dots that can be visible at the same time
 local MAX_PER_FRAME = 40   -- upper limit per frame; fast mouse movement stays gap-free, only jumps are clipped
 local SHRINK_TO = 0.2
 local RAINBOW_LENGTH = 400   -- distance in pixels for one pass through all colors
@@ -192,13 +195,28 @@ frame:SetScript("OnUpdate", function()
     local spacing = ns.cfg.trail.spacing
     if dist < spacing then return end
 
+    -- Low frame rate (many players around): every frame covers a longer stretch, so it would spawn more dots exactly when
+    -- the game is struggling. Thin the trail out, and pause it when the game is really slow (no streak when it resumes).
+    local fps = GetFramerate()
+    local load = 1
+    if fps < FPS_FULL then
+        if fps < FPS_OFF then
+            lastX, lastY = x, y
+            return
+        end
+        load = (fps - FPS_OFF) / (FPS_FULL - FPS_OFF)
+        spacing = spacing * (2 - load)
+    end
+    local maxPerFrame = math.ceil(MAX_PER_FRAME * (0.5 + 0.5 * load))
+    if dist < spacing then return end
+
     local ux, uy = dx / dist, dy / dist
     local n = math.floor(dist / spacing)
-    if n > MAX_PER_FRAME then
+    if n > maxPerFrame then
         -- Very fast or a jump (e.g. Alt-Tab): only draw the last dots of the path
-        local skip = (n - MAX_PER_FRAME) * spacing
+        local skip = (n - maxPerFrame) * spacing
         lastX, lastY = lastX + ux * skip, lastY + uy * skip
-        n = MAX_PER_FRAME
+        n = maxPerFrame
     end
     for i = 1, n do
         travelled = travelled + spacing
