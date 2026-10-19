@@ -1,6 +1,6 @@
 -- Aureole Cursor: mouse trail. Moving the mouse spawns dots at a fixed spacing that fade out
 -- (and shrink). A pool of textures with animation groups: the position is only set on spawn,
--- fading and shrinking are done by the engine, no Lua runs per dot and frame.
+-- fading, shrinking and the motion of the themed shapes are done by the engine, no Lua runs per dot and frame.
 local _, ns = ...
 
 local GetCursorPosition = GetCursorPosition
@@ -57,12 +57,15 @@ for i = 1, POOL do
     fade:SetToAlpha(0)
     local shrink = group:CreateAnimation("Scale")
     shrink:SetScaleFrom(1, 1)
-    local move = group:CreateAnimation("Translation")
-    move:SetOffset(0, 0)
-    local turn = group:CreateAnimation("Rotation")
-    turn:SetDegrees(0)
     group:SetScript("OnFinished", function() tex:Hide() end)
-    dots[i] = { tex = tex, group = group, fade = fade, shrink = shrink, move = move, turn = turn }
+    -- The motion of the themed shapes is a second group that only plays for those shapes. The plain shapes would otherwise
+    -- pay for a translation and a rotation of zero on every dot and every frame.
+    local motionGroup = tex:CreateAnimationGroup()
+    local move = motionGroup:CreateAnimation("Translation")
+    move:SetOffset(0, 0)
+    local turn = motionGroup:CreateAnimation("Rotation")
+    turn:SetDegrees(0)
+    dots[i] = { tex = tex, group = group, fade = fade, shrink = shrink, motionGroup = motionGroup, move = move, turn = turn }
 end
 
 local lastX, lastY
@@ -97,9 +100,10 @@ local function shrinkTarget(t)
     return t.shrink and SHRINK_TO or 1
 end
 
--- Stops the animations of a dot (and its mask, see applyMask).
+-- Stops the animations of a dot (also the motion of an earlier shape, and the mask, see applyMask).
 local function stopDot(d)
     d.group:Stop()
+    d.motionGroup:Stop()
     if d.maskGroup then d.maskGroup:Stop() end
 end
 
@@ -170,6 +174,7 @@ local function spawn(x, y)
     d.tex:SetPoint("CENTER", UIParent, "BOTTOMLEFT", x, y)
     d.tex:Show()
     d.group:Play()
+    if motion then d.motionGroup:Play() end
     if energy and d.maskGroup then d.maskGroup:Play() end
 end
 

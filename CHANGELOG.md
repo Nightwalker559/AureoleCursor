@@ -6,6 +6,7 @@
 
 ### Mouse trail
 - Two new shapes for spring and summer: **Blossom** (five petals that tumble down while they fade, spring colors in pink and white with a touch of green) and **Butterfly** (small butterflies that flutter up and sideways, summer colors in yellow, orange, blue and green). Both come with matching color modes **Spring** and **Summer**, and every shape remembers its own settings like the other themed shapes.
+- The motion of the themed shapes (rise, drift, spin) now runs in its own animation group that only plays for those shapes. Dot, leaf, snowflake, star, mist and energy no longer carry a translation and a rotation of zero on every dot and every frame, which takes work off the engine while the trail is on screen.
 
 ### Ghost
 - New **Ghost** section: while you are dead (corpse or spirit) a ghost floats above the cursor and bobs gently up and down. Off by default. Size, height above the cursor, color (or class color), opacity and the floating motion can be set. It works with the rings and with the pointer glow and follows the overall scale and opacity. It has a frame of its own, so it also shows when "Show in combat only" is on (you are not in combat when you are dead). Feigning death does not count. The bobbing is played by the engine.
