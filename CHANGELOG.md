@@ -2,6 +2,16 @@
 
 ---
 
+## 1.0.5
+
+### Mouse trail
+- The trail now adapts to a low frame rate. Every frame covers a longer stretch of the mouse path, so a slow game used to spawn more dots per frame exactly when it was struggling. Below 45 FPS the dots get sparser (up to twice the spacing, down to half the dots per frame), and below 20 FPS the trail pauses and picks up again without a streak from the old position. At 45 FPS and above nothing changes.
+
+### Performance
+- "Hide while mouse-looking" no longer asks the game every frame whether the mouse is looking. The cursor anchor and the ghost now follow the game's start and stop events for looking and turning, like the pointer glow already did.
+
+---
+
 ## 1.0.4
 
 ### Mouse trail
