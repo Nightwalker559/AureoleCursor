@@ -51,6 +51,8 @@ ns.defaults = {
                   heart = { size = 20, duration = 1.0, spacing = 18, colorMode = "love" },
                   bubble = { size = 22, duration = 1.2, spacing = 14, colorMode = "ocean" },
                   glitter = { size = 16, duration = 0.7, spacing = 8, colorMode = "gold" },
+                  blossom = { size = 20, duration = 1.0, spacing = 18, colorMode = "spring" },
+                  butterfly = { size = 24, duration = 1.1, spacing = 22, colorMode = "summer" },
               } },
 }
 
@@ -89,11 +91,12 @@ function ns:DotTexture(size)
     return MEDIA .. "Dot\\Dot_" .. pickResolution(DOT_RES, self:ScreenPixels(size or 8)) .. ".tga"
 end
 
--- Shapes of the mouse trail (leaf, snowflake, star, mist, flame, heart, bubble, glitter), of the center dot
+-- Shapes of the mouse trail (leaf, snowflake, star, mist, flame, heart, bubble, glitter, blossom, butterfly), of the center dot
 -- (crosshair, dot with ring, sparkle) and the ghost; "dot" is the plain dot.
 local SHAPE_RES = { { 30, 32 }, { 60, 64 }, { math.huge, 128 } }
 local SHAPE_FILE = { leaf = "Trail\\Leaf", snow = "Trail\\Snow", star = "Trail\\Star", mist = "Trail\\Mist",
     flame = "Trail\\Flame", heart = "Trail\\Heart", bubble = "Trail\\Bubble", glitter = "Trail\\Glitter",
+    blossom = "Trail\\Blossom", butterfly = "Trail\\Butterfly",
     gap = "Dot\\Gap", ring = "Dot\\DotRing", spark = "Dot\\Spark", ghost = "Ghost\\Ghost" }
 
 -- "Energy": Blizzard texture from the game (FileID, not shipped with the addon), seamless tile with alpha channel.

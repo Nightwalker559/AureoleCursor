@@ -14,10 +14,12 @@ local GRADIENT_SEGMENT = 200   -- distance in pixels to blend from one custom co
 
 -- Seasonal palettes: each dot gets one of the colors at random
 local PALETTES = {
+    spring = { { 1, 0.75, 0.82 }, { 1, 0.88, 0.92 }, { 1, 1, 1 }, { 0.95, 0.60, 0.75 }, { 0.80, 0.92, 0.55 } },
+    summer = { { 1, 0.80, 0.20 }, { 1, 0.55, 0.15 }, { 0.35, 0.75, 1 }, { 0.55, 0.85, 0.45 } },
     autumn = { { 0.85, 0.33, 0.10 }, { 0.95, 0.60, 0.12 }, { 0.70, 0.15, 0.10 }, { 0.90, 0.75, 0.20 }, { 0.50, 0.28, 0.10 } },
     winter = { { 1, 1, 1 }, { 0.85, 0.95, 1 }, { 0.70, 0.86, 1 }, { 0.55, 0.78, 1 } },
     christmas = { { 0.85, 0.10, 0.10 }, { 0.10, 0.60, 0.20 }, { 1, 0.85, 0.30 }, { 1, 1, 1 } },
-    -- default palettes of the themed shapes (flame, heart, bubble, glitter)
+    -- default palettes of the themed shapes (blossom, butterfly, flame, heart, bubble, glitter)
     fire = { { 1, 0.85, 0.20 }, { 1, 0.55, 0.10 }, { 0.95, 0.30, 0.08 }, { 0.80, 0.12, 0.05 } },
     love = { { 1, 0.35, 0.50 }, { 0.95, 0.15, 0.30 }, { 1, 0.60, 0.75 }, { 0.85, 0.10, 0.25 } },
     ocean = { { 0.55, 0.85, 1 }, { 0.30, 0.65, 1 }, { 0.75, 0.95, 1 }, { 0.40, 0.80, 0.90 } },
@@ -33,6 +35,8 @@ local MOTION = {
     heart = { rise = 1.6, sway = 0.6, tilt = 0.45 },
     bubble = { rise = 1.8, sway = 0.8, jitter = 0.2, tilt = 0 },
     glitter = { jitter = 0.8, spin = 120, add = true },
+    blossom = { rise = -1.8, sway = 0.9, jitter = 0.3, spin = 100 },
+    butterfly = { rise = 1.4, sway = 1.4, jitter = 0.3, tilt = 0.6 },
 }
 
 local frame = CreateFrame("Frame", "AureoleCursorTrail", UIParent)
