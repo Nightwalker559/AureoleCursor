@@ -2,6 +2,13 @@
 
 ---
 
+## 1.0.6
+
+### Pointer glow
+- New slider **Lead** (0 to 50 ms, off by default). The game draws its pointer at the very end of the frame, while the glow can only use the position read at the start of it, so the glow trails behind the pointer when you move the mouse. Lead places the glow ahead along the current mouse movement by that many milliseconds. Raise it until the glow stays on the pointer; too high and it overshoots when you stop or change direction. Jumps of more than 600 pixels in one frame are not treated as movement.
+
+---
+
 ## 1.0.5
 
 ### Mouse trail

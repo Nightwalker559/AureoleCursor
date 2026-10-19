@@ -12,6 +12,13 @@ ns.anchor = anchor
 -- Only re-anchor when position or scale changed.
 local lastX, lastY, lastScale
 
+-- Pointer glow: the game draws its pointer at the very end of the frame, while the glow shows the position read at the start
+-- of it, so the glow trails the pointer. lead (milliseconds, glow option) places it ahead by that much of the current
+-- mouse speed. prevX/prevY: last raw position, nil after a pause.
+local lead = 0
+local prevX, prevY
+local MAX_STEP = 600 -- a jump of more than this many pixels in one frame is no mouse movement (no prediction)
+
 -- The game reports when it starts and stops hiding the pointer (looking = mouselook, turning = right mouse button), so
 -- nothing is polled per frame. ns.mouselooking is read by the opacity and the ghost.
 local looking, turning = false, false
@@ -33,18 +40,27 @@ ns:On("PLAYER_STARTED_TURNING", mouseChanged(nil, true))
 ns:On("PLAYER_STOPPED_TURNING", mouseChanged(nil, false))
 ns:On("PLAYER_ENTERING_WORLD", mouseChanged(false, false))
 
-anchor:SetScript("OnUpdate", function(self)
+anchor:SetScript("OnUpdate", function(self, elapsed)
     local x, y = GetCursorPosition()
     local scale = self:GetEffectiveScale()
-    if x ~= lastX or y ~= lastY or scale ~= lastScale then
-        lastX, lastY, lastScale = x, y, scale
-        self:SetPoint("CENTER", UIParent, "BOTTOMLEFT", x / scale, y / scale)
+    local px, py = x, y
+    if lead > 0 then
+        if prevX and elapsed > 0 and math.abs(x - prevX) < MAX_STEP and math.abs(y - prevY) < MAX_STEP then
+            local k = lead / 1000 / math.max(elapsed, 0.002) -- seconds ahead, as a multiple of this frame's movement
+            px, py = x + (x - prevX) * k, y + (y - prevY) * k
+        end
+        prevX, prevY = x, y
+    end
+    if px ~= lastX or py ~= lastY or scale ~= lastScale then
+        lastX, lastY, lastScale = px, py, scale
+        self:SetPoint("CENTER", UIParent, "BOTTOMLEFT", px / scale, py / scale)
     end
 end)
 
 -- On show, jump to the current position immediately.
 anchor:SetScript("OnShow", function()
     lastX, lastY, lastScale = nil, nil, nil
+    prevX, prevY = nil, nil
 end)
 
 local Cursor = {}
@@ -61,5 +77,7 @@ function Cursor:Apply()
     anchor:SetScale(cfg.scale)
     anchor:SetFrameStrata(cfg.strata)
     lastX, lastY, lastScale = nil, nil, nil
+    prevX, prevY = nil, nil
+    lead = ns:RingActive("glow") and cfg.glow.lead or 0
     self:UpdateVisibility()
 end

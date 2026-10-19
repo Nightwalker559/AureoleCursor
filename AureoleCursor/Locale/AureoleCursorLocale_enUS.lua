@@ -74,6 +74,8 @@ L.glowOffsetX = "Offset horizontal"
 L.glowOffsetXTip = "Moves the glow to the right (positive) or left (negative), in screen pixels. Use it if the glow does not sit exactly around the pointer."
 L.glowOffsetY = "Offset vertical"
 L.glowOffsetYTip = "Moves the glow up (positive) or down (negative), in screen pixels. Use it if the glow does not sit exactly around the pointer."
+L.glowLead = "Lead"
+L.glowLeadTip = "The game draws its pointer slightly later than the glow can read its position, so the glow trails behind when you move the mouse. This places the glow ahead along the movement by that many milliseconds. 0 = off. Raise it until the glow stays on the pointer; too high and it overshoots when you stop or change direction."
 
 -- Settings: mouse trail
 L.ghost = "Ghost"
