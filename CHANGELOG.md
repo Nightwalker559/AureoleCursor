@@ -23,7 +23,7 @@
 - There is no opacity per element any more, only the overall opacity (General), the opacity out of combat and one **Track opacity** for the background tracks of the GCD and Cast Ring (it replaces the three separate track opacities, and also applies to the ring of the center dot with "GCD in the ring"). Existing settings are converted: the opacity of the Main Ring (of the pointer glow if that is your main style) is folded into the overall opacity, so the main element looks the same. Other elements that had a different opacity look a little different. The default overall opacity is 80 %.
 
 ### Under the hood
-- The settings are stored in a new layout (colors in one place, config version 2) and converted automatically on the first start. Every element asks one function for its colors, which is the groundwork for color themes.
+- The settings are stored in a new layout (colors in one place, config version 2) and converted automatically on the first start. Every element asks one function for its colors, which is how the color themes replace them all at once.
 
 ---
 
