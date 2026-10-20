@@ -29,7 +29,6 @@ ns.defaults = {
             -- gradient: the swipe color moves from color to color2 while the cast progresses (class color is ignored then)
             cast = { classColor = false, color = { 1, 1, 1 }, gradient = false, color2 = { 0.3, 0.8, 1 } },
             dot = { classColor = false, color = { 1, 1, 1 } },
-            ghost = { classColor = false, color = { 1, 1, 1 } },
             -- one color or two (colorCount, color and color2) from top to bottom ("vertical") or left to right ("horizontal"):
             -- blend = smooth gradient, otherwise two hard halves
             glow = { classColor = false, color = { 0.35, 0.7, 1 }, colorCount = 1, blend = true, gradientDir = "vertical",
@@ -46,9 +45,6 @@ ns.defaults = {
     dot  = { enabled = true, size = 10, shape = "dot", sizes = { dot = 10, gap = 22, ring = 24, spark = 24 }, pulse = true, pulseButton = "both", pulseSize = 4,
              -- gcd: with the shape "ring" the GCD runs as progress in the ring of the dot (the GCD ring is off then)
              gcd = false },
-    -- ghost: while the player is dead a ghost floats above the cursor; height = pixels above the cursor position,
-    -- float = it bobs up and down
-    ghost = { enabled = false, size = 28, height = 4, float = true },
     -- glow: halo in the shape of the game's mouse pointer, replaces the rings (see mainStyle) and follows the game's cursor size;
     -- showWhileLooking draws a copy of the pointer while the game hides it (right mouse button, mouselook);
     -- offsetX/offsetY (screen pixels) fine-tune the alignment with the pointer;
@@ -111,12 +107,12 @@ function ns:DotTexture(size)
 end
 
 -- Shapes of the mouse trail (leaf, snowflake, star, mist, flame, heart, bubble, glitter, blossom, butterfly), of the center dot
--- (crosshair, dot with ring, sparkle) and the ghost; "dot" is the plain dot.
+-- (crosshair, dot with ring, sparkle); "dot" is the plain dot.
 local SHAPE_RES = { { 30, 32 }, { 60, 64 }, { math.huge, 128 } }
 local SHAPE_FILE = { leaf = "Trail\\Leaf", snow = "Trail\\Snow", star = "Trail\\Star", mist = "Trail\\Mist",
     flame = "Trail\\Flame", heart = "Trail\\Heart", bubble = "Trail\\Bubble", glitter = "Trail\\Glitter",
     blossom = "Trail\\Blossom", butterfly = "Trail\\Butterfly",
-    gap = "Dot\\Gap", ring = "Dot\\DotRing", spark = "Dot\\Spark", ghost = "Ghost\\Ghost" }
+    gap = "Dot\\Gap", ring = "Dot\\DotRing", spark = "Dot\\Spark" }
 
 -- "Energy": Blizzard texture from the game (FileID, not shipped with the addon), seamless tile with alpha channel.
 ns.ENERGY_FILE_ID = 6735695
@@ -186,7 +182,7 @@ function ns:UpdateVisibility()
     end
 end
 
--- The colors in use: { main, gcd, cast, dot, ghost, glow, trail }, each with its color fields (see defaults.colors.custom).
+-- The colors in use: { main, gcd, cast, dot, glow, trail }, each with its color fields (see defaults.colors.custom).
 -- Everything that needs a color asks here, never cfg.colors directly.
 function ns:Palette()
     return self.cfg.colors.custom
@@ -274,7 +270,6 @@ local PALETTE_FIELDS = {
     gcd = { "classColor", "color" },
     cast = { "classColor", "color", "gradient", "color2" },
     dot = { "classColor", "color" },
-    ghost = { "classColor", "color" },
     glow = { "classColor", "color", "colorCount", "blend", "gradientDir", "color2" },
     trail = { "colorMode", "color", "colorCount", "gradient", "color2", "color3", "color4" },
 }
@@ -339,6 +334,9 @@ ns:On("ADDON_LOADED", function(_, name)
         main.combatTint, main.combatColor = nil, nil
     end
     migrateColors(db.cfg)
+    -- the ghost was removed in 1.1.0: drop its settings (also its colors, in configs that were already converted)
+    db.cfg.ghost = nil
+    if type(db.cfg.colors) == "table" and type(db.cfg.colors.custom) == "table" then db.cfg.colors.custom.ghost = nil end
     fillDefaults(db.cfg, ns.defaults)
     ns.cfg = db.cfg
 end)

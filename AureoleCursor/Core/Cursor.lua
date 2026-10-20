@@ -23,7 +23,7 @@ local MAX_STEP = 600 -- a jump of more than this many pixels in one frame is no 
 local sqrt, abs = math.sqrt, math.abs
 
 -- The game reports when it starts and stops hiding the pointer (looking = mouselook, turning = right mouse button), so
--- nothing is polled per frame. ns.mouselooking is read by the opacity and the ghost.
+-- nothing is polled per frame. ns.mouselooking is read by the opacity.
 local looking, turning = false, false
 
 local function mouseChanged(isLooking, isTurning)

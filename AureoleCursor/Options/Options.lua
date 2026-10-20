@@ -239,10 +239,6 @@ local function buildColors(category, layout)
         dependsOn(row, varName("glow", "colorCount"), function() return true end)
         forElement("glow", row)
     end
-    do
-        local row = colorsOf("ghost", L.ghost, L.colorTip, 1, one)
-        dependsOn(row, classVar("ghost"), function() return not custom("ghost").classColor end)
-    end
     -- Mouse trail: the colors are only active with the color mode "Custom color", 1-4 of them. The energy shape has fixed
     -- original colors (it follows the shape setting).
     local function trailCustom() return ns.cfg.trail.shape ~= "energy" and custom("trail").colorMode == "custom" end
@@ -276,8 +272,6 @@ local function buildColors(category, layout)
     forElement("glow", dropdown(category, "glow", "gradientDir", labelOf("glow", L.glowDirection), L.glowDirectionTip, {
         { "vertical", L.dirVertical }, { "horizontal", L.dirHorizontal },
     })):SetParentInitializer(count, two)
-
-    checkbox(category, "ghost", "classColor", labelOf("ghost", L.classColor), L.classColorTip)
 
     -- Mouse trail: color mode as a dropdown, then the number of custom colors (blended along the trail as a gradient, or
     -- one picked at random per dot). The energy shape locks them (the mode follows the shape setting).
@@ -401,12 +395,6 @@ local function glowOptions(category, key, child)
     end))
 end
 
--- Ghost: height above the cursor and the floating motion.
-local function ghostOptions(category, key, child)
-    child(slider(category, key, "height", L.ghostHeight, L.ghostHeightTip, -20, 60, 1))
-    child(checkbox(category, key, "float", L.ghostFloat, L.ghostFloatTip))
-end
-
 local function trailOptions(category, key, child)
     shapeDropdown(category, key, child, L.shapeTip, {
         { "dot", L.shapeDot }, { "leaf", L.shapeLeaf }, { "snow", L.shapeSnow }, { "star", L.shapeStar },
@@ -431,7 +419,6 @@ local function build()
     buildElement(category, layout, "cast", L.cast, { thickness = true, track = true, ringActive = true })
     buildElement(category, layout, "dot", L.dot, { extra = dotOptions, ringActive = true })
     buildElement(category, layout, "glow", L.glow, { size = false, noEnable = true, ringActive = true, extra = glowOptions })
-    buildElement(category, layout, "ghost", L.ghost, { size = { 8, 128, 1 }, extra = ghostOptions })
     buildElement(category, layout, "trail", L.trail, { size = { 4, 64, 1 }, extra = trailOptions })
 
     Settings.RegisterAddOnCategory(category)
