@@ -4,9 +4,6 @@
 
 ## 1.1.0
 
-### Settings
-- All colors now have a section of their own on the settings page, right below General. **Colors** has one row per element (Main Ring, GCD Ring, Cast Ring, center dot, pointer glow, ghost, mouse trail, combat color) with its color swatches side by side. **Color options** below holds the class color switches, the cast gradient, the glow colors, the trail color mode and the combat color switch. The element sections now only hold size, thickness and behavior. Rows and options of elements that are not in use are hidden as before. Nothing about the colors themselves changed.
-
 ### Removed
 - The **ghost** (a ghost floating above the cursor while you are dead) is gone, together with its settings and its texture.
 
