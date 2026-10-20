@@ -270,7 +270,7 @@ local function buildElement(category, layout, key, title, opts)
         local modeDD = themed(dropdown(category, key, "colorMode", L.colorMode, L.colorModeTip, {
             { "rainbow", L.modeRainbow }, { "spring", L.modeSpring }, { "summer", L.modeSummer }, { "autumn", L.modeAutumn },
             { "winter", L.modeWinter }, { "christmas", L.modeChristmas }, { "fire", L.modeFire }, { "love", L.modeLove },
-            { "ocean", L.modeOcean }, { "gold", L.modeGold }, { "custom", L.modeCustom },
+            { "ocean", L.modeOcean }, { "gold", L.modeGold }, { "arcane", L.modeArcane }, { "storm", L.modeStorm }, { "custom", L.modeCustom },
         }))
         modeDD:SetParentInitializer(enable, colorable)
         -- Custom color: 1-4 colors, blended along the trail (gradient) or picked at random per dot.
@@ -351,6 +351,8 @@ end
 local function dotOptions(category, key, child)
     shapeDropdown(category, key, child, L.dotShapeTip, {
         { "dot", L.shapeDot }, { "gap", L.shapeGap }, { "ring", L.shapeRing }, { "spark", L.shapeSpark },
+        { "diamond", L.shapeDiamond }, { "arrow", L.shapeArrow }, { "crossdot", L.shapeCrossDot },
+        { "doublering", L.shapeDoubleRing }, { "corners", L.shapeCorners }, { "hexagon", L.shapeHexagon },
     })
 
     -- GCD in the ring: only for the shape "ring" (the GCD ring is off then and its options are hidden)
@@ -388,6 +390,8 @@ local function trailOptions(category, key, child)
         { "dot", L.shapeDot }, { "leaf", L.shapeLeaf }, { "snow", L.shapeSnow }, { "star", L.shapeStar },
         { "mist", L.shapeMist }, { "energy", L.shapeEnergy }, { "flame", L.shapeFlame }, { "heart", L.shapeHeart },
         { "bubble", L.shapeBubble }, { "glitter", L.shapeGlitter }, { "blossom", L.shapeBlossom }, { "butterfly", L.shapeButterfly },
+        { "ember", L.shapeEmber }, { "drop", L.shapeDrop }, { "feather", L.shapeFeather }, { "bolt", L.shapeBolt },
+        { "crystal", L.shapeCrystal }, { "coin", L.shapeCoin }, { "rune", L.shapeRune }, { "confetti", L.shapeConfetti },
     })
     child(slider(category, key, "duration", L.duration, L.durationTip, 0.1, 1.5, 0.05, seconds))
     child(slider(category, key, "spacing", L.spacing, L.spacingTip, 2, 40, 1))

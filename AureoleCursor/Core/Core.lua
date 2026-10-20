@@ -43,7 +43,7 @@ ns.defaults = {
     main = { enabled = true, size = 40, thickness = 6 },
     gcd  = { enabled = true, size = 28, thickness = 6, track = true },
     cast = { enabled = true, size = 54, thickness = 6, track = true },
-    dot  = { enabled = true, size = 10, shape = "dot", sizes = { dot = 10, gap = 22, ring = 24, spark = 24 }, pulse = true, pulseButton = "both", pulseSize = 4,
+    dot  = { enabled = true, size = 10, shape = "dot", sizes = { dot = 10, gap = 22, ring = 24, spark = 24, diamond = 14, arrow = 16, crossdot = 22, doublering = 26, corners = 26, hexagon = 24 }, pulse = true, pulseButton = "both", pulseSize = 4,
              -- gcd: with the shape "ring" the GCD runs as progress in the ring of the dot (the GCD ring is off then)
              gcd = false },
     -- glow: halo in the shape of the game's mouse pointer, replaces the rings (see mainStyle) and follows the game's cursor size;
@@ -69,6 +69,14 @@ ns.defaults = {
                   glitter = { size = 16, duration = 0.7, spacing = 8, colorMode = "gold" },
                   blossom = { size = 20, duration = 1.0, spacing = 18, colorMode = "spring" },
                   butterfly = { size = 24, duration = 1.1, spacing = 22, colorMode = "summer" },
+                  ember = { size = 12, duration = 0.9, spacing = 8, colorMode = "fire" },
+                  drop = { size = 16, duration = 0.8, spacing = 16, colorMode = "ocean" },
+                  feather = { size = 22, duration = 1.3, spacing = 22, colorMode = "spring" },
+                  bolt = { size = 20, duration = 0.4, spacing = 16, colorMode = "storm" },
+                  crystal = { size = 18, duration = 0.9, spacing = 16, colorMode = "winter" },
+                  coin = { size = 18, duration = 0.9, spacing = 20, colorMode = "gold" },
+                  rune = { size = 24, duration = 1.0, spacing = 22, colorMode = "arcane" },
+                  confetti = { size = 12, duration = 0.9, spacing = 10, colorMode = "rainbow" },
               } },
 }
 
@@ -107,13 +115,17 @@ function ns:DotTexture(size)
     return MEDIA .. "Dot\\Dot_" .. pickResolution(DOT_RES, self:ScreenPixels(size or 8)) .. ".tga"
 end
 
--- Shapes of the mouse trail (leaf, snowflake, star, mist, flame, heart, bubble, glitter, blossom, butterfly), of the center dot
--- (crosshair, dot with ring, sparkle); "dot" is the plain dot.
+-- Shapes of the mouse trail (leaf, snowflake, star, mist, flame, heart, bubble, glitter, blossom, butterfly, ember, drop, feather,
+-- bolt, crystal, coin, rune, confetti), of the center dot (crosshair, dot with ring, sparkle, diamond, arrowhead, crosshair with
+-- dot, double ring, corner brackets, hexagon); "dot" is the plain dot.
 local SHAPE_RES = { { 30, 32 }, { 60, 64 }, { math.huge, 128 } }
 local SHAPE_FILE = { leaf = "Trail\\Leaf", snow = "Trail\\Snow", star = "Trail\\Star", mist = "Trail\\Mist",
     flame = "Trail\\Flame", heart = "Trail\\Heart", bubble = "Trail\\Bubble", glitter = "Trail\\Glitter",
-    blossom = "Trail\\Blossom", butterfly = "Trail\\Butterfly",
-    gap = "Dot\\Gap", ring = "Dot\\DotRing", spark = "Dot\\Spark" }
+    blossom = "Trail\\Blossom", butterfly = "Trail\\Butterfly", ember = "Trail\\Ember", drop = "Trail\\Drop",
+    feather = "Trail\\Feather", bolt = "Trail\\Bolt", crystal = "Trail\\Crystal", coin = "Trail\\Coin",
+    rune = "Trail\\Rune", confetti = "Trail\\Confetti",
+    gap = "Dot\\Gap", ring = "Dot\\DotRing", spark = "Dot\\Spark", diamond = "Dot\\Diamond", arrow = "Dot\\Arrow",
+    crossdot = "Dot\\CrossDot", doublering = "Dot\\DoubleRing", corners = "Dot\\Corners", hexagon = "Dot\\Hexagon" }
 
 -- "Energy": Blizzard texture from the game (FileID, not shipped with the addon), seamless tile with alpha channel.
 ns.ENERGY_FILE_ID = 6735695

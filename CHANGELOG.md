@@ -10,6 +10,11 @@
 - The **GCD Ring** has a color gradient of its own now (color 1 to color 2 while the global cooldown runs), like the Cast Ring.
 - The class color is a theme now: the **Class color** switches of the elements and the trail color mode "Class color" are gone. If you used one of them, your theme is set to Class color on the first start.
 
+### New shapes
+- Six new **center marks**: **Diamond**, **Arrowhead**, **Crosshair with dot**, **Double ring**, **Corner brackets** and **Hexagon**. Each has its own default size, which you can change.
+- Eight new **trail shapes** with their own motion and colors: **Ember** (small glowing sparks that rise quickly), **Raindrop** (falls), **Feather** (drifts down and turns), **Lightning** (short flashes around the cursor), **Crystal** (drifts and turns), **Coin** (floats up, gold), **Rune** (glows and turns, arcane) and **Confetti** (tumbles down, rainbow).
+- Two new trail color modes for them: **Arcane** (violet and blue) and **Storm** (white, yellow and cyan).
+
 ### Removed
 - The **ghost** (a ghost floating above the cursor while you are dead) is gone, together with its settings and its texture.
 

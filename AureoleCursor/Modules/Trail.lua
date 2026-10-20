@@ -22,11 +22,13 @@ local PALETTES = {
     autumn = { { 0.85, 0.33, 0.10 }, { 0.95, 0.60, 0.12 }, { 0.70, 0.15, 0.10 }, { 0.90, 0.75, 0.20 }, { 0.50, 0.28, 0.10 } },
     winter = { { 1, 1, 1 }, { 0.85, 0.95, 1 }, { 0.70, 0.86, 1 }, { 0.55, 0.78, 1 } },
     christmas = { { 0.85, 0.10, 0.10 }, { 0.10, 0.60, 0.20 }, { 1, 0.85, 0.30 }, { 1, 1, 1 } },
-    -- default palettes of the themed shapes (blossom, butterfly, flame, heart, bubble, glitter)
+    -- default palettes of the themed shapes (blossom, butterfly, flame, heart, bubble, glitter, ember, drop, feather, bolt, crystal, coin, rune)
     fire = { { 1, 0.85, 0.20 }, { 1, 0.55, 0.10 }, { 0.95, 0.30, 0.08 }, { 0.80, 0.12, 0.05 } },
     love = { { 1, 0.35, 0.50 }, { 0.95, 0.15, 0.30 }, { 1, 0.60, 0.75 }, { 0.85, 0.10, 0.25 } },
     ocean = { { 0.55, 0.85, 1 }, { 0.30, 0.65, 1 }, { 0.75, 0.95, 1 }, { 0.40, 0.80, 0.90 } },
     gold = { { 1, 0.90, 0.50 }, { 1, 0.80, 0.25 }, { 1, 1, 0.85 }, { 1, 0.70, 0.20 } },
+    arcane = { { 0.75, 0.45, 1 }, { 0.55, 0.40, 1 }, { 0.90, 0.60, 1 }, { 0.40, 0.55, 1 } },
+    storm = { { 1, 1, 0.75 }, { 1, 0.95, 0.40 }, { 0.60, 0.90, 1 }, { 1, 1, 1 } },
 }
 
 -- Motion of the themed shapes, in multiples of the dot size. All of it is played by the engine (animations), Lua only sets
@@ -40,6 +42,14 @@ local MOTION = {
     glitter = { jitter = 0.8, spin = 120, add = true },
     blossom = { rise = -1.8, sway = 0.9, jitter = 0.3, spin = 100 },
     butterfly = { rise = 1.4, sway = 1.4, jitter = 0.3, tilt = 0.6 },
+    ember = { rise = 4, sway = 0.9, jitter = 0.4, add = true },
+    drop = { rise = -3, sway = 0.15, jitter = 0.2, tilt = 0 },
+    feather = { rise = -1.4, sway = 1.3, jitter = 0.3, spin = 80 },
+    bolt = { jitter = 0.6, tilt = 0.5, add = true },
+    crystal = { rise = 0.8, sway = 0.6, jitter = 0.5, spin = 70 },
+    coin = { rise = 1.2, sway = 0.5, jitter = 0.3, tilt = 0.4 },
+    rune = { jitter = 0.2, spin = 90, add = true },
+    confetti = { rise = -2.2, sway = 1.4, jitter = 0.7, spin = 300 },
 }
 
 local frame = CreateFrame("Frame", "AureoleCursorTrail", UIParent)
