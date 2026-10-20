@@ -72,7 +72,7 @@ for i = 1, POOL do
 end
 
 local lastX, lastY
-local rainbow, palette, gradient, spin, energy, colorAlpha = false, nil, nil, false, false, 1
+local rainbow, palette, gradient, spin, energy = false, nil, nil, false, false
 local motion, tilt, dotSize -- MOTION of the current shape, its tilt limit and the dot size in pixels
 local travelled = 0
 
@@ -151,13 +151,13 @@ local function spawn(x, y)
     stopDot(d)
     if palette then
         local c = palette[math.random(#palette)]
-        d.tex:SetVertexColor(c[1], c[2], c[3], colorAlpha)
+        d.tex:SetVertexColor(c[1], c[2], c[3], 1)
     elseif gradient then
         local r, g, b = gradientColor(gradient, travelled)
-        d.tex:SetVertexColor(r, g, b, colorAlpha)
+        d.tex:SetVertexColor(r, g, b, 1)
     elseif rainbow then
         local r, g, b = hue(travelled / RAINBOW_LENGTH)
-        d.tex:SetVertexColor(r, g, b, colorAlpha)
+        d.tex:SetVertexColor(r, g, b, 1)
     end
     if spin then d.tex:SetRotation(tilt and (math.random() * 2 - 1) * tilt or math.random() * 2 * math.pi) end
     if motion then
@@ -231,15 +231,17 @@ frame:SetScript("OnHide", stopAll)
 
 -- Each shape has its own size, duration and spacing: on a change the current values are remembered
 -- for the old shape and the remembered ones (initially the defaults from cfg.trail.presets) are applied.
+-- The color mode (cfg.colors.custom.trail) goes along: every shape remembers its mode, the themed shapes start with their palette.
 function ns:SetTrailShape(shape)
     local t = self.cfg.trail
     if t.shape == shape then return end
-    t.presets[t.shape] = { size = t.size, duration = t.duration, spacing = t.spacing, colorMode = t.colorMode }
+    local colors = self.cfg.colors.custom.trail
+    t.presets[t.shape] = { size = t.size, duration = t.duration, spacing = t.spacing, colorMode = colors.colorMode }
     t.shape = shape
     local p = t.presets[shape]
     if p then
         t.size, t.duration, t.spacing = p.size, p.duration, p.spacing
-        if p.colorMode then t.colorMode = p.colorMode end -- themed shapes start with their palette, every shape remembers its mode
+        if p.colorMode then colors.colorMode = p.colorMode end
     end
 end
 
@@ -254,29 +256,30 @@ end
 function Trail:Apply()
     local cfg = ns.cfg
     local t = cfg.trail
+    local colors = ns:Palette().trail
     frame:SetFrameStrata(cfg.strata)
     ns:UpdateAlpha()
 
     local size = t.shape == "mist" and t.size * MIST_SIZE or t.size
     local texture = ns:ShapeTexture(t.shape, size)
     -- Color mode: rainbow or season (color per dot in spawn), class color or custom color
-    local r, g, b, a = ns:GetRingColor({ classColor = t.colorMode == "class", color = t.color })
-    rainbow, palette, gradient, colorAlpha = t.colorMode == "rainbow", PALETTES[t.colorMode], nil, a
-    if t.colorMode == "custom" and (t.colorCount or 1) > 1 then
+    local r, g, b = ns:GetRingColor({ classColor = colors.colorMode == "class", color = colors.color })
+    rainbow, palette, gradient = colors.colorMode == "rainbow", PALETTES[colors.colorMode], nil
+    if colors.colorMode == "custom" and (colors.colorCount or 1) > 1 then
         -- several custom colors: blended along the trail, or one picked at random per dot
         local list = { { r, g, b } }
-        for i = 2, t.colorCount do
-            local c = t["color" .. i]
+        for i = 2, colors.colorCount do
+            local c = colors["color" .. i]
             list[i] = { c[1], c[2], c[3] }
         end
-        if t.gradient then gradient = list else palette = list end
+        if colors.gradient then gradient = list else palette = list end
     end
     spin = t.shape ~= "dot" -- every shape except the plain dot is randomly rotated
     motion = MOTION[t.shape]
     tilt = motion and motion.tilt
     dotSize = size
     energy = t.shape == "energy"
-    if energy then -- energy keeps its original colors: color mode and color do not apply, only the opacity
+    if energy then -- energy keeps its original colors: color mode and color do not apply
         rainbow, palette, gradient, r, g, b = false, nil, nil, 1, 1, 1
     end
     local target = shrinkTarget(t)
@@ -290,7 +293,7 @@ function Trail:Apply()
             removeMask(d)
         end
         d.tex:SetSize(size, size)
-        d.tex:SetVertexColor(r, g, b, a)
+        d.tex:SetVertexColor(r, g, b, 1)
         d.tex:SetRotation(0)
         d.fade:SetDuration(t.duration)
         d.shrink:SetDuration(t.duration)

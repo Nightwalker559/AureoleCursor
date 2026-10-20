@@ -3,7 +3,7 @@
 ## Notes: Rings or a pointer glow around your mouse cursor, plus a mouse trail. All settings on one page.
 ## Notes-deDE: Ringe oder ein Zeiger-Glow um deinen Mauszeiger, dazu eine Mauspur. Alle Einstellungen auf einer Seite.
 ## Author: Nightwalker559
-## Version: 1.0.6
+## Version: 1.1.0
 ## X-Curse-Project-ID: 1749710
 ## Category: Unit Frames
 ## IconTexture: Interface\AddOns\AureoleCursor\Media\Icon

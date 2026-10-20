@@ -56,13 +56,13 @@ ns:RegisterModule(Dot)
 -- inner radius is about 70 % of the outer one (like 0.30 / 0.43).
 local CORE_SIZE, RING_SIZE, RING_LEVEL = 0.22, 0.86, 7
 
--- Dot and click pulse: in combat they use the combat color if that is switched on for the dot (General).
+-- Dot and click pulse: in combat they use the combat color if that is switched on for the dot (Colors).
 local function applyColor()
-    local r, g, b, a = ns:ElementColor("dot")
-    dot:SetVertexColor(r, g, b, a)
-    pulse:SetVertexColor(r, g, b, a)
-    ns.dotCooldown:SetSwipeColor(r, g, b, a)
-    ns.dotTrack:SetVertexColor(r, g, b, a * ns.cfg.dot.gcdTrackAlpha)
+    local r, g, b = ns:ElementColor("dot")
+    dot:SetVertexColor(r, g, b, 1)
+    pulse:SetVertexColor(r, g, b, 1)
+    ns.dotCooldown:SetSwipeColor(r, g, b, 1)
+    ns.dotTrack:SetVertexColor(r, g, b, ns.cfg.trackAlpha)
 end
 
 function Dot:UpdateVisibility()

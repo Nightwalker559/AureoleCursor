@@ -66,14 +66,14 @@ local function updateIcon()
 end
 ns.UpdatePointerIcon = updateIcon
 
--- Shows the glow in its colors: in combat one color, the combat color, if it is switched on for the glow (General); otherwise
+-- Shows the glow in its colors: in combat one color, the combat color, if it is switched on (Colors); otherwise
 -- one or two colors across the texture, top to bottom or left to right. With the gradient (blend) the two colors are blended
--- (one part), without it each color gets one half (two parts). The opacity comes from the first color for both.
+-- (one part), without it each color gets one half (two parts).
 local function paint()
-    local cfg = ns.cfg.glow
+    local cfg = ns:Palette().glow
     local active = geometry and ns:RingActive("glow")
-    local r, g, b, a = ns:ElementColor("glow")
-    local combat = ns.cfg.combatTint and ns.inCombat
+    local r, g, b = ns:ElementColor("glow")
+    local combat = ns.cfg.colors.combat.enabled and ns.inCombat
     local count = combat and 1 or math.max(1, math.min(2, cfg.colorCount or 1))
     local n = count == 1 and 1 or (cfg.blend and count - 1 or count)
     local horizontal = cfg.gradientDir == "horizontal"
@@ -95,14 +95,14 @@ local function paint()
             end
             local c1, c2 = colors[i], colors[i + 1]
             if cfg.blend and count > 1 then
-                local first, second = CreateColor(c1[1], c1[2], c1[3], a), CreateColor(c2[1], c2[2], c2[3], a)
+                local first, second = CreateColor(c1[1], c1[2], c1[3], 1), CreateColor(c2[1], c2[2], c2[3], 1)
                 if horizontal then
                     part:SetGradient("HORIZONTAL", first, second) -- the first color is the left one
                 else
                     part:SetGradient("VERTICAL", second, first) -- the first color is the top one
                 end
             else
-                part:SetVertexColor(c1[1], c1[2], c1[3], a) -- also removes a gradient
+                part:SetVertexColor(c1[1], c1[2], c1[3], 1) -- also removes a gradient
             end
             part:Show()
         else

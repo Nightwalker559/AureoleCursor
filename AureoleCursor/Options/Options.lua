@@ -1,5 +1,5 @@
 -- Aureole Cursor: settings in the Blizzard options UI (vertical layout, proxy settings).
--- Everything is on one page; sections (General, one per ring, center dot) have headers
+-- Everything is on one page; sections (General, Colors, one per element) have headers
 -- and are built in separate functions so options can be added step by step.
 local ADDON, ns = ...
 
@@ -20,36 +20,62 @@ local function track(initializer)
     return initializer
 end
 
-local function section(key)
-    if key == nil then return ns.cfg end
-    return ns.cfg[key]
+-- Where a setting lives in the config. Settings are named after the element they belong to (key, nil = General) and the
+-- field. The colors are not part of the element: they are in the palette (cfg.colors.custom[key]), the combat color in
+-- cfg.colors.combat. holder() gives the table that holds the value and the real name of the field in it.
+local PALETTE_FIELDS = {
+    classColor = true, color = true, color2 = true, color3 = true, color4 = true, gradient = true, blend = true,
+    gradientDir = true, colorCount = true, colorMode = true,
+}
+local COMBAT_FIELDS = { combatTint = "enabled", combatTarget = "target", combatColor = "color" }
+
+local function holder(root, key, field)
+    if key == nil then
+        if COMBAT_FIELDS[field] then return root.colors.combat, COMBAT_FIELDS[field] end
+        return root, field
+    end
+    if PALETTE_FIELDS[field] then return root.colors.custom[key], field end
+    return root[key], field
+end
+
+local function valueOf(key, field)
+    local t, f = holder(ns.cfg, key, field)
+    return t[f]
 end
 
 local function defaultOf(key, field)
-    local src = key == nil and ns.defaults or ns.defaults[key]
-    return src[field]
+    local t, f = holder(ns.defaults, key, field)
+    return t[f]
 end
 
 local function varName(key, field)
     return string.upper("AUREOLECURSOR_" .. (key or "GENERAL") .. "_" .. field)
 end
 
+-- An option that depends on a setting somewhere else in the page (not its parent in the layout): it is evaluated again
+-- whenever that setting reports a change.
+local function dependsOn(initializer, variable, predicate)
+    initializer:AddModifyPredicate(predicate)
+    initializer:AddEvaluateStateCVar(variable)
+    return initializer
+end
+
 -- Some options hang off a different setting than the one they really depend on (the Blizzard panel only re-evaluates
 -- children of the setting that changed). After a change, tell that intermediate setting to refresh its children.
 local function notifyDependents(key, field)
-    if key == "trail" and (field == "enabled" or field == "colorMode") then
+    if key == "trail" and field == "colorMode" then
         Settings.NotifyUpdate(varName(key, "colorCount")) -- the extra trail colors follow the color count
-    elseif key == "cast" and (field == "enabled" or field == "gradient") then
-        if field == "enabled" then Settings.NotifyUpdate(varName(key, "gradient")) end -- class color follows the gradient switch
+    elseif key == "cast" and field == "gradient" then
         Settings.NotifyUpdate(varName(key, "classColor")) -- the color row follows the class color switch
     end
 end
 
 -- Proxy setting: always reads from and writes to the current ns.cfg (which is replaced on reset).
 local function proxy(category, key, field, vtype, label)
-    local function get() return section(key)[field] end
+    local function get() return valueOf(key, field) end
     local function set(value)
-        section(key)[field] = value
+        local t, f = holder(ns.cfg, key, field)
+        t[f] = value
         ns:Apply()
         notifyDependents(key, field)
     end
@@ -94,17 +120,16 @@ local function seconds(v)
     return string.format("%.2f s", v)
 end
 
--- Color swatch: the setting value is an ARGB hex string, the config holds {r, g, b, a}.
--- Opacity has its own slider, so a stays untouched when the color changes.
+-- Color swatch: the setting value is an ARGB hex string, the config holds {r, g, b} (the opacity is the overall one).
 local function colorSetting(category, key, label, field)
     field = field or "color"
     local function hexOf(col)
         return CreateColor(col[1], col[2], col[3], 1):GenerateHexColor()
     end
-    local function get() return hexOf(section(key)[field]) end
+    local function get() return hexOf(valueOf(key, field)) end
     local function set(hex)
         local c = CreateColorFromHexString(hex)
-        local col = section(key)[field]
+        local col = valueOf(key, field)
         col[1], col[2], col[3] = c.r, c.g, c.b
         ns:Apply()
     end
@@ -136,19 +161,6 @@ local function colorRow(layout, name, tip, entries, count)
     return track(row)
 end
 
-local function opacitySlider(category, key, label, tip)
-    local function get() return section(key).color[4] end
-    local function set(value)
-        section(key).color[4] = value
-        ns:Apply()
-    end
-    local s = Settings.RegisterProxySetting(category, varName(key, "OPACITY"), Settings.VarType.Number, label,
-        ns.defaults[key].color[4], get, set)
-    local options = Settings.CreateSliderOptions(0.05, 1, 0.05)
-    options:SetLabelFormatter(MinimalSliderWithSteppersMixin.Label.Right, percent)
-    return track(Settings.CreateSlider(category, s, options, tip))
-end
-
 ------------------------------------------------------------------------
 -- Pages
 ------------------------------------------------------------------------
@@ -175,36 +187,119 @@ local function buildGeneral(category, layout)
     slider(category, nil, "scale", L.scale, L.scaleTip, 0.5, 3, 0.05, twoDecimals)
     slider(category, nil, "alpha", L.alpha, L.alphaTip, 0.1, 1, 0.05, percent)
     slider(category, nil, "idleAlpha", L.idleAlpha, L.idleAlphaTip, 0, 1, 0.05, percent)
+    slider(category, nil, "trackAlpha", L.trackAlpha, L.trackAlphaTip, 0.05, 1, 0.05, percent)
     checkbox(category, nil, "combatOnly", L.combatOnly, L.combatOnlyTip)
     checkbox(category, nil, "hideOnMouselook", L.hideOnMouselook, L.hideOnMouselookTip)
-
-    -- Combat color: choose whether the Main Ring or the center dot switches to the combat color in combat
-    local tint = checkbox(category, nil, "combatTint", L.combatTint, L.combatTintTip)
-    local function tintOn() return ns.cfg.combatTint end
-    -- With the pointer glow the glow always takes the combat color, so there is nothing to choose
-    local target = dropdown(category, nil, "combatTarget", L.combatTarget, L.combatTargetTip, {
-        { "main", L.main }, { "dot", L.targetDot },
-    })
-    target:SetParentInitializer(tint, tintOn)
-    target:AddShownPredicate(function() return ns.cfg.mainStyle ~= "glow" end)
-    colorSwatch(category, nil, L.combatColor, L.combatColorTip, "combatColor"):SetParentInitializer(tint, tintOn)
-
     dropdown(category, nil, "strata", L.strata, L.strataTip, STRATA)
 end
 
--- Section for one element; the options below are only active while "Show" is on.
+-- Colors: all of them on one place, one group per element (plus the combat color). The groups of elements that are not in
+-- use (see ns:RingActive) are hidden. They edit the palette "custom" (cfg.colors.custom).
+local function colorGroup(layout, key, title, build)
+    sectionItems = key and {} or nil
+    header(layout, string.format(L.colorsFor, title))
+    build()
+    if sectionItems then
+        for _, item in ipairs(sectionItems) do
+            item:AddShownPredicate(function() return ns:RingActive(key) end)
+        end
+        sectionItems = nil
+    end
+end
+
+-- Class color switch and the color swatch that is greyed out while it is on
+local function simpleColor(category, layout, key)
+    local class = checkbox(category, key, "classColor", L.classColor, L.classColorTip)
+    colorSwatch(category, key, L.color, L.colorTip):SetParentInitializer(class, function()
+        return not ns.cfg.colors.custom[key].classColor
+    end)
+end
+
+local function buildColors(category, layout)
+    local custom = function(key) return ns.cfg.colors.custom[key] end
+
+    colorGroup(layout, "main", L.main, function() simpleColor(category, layout, "main") end)
+    colorGroup(layout, "gcd", L.gcd, function() simpleColor(category, layout, "gcd") end)
+
+    -- Cast Ring: the ring moves from color 1 to color 2 while the cast progresses. Class color is ignored then, so it
+    -- hangs off the gradient switch. The color row shows one swatch, or two with a gradient; it hangs off the class color
+    -- switch, changes of the gradient switch are reported to it through the proxy (see notifyDependents).
+    colorGroup(layout, "cast", L.cast, function()
+        local blend = checkbox(category, "cast", "gradient", L.castGradient, L.castGradientTip)
+        local class = checkbox(category, "cast", "classColor", L.classColor, L.classColorTip)
+        class:SetParentInitializer(blend, function() return not custom("cast").gradient end)
+        colorRow(layout, L.colors, L.castColorsTip, colorEntries(category, "cast", 2), function() return custom("cast").gradient and 2 or 1 end)
+            :SetParentInitializer(class, function()
+                return custom("cast").gradient or not custom("cast").classColor
+            end)
+    end)
+
+    colorGroup(layout, "dot", L.dot, function() simpleColor(category, layout, "dot") end)
+
+    -- Pointer glow: one or two colors in one row like the custom colors of the trail. Class color replaces color 1.
+    -- Two colors are blended (gradient) or shown as two halves, from top to bottom or from left to right.
+    colorGroup(layout, "glow", L.glow, function()
+        checkbox(category, "glow", "classColor", L.classColor, L.glowClassColorTip)
+        local count = slider(category, "glow", "colorCount", L.colorCount, L.glowColorCountTip, 1, 2, 1)
+        colorRow(layout, L.colors, L.glowColorsTip, colorEntries(category, "glow", 2), function() return custom("glow").colorCount end)
+            :SetParentInitializer(count, function() return true end)
+        local function two() return custom("glow").colorCount > 1 end
+        checkbox(category, "glow", "blend", L.glowGradient, L.glowGradientTip):SetParentInitializer(count, two)
+        dropdown(category, "glow", "gradientDir", L.glowDirection, L.glowDirectionTip, {
+            { "vertical", L.dirVertical }, { "horizontal", L.dirHorizontal },
+        }):SetParentInitializer(count, two)
+    end)
+
+    colorGroup(layout, nil, L.ghost, function() simpleColor(category, layout, "ghost") end)
+
+    -- Mouse trail: color mode as a dropdown, the colors are only active for "Custom color": 1-4 colors, blended along the
+    -- trail (gradient) or picked at random per dot. The colors share one row (ColorRow.xml) that hangs off the color count
+    -- and shows as many swatches as the count says; the count itself reports changes of the color mode (see proxy).
+    -- The energy shape has fixed original colors: color mode and colors are greyed out (it follows the shape setting).
+    colorGroup(layout, nil, L.trail, function()
+        local function colorable() return ns.cfg.trail.shape ~= "energy" end
+        local function customMode() return colorable() and custom("trail").colorMode == "custom" end
+        local modeDD = dropdown(category, "trail", "colorMode", L.colorMode, L.colorModeTip, {
+            { "rainbow", L.modeRainbow }, { "class", L.modeClass }, { "spring", L.modeSpring }, { "summer", L.modeSummer }, { "autumn", L.modeAutumn },
+            { "winter", L.modeWinter }, { "christmas", L.modeChristmas }, { "fire", L.modeFire }, { "love", L.modeLove },
+            { "ocean", L.modeOcean }, { "gold", L.modeGold }, { "custom", L.modeCustom },
+        })
+        dependsOn(modeDD, varName("trail", "shape"), colorable)
+        local count = slider(category, "trail", "colorCount", L.colorCount, L.colorCountTip, 1, 4, 1)
+        count:SetParentInitializer(modeDD, customMode)
+        colorRow(layout, L.colors, L.colorsTip, colorEntries(category, "trail", 4), function() return custom("trail").colorCount end)
+            :SetParentInitializer(count, customMode)
+        local blend = checkbox(category, "trail", "gradient", L.gradient, L.gradientTip)
+        blend:SetParentInitializer(count, function()
+            return customMode() and custom("trail").colorCount > 1
+        end)
+    end)
+
+    -- Combat color: choose whether the Main Ring or the center dot switches to the combat color in combat
+    colorGroup(layout, nil, L.combat, function()
+        local tint = checkbox(category, nil, "combatTint", L.combatTint, L.combatTintTip)
+        local function tintOn() return ns.cfg.colors.combat.enabled end
+        -- With the pointer glow the glow always takes the combat color, so there is nothing to choose
+        local target = dropdown(category, nil, "combatTarget", L.combatTarget, L.combatTargetTip, {
+            { "main", L.main }, { "dot", L.targetDot },
+        })
+        target:SetParentInitializer(tint, tintOn)
+        target:AddShownPredicate(function() return ns.cfg.mainStyle ~= "glow" end)
+        colorSwatch(category, nil, L.combatColor, L.combatColorTip, "combatColor"):SetParentInitializer(tint, tintOn)
+    end)
+end
+
+-- Section for one element; the options below are only active while "Show" is on. The colors are not here (see buildColors).
 -- opts: size = { min, max, step } (false: no size slider), noEnable (no "Show" switch), thickness (ring thickness),
---       track (background track), gradient (cast ring: color gradient over the cast), colorMode (trail: color modes),
---       colorRow (pointer glow: one or two colors in a row with gradient and direction), ringActive (the whole section
---       is hidden while ns:RingActive(key) is false), extra = function(category, key, child) for element-specific options.
+--       track (background track switch), ringActive (the whole section is hidden while ns:RingActive(key) is false),
+--       extra = function(category, key, child) for element-specific options.
 local function buildElement(category, layout, key, title, opts)
     sectionItems = opts.ringActive and {} or nil
     header(layout, title)
     -- opts.noEnable: the element has no switch of its own (the pointer glow follows the main style in General)
     local enable = not opts.noEnable and checkbox(category, key, "enabled", L.enabled, L[key .. "Tip"]) or nil
-    local function on() return opts.noEnable or ns.cfg[key].enabled end
     local function child(initializer)
-        if enable then initializer:SetParentInitializer(enable, on) end
+        if enable then initializer:SetParentInitializer(enable, function() return ns.cfg[key].enabled end) end
     end
 
     if opts.size ~= false then
@@ -215,73 +310,8 @@ local function buildElement(category, layout, key, title, opts)
         child(slider(category, key, "thickness", L.thickness, L.thicknessTip, 1, ns.MAX_THICKNESS, 1))
     end
     if opts.extra then opts.extra(category, key, child) end
-    if opts.colorMode then
-        -- The energy shape has fixed original colors: color mode and color are greyed out
-        local function colorable()
-            return on() and ns.cfg[key].shape ~= "energy"
-        end
-        local function custom()
-            return colorable() and ns.cfg[key].colorMode == "custom"
-        end
-        -- Color mode as a dropdown; the colors are only active for "Custom color"
-        local modeDD = dropdown(category, key, "colorMode", L.colorMode, L.colorModeTip, {
-            { "rainbow", L.modeRainbow }, { "class", L.modeClass }, { "spring", L.modeSpring }, { "summer", L.modeSummer }, { "autumn", L.modeAutumn },
-            { "winter", L.modeWinter }, { "christmas", L.modeChristmas }, { "fire", L.modeFire }, { "love", L.modeLove },
-            { "ocean", L.modeOcean }, { "gold", L.modeGold }, { "custom", L.modeCustom },
-        })
-        modeDD:SetParentInitializer(enable, colorable)
-        -- Custom color: 1-4 colors, blended along the trail (gradient) or picked at random per dot.
-        -- The colors share one row (ColorRow.xml) that hangs off the color count and shows as many swatches as the
-        -- count says; the count itself reports changes of the enable switch and the color mode (see proxy).
-        local count = slider(category, key, "colorCount", L.colorCount, L.colorCountTip, 1, 4, 1)
-        count:SetParentInitializer(modeDD, custom)
-        colorRow(layout, L.colors, L.colorsTip, colorEntries(category, key, 4), function() return ns.cfg[key].colorCount end)
-            :SetParentInitializer(count, custom)
-        local blend = checkbox(category, key, "gradient", L.gradient, L.gradientTip)
-        blend:SetParentInitializer(count, function()
-            return custom() and ns.cfg[key].colorCount > 1
-        end)
-    elseif opts.gradient then
-        -- Gradient (cast ring): the ring moves from color 1 to color 2 while the cast progresses. Class color is
-        -- ignored then, so it hangs off the gradient switch. The color row shows one swatch, or two with a gradient.
-        -- The row hangs off the class color switch; changes of the enable and gradient switches are reported to
-        -- it through the proxy (see notifyDependents).
-        local blend = checkbox(category, key, "gradient", L.castGradient, L.castGradientTip)
-        child(blend)
-        local class = checkbox(category, key, "classColor", L.classColor, L.classColorTip)
-        class:SetParentInitializer(blend, function()
-            return on() and not ns.cfg[key].gradient
-        end)
-        colorRow(layout, L.colors, L.castColorsTip, colorEntries(category, key, 2), function() return ns.cfg[key].gradient and 2 or 1 end)
-            :SetParentInitializer(class, function()
-                return on() and (ns.cfg[key].gradient or not ns.cfg[key].classColor)
-            end)
-    elseif opts.colorRow then
-        -- Pointer glow: one or two colors in one row like the custom colors of the trail. Class color replaces color 1.
-        -- Two colors are blended (gradient) or shown as two halves, from top to bottom or from left to right.
-        child(checkbox(category, key, "classColor", L.classColor, L.glowClassColorTip))
-        local count = slider(category, key, "colorCount", L.colorCount, L.glowColorCountTip, 1, 2, 1)
-        child(count)
-        colorRow(layout, L.colors, L.glowColorsTip, colorEntries(category, key, 2), function() return ns.cfg[key].colorCount end)
-            :SetParentInitializer(count, function() return true end)
-        local function two() return ns.cfg[key].colorCount > 1 end
-        checkbox(category, key, "blend", L.glowGradient, L.glowGradientTip):SetParentInitializer(count, two)
-        dropdown(category, key, "gradientDir", L.glowDirection, L.glowDirectionTip, {
-            { "vertical", L.dirVertical }, { "horizontal", L.dirHorizontal },
-        }):SetParentInitializer(count, two)
-    else
-        -- The color picker is greyed out while class color is active
-        local class = checkbox(category, key, "classColor", L.classColor, L.classColorTip)
-        child(class)
-        local swatch = colorSwatch(category, key, L.color, L.colorTip)
-        swatch:SetParentInitializer(class, function()
-            return on() and not ns.cfg[key].classColor
-        end)
-    end
-    child(opacitySlider(category, key, L.opacity, L.opacityTip))
     if opts.track then
         child(checkbox(category, key, "track", L.track, L.trackTip))
-        child(slider(category, key, "trackAlpha", L.trackAlpha, L.trackAlphaTip, 0.05, 1, 0.05, percent))
     end
     if sectionItems then
         -- sections of elements that are not in use disappear completely (see ns:RingActive); the panel
@@ -301,7 +331,7 @@ local function shapeDropdown(category, key, child, tip, choices)
         elseif key == "trail" then
             ns:SetTrailShape(value) -- each trail shape has its own size, duration and spacing
         else
-            section(key).shape = value
+            ns.cfg[key].shape = value
         end
         ns:Apply()
         if key == "dot" then
@@ -310,14 +340,14 @@ local function shapeDropdown(category, key, child, tip, choices)
             for _, field in ipairs({ "size", "duration", "spacing" }) do
                 Settings.NotifyUpdate(varName(key, field)) -- sliders show the values of the new shape
             end
-            -- Energy locks color mode and color: the parent toggle and color mode report the change to their children
-            Settings.NotifyUpdate(varName(key, "enabled"))
+            -- Energy locks color mode and color (Colors): the color mode (it follows the shape) and the colors below it
+            -- report the change to their children; the mode of the new shape is shown
             Settings.NotifyUpdate(varName(key, "colorMode"))
             Settings.NotifyUpdate(varName(key, "colorCount"))
         end
     end
     local shape = Settings.RegisterProxySetting(category, varName(key, "shape"), Settings.VarType.String, L.shape,
-        defaultOf(key, "shape"), function() return section(key).shape end, setShape)
+        defaultOf(key, "shape"), function() return ns.cfg[key].shape end, setShape)
     child(track(Settings.CreateDropdown(category, shape, choiceList(choices), tip)))
 end
 
@@ -331,9 +361,6 @@ local function dotOptions(category, key, child)
     local gcd = checkbox(category, key, "gcd", L.dotGcd, L.dotGcdTip)
     child(gcd)
     gcd:AddShownPredicate(ringShape)
-    local gcdTrack = slider(category, key, "gcdTrackAlpha", L.dotGcdTrack, L.dotGcdTrackTip, 0.05, 1, 0.05, percent)
-    gcdTrack:SetParentInitializer(gcd, function() return ns.cfg[key].enabled and ns.cfg[key].gcd end)
-    gcdTrack:AddShownPredicate(ringShape)
 
     -- Click pulse: button and size are only usable while the pulse is active
     local pulse = checkbox(category, key, "pulse", L.pulse, L.pulseTip)
@@ -383,13 +410,14 @@ local function build()
     ns.settingsCategory = category
 
     buildGeneral(category, layout)
+    buildColors(category, layout)
     buildElement(category, layout, "main", L.main, { thickness = true, ringActive = true })
     buildElement(category, layout, "gcd", L.gcd, { thickness = true, track = true, ringActive = true })
-    buildElement(category, layout, "cast", L.cast, { thickness = true, track = true, ringActive = true, gradient = true })
+    buildElement(category, layout, "cast", L.cast, { thickness = true, track = true, ringActive = true })
     buildElement(category, layout, "dot", L.dot, { extra = dotOptions, ringActive = true })
-    buildElement(category, layout, "glow", L.glow, { size = false, noEnable = true, ringActive = true, extra = glowOptions, colorRow = true })
+    buildElement(category, layout, "glow", L.glow, { size = false, noEnable = true, ringActive = true, extra = glowOptions })
     buildElement(category, layout, "ghost", L.ghost, { size = { 8, 128, 1 }, extra = ghostOptions })
-    buildElement(category, layout, "trail", L.trail, { size = { 4, 64, 1 }, colorMode = true, extra = trailOptions })
+    buildElement(category, layout, "trail", L.trail, { size = { 4, 64, 1 }, extra = trailOptions })
 
     Settings.RegisterAddOnCategory(category)
 end

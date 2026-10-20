@@ -140,13 +140,13 @@ local function updateCast()
     end
 end
 
-local function buildCastCurve(ring)
-    if not (ring.gradient and C_CurveUtil and C_CurveUtil.CreateColorCurve and CreateColor) then return nil end
-    local c1, c2, a = ring.color, ring.color2, ring.color[4] or 1
+local function buildCastCurve(colors)
+    if not (colors.gradient and C_CurveUtil and C_CurveUtil.CreateColorCurve and CreateColor) then return nil end
+    local c1, c2 = colors.color, colors.color2
     local curve = C_CurveUtil.CreateColorCurve()
     if Enum and Enum.LuaCurveType and curve.SetType then curve:SetType(Enum.LuaCurveType.Linear) end
-    curve:AddPoint(0, CreateColor(c1[1], c1[2], c1[3], a))
-    curve:AddPoint(1, CreateColor(c2[1], c2[2], c2[3], a))
+    curve:AddPoint(0, CreateColor(c1[1], c1[2], c1[3], 1))
+    curve:AddPoint(1, CreateColor(c2[1], c2[2], c2[3], 1))
     return curve
 end
 
@@ -166,9 +166,10 @@ end
 local Rings = {}
 ns:RegisterModule(Rings)
 
--- Main Ring: in combat it uses the combat color if that is switched on for the ring (General), with the ring's opacity.
+-- Main Ring: in combat it uses the combat color if that is switched on for the ring (Colors).
 local function applyMainColor()
-    mainRing:SetVertexColor(ns:ElementColor("main"))
+    local r, g, b = ns:ElementColor("main")
+    mainRing:SetVertexColor(r, g, b, 1)
 end
 
 function Rings:UpdateVisibility()
@@ -190,18 +191,18 @@ function Rings:Apply()
         local active = ring.enabled and ns:RingActive(trio[4]) -- the ring layout can switch a ring off
         track:SetTexture(ns:RingTexture(ring.thickness, ring.size))
         track:SetSize(ring.size, ring.size)
-        local r, g, b, a = ns:GetRingColor(ring)
-        track:SetVertexColor(r, g, b, ring.trackAlpha)
+        local r, g, b = ns:GetRingColor(ns:Palette()[trio[4]])
+        track:SetVertexColor(r, g, b, cfg.trackAlpha)
         track:SetShown(active and ring.track)
         cd:SetFrameStrata(strata)
         cd:SetSwipeTexture(ns:RingTexture(ring.thickness, ring.size))
         cd:SetSize(ring.size, ring.size)
-        cd:SetSwipeColor(r, g, b, a)
+        cd:SetSwipeColor(r, g, b, 1)
         if active then cd:Show() else cd:Clear(); cd:Hide() end
     end
     gcdCD:SetReverse(false)
 
-    castCurve = buildCastCurve(cfg.cast)
+    castCurve = buildCastCurve(ns:Palette().cast)
     if not castCurve then castDriver:Hide() end
     updateGCD()
     updateCast()

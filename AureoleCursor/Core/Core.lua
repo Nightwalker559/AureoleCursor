@@ -4,47 +4,61 @@ local ADDON, ns = ...
 ns.modules = {}
 ns.inCombat = false
 
+-- Config version: 1 = up to 1.0.x (colors and opacity inside every element), 2 = colors in cfg.colors, one overall opacity
+ns.CFG_VERSION = 2
+
 ns.defaults = {
+    cfgVersion = ns.CFG_VERSION,
     scale = 1.0,
-    alpha = 1.0,
+    alpha = 0.8,              -- the only opacity setting: overall opacity of everything at the cursor
     strata = "TOOLTIP",
     combatOnly = false,
     idleAlpha = 1.0,          -- share of the opacity applied out of combat
     hideOnMouselook = false,  -- hide while the camera is being turned with the mouse
     ringLayout = "individual", -- "individual" (every ring on its own), "maincast" (Main + Cast Ring) or "maingcd" (Main + GCD Ring)
     mainStyle = "ring",       -- what surrounds the cursor: the Main Ring ("ring") or the pointer glow ("glow")
-    -- combat color: in combat combatTarget ("main" ring or center "dot") switches to combatColor, its opacity is kept;
-    -- with the pointer glow the glow always switches
-    combatTint = false, combatTarget = "main", combatColor = { 1, 0.1, 0.1, 1 },
-    main = { enabled = true, size = 40, thickness = 6, classColor = false, color = { 1, 1, 1, 0.8 } },
-    gcd  = { enabled = true, size = 28, thickness = 6, classColor = false, color = { 1, 0.82, 0, 1 }, track = true, trackAlpha = 0.5 },
-    -- gradient: the swipe color moves from color to color2 while the cast progresses (class color is ignored then)
-    cast = { enabled = true, size = 54, thickness = 6, classColor = false, color = { 1, 1, 1, 1 }, track = true, trackAlpha = 0.5,
-             gradient = false, color2 = { 0.3, 0.8, 1, 1 } },
-    dot  = { enabled = true, size = 10, shape = "dot", sizes = { dot = 10, gap = 22, ring = 24, spark = 24 }, pulse = true, pulseButton = "both", pulseSize = 4, classColor = false, color = { 1, 1, 1, 0.9 },
-             -- gcd: with the shape "ring" the GCD runs as progress in the ring of the dot (the GCD ring is off then);
-             -- gcdTrackAlpha: opacity of the ring at rest, as a share of the dot's opacity
-             gcd = false, gcdTrackAlpha = 0.5 },
+    trackAlpha = 0.5,         -- opacity of the background tracks of the GCD and Cast Ring (and of the ring of the center dot)
+    -- All colors live here. The elements read them through ns:Palette(); a color theme will take the place of "custom".
+    -- Colors are plain { r, g, b }, the opacity is the overall one (alpha).
+    colors = {
+        -- combat color: in combat target ("main" ring or center "dot") switches to color; with the pointer glow the glow always switches
+        combat = { enabled = false, target = "main", color = { 1, 0.1, 0.1 } },
+        custom = {
+            main = { classColor = false, color = { 1, 1, 1 } },
+            gcd = { classColor = false, color = { 1, 0.82, 0 } },
+            -- gradient: the swipe color moves from color to color2 while the cast progresses (class color is ignored then)
+            cast = { classColor = false, color = { 1, 1, 1 }, gradient = false, color2 = { 0.3, 0.8, 1 } },
+            dot = { classColor = false, color = { 1, 1, 1 } },
+            ghost = { classColor = false, color = { 1, 1, 1 } },
+            -- one color or two (colorCount, color and color2) from top to bottom ("vertical") or left to right ("horizontal"):
+            -- blend = smooth gradient, otherwise two hard halves
+            glow = { classColor = false, color = { 0.35, 0.7, 1 }, colorCount = 1, blend = true, gradientDir = "vertical",
+                     color2 = { 0.75, 0.3, 1 } },
+            -- colorMode "custom": colorCount colors (color, color2..color4); gradient blends between them along the
+            -- trail, otherwise every dot picks one of them at random
+            trail = { colorMode = "rainbow", color = { 1, 1, 1 }, colorCount = 1, gradient = true,
+                      color2 = { 0.3, 0.6, 1 }, color3 = { 0.8, 0.3, 1 }, color4 = { 1, 0.4, 0.3 } },
+        },
+    },
+    main = { enabled = true, size = 40, thickness = 6 },
+    gcd  = { enabled = true, size = 28, thickness = 6, track = true },
+    cast = { enabled = true, size = 54, thickness = 6, track = true },
+    dot  = { enabled = true, size = 10, shape = "dot", sizes = { dot = 10, gap = 22, ring = 24, spark = 24 }, pulse = true, pulseButton = "both", pulseSize = 4,
+             -- gcd: with the shape "ring" the GCD runs as progress in the ring of the dot (the GCD ring is off then)
+             gcd = false },
     -- ghost: while the player is dead a ghost floats above the cursor; height = pixels above the cursor position,
     -- float = it bobs up and down
-    ghost = { enabled = false, size = 28, height = 4, float = true, classColor = false, color = { 1, 1, 1, 0.9 } },
+    ghost = { enabled = false, size = 28, height = 4, float = true },
     -- glow: halo in the shape of the game's mouse pointer, replaces the rings (see mainStyle) and follows the game's cursor size;
     -- showWhileLooking draws a copy of the pointer while the game hides it (right mouse button, mouselook);
     -- offsetX/offsetY (screen pixels) fine-tune the alignment with the pointer;
     -- leadFrames places the glow ahead along the mouse movement (movement of the last frame times this), to make up for the
     -- pointer being drawn later; it follows the frame rate by itself
-    glow = { showWhileLooking = true, offsetX = 0, offsetY = 0, leadFrames = 0.8, classColor = false, color = { 0.35, 0.7, 1, 0.8 },
-             -- one color or two (colorCount, color and color2) from top to bottom ("vertical") or left to right ("horizontal"):
-             -- blend = smooth gradient, otherwise two hard halves. The opacity comes from color[4] for both.
-             colorCount = 1, blend = true, gradientDir = "vertical", color2 = { 0.75, 0.3, 1, 0.8 } },
+    glow = { showWhileLooking = true, offsetX = 0, offsetY = 0, leadFrames = 0.8 },
     -- presets: default size, duration and spacing per shape (and a color mode for the themed shapes); on a shape change the
-    -- current values (including the color mode) are remembered for the old shape and the remembered ones (initially these
-    -- defaults) are applied for the new shape.
-    trail = { enabled = true, size = 16, duration = 0.45, spacing = 6, shrink = true, shape = "dot", colorMode = "rainbow", color = { 1, 1, 1, 0.5 },
-              -- custom color mode: colorCount colors (color, color2..color4); gradient blends between them along the
-              -- trail, otherwise every dot picks one of them at random. Opacity comes from color[4] for all of them.
-              colorCount = 1, gradient = true,
-              color2 = { 0.3, 0.6, 1, 0.5 }, color3 = { 0.8, 0.3, 1, 0.5 }, color4 = { 1, 0.4, 0.3, 0.5 },
+    -- current values (including the color mode, which lives in colors.custom.trail) are remembered for the old shape and the
+    -- remembered ones (initially these defaults) are applied for the new shape.
+    trail = { enabled = true, size = 16, duration = 0.45, spacing = 6, shrink = true, shape = "dot",
               presets = {
                   dot = { size = 16, duration = 0.45, spacing = 6 },
                   leaf = { size = 20, duration = 0.9, spacing = 22 },
@@ -160,7 +174,7 @@ function ns:RingActive(key)
 end
 
 -- Does the GCD run in the ring of the center dot (shape "ring") instead of on its own GCD ring? Then the GCD ring is off
--- and its options are hidden; color and opacity come from the center dot.
+-- and its options are hidden; the color comes from the center dot.
 function ns:GcdOnDot()
     local dot = self.cfg.dot
     return dot.gcd and dot.enabled and dot.shape == "ring" and self.cfg.mainStyle ~= "glow" or false
@@ -172,17 +186,22 @@ function ns:UpdateVisibility()
     end
 end
 
+-- The colors in use: { main, gcd, cast, dot, ghost, glow, trail }, each with its color fields (see defaults.colors.custom).
+-- Everything that needs a color asks here, never cfg.colors directly.
+function ns:Palette()
+    return self.cfg.colors.custom
+end
+
 -- Color of the Main Ring, the center dot or the pointer glow ("main" / "dot" / "glow"): its own color, or the combat color
--- while in combat if the combat color (General) is switched on for that element (the pointer glow always follows it, the
--- target setting only chooses between Main Ring and center dot). The opacity always comes from the element itself.
+-- while in combat if the combat color (Colors) is switched on for that element (the pointer glow always follows it, the
+-- target setting only chooses between Main Ring and center dot).
 function ns:ElementColor(key)
-    local cfg = self.cfg
-    local element = cfg[key]
-    if cfg.combatTint and (key == "glow" or cfg.combatTarget == key) and self.inCombat then
-        local c = cfg.combatColor
-        return c[1], c[2], c[3], element.color[4] or 1
+    local combat = self.cfg.colors.combat
+    if combat.enabled and (key == "glow" or combat.target == key) and self.inCombat then
+        local c = combat.color
+        return c[1], c[2], c[3]
     end
-    return self:GetRingColor(element)
+    return self:GetRingColor(self:Palette()[key])
 end
 
 -- Overall opacity: base value, multiplied by idleAlpha out of combat, 0 while mouselooking if configured.
@@ -207,15 +226,15 @@ function ns:ResetSettings()
     self:Apply()
 end
 
--- Color of a ring: class color or the configured color (r, g, b, a). A gradient ring uses its own colors instead.
-function ns:GetRingColor(ringCfg)
-    if ringCfg.classColor and not ringCfg.gradient and UnitClass then
+-- Color of a palette entry: class color or the configured color (r, g, b). A gradient ring uses its own colors instead.
+function ns:GetRingColor(slot)
+    if slot.classColor and not slot.gradient and UnitClass then
         local _, class = UnitClass("player")
         local c = class and C_ClassColor and C_ClassColor.GetClassColor(class)
-        if c then return c.r, c.g, c.b, ringCfg.color[4] or 1 end
+        if c then return c.r, c.g, c.b end
     end
-    local col = ringCfg.color
-    return col[1], col[2], col[3], col[4] or 1
+    local col = slot.color
+    return col[1], col[2], col[3]
 end
 
 ------------------------------------------------------------------------
@@ -242,6 +261,70 @@ frame:SetScript("OnEvent", function(_, event, ...)
     end
 end)
 
+-- Config version 1 -> 2: every element held its own colors (with opacity as the 4th value), class color switches, track
+-- opacities and so on. The colors move into cfg.colors.custom (RGB only), the opacity of the Main Ring (of the pointer glow
+-- with that main style) goes into the overall opacity, and the track opacities become the single trackAlpha.
+local function rgb(c)
+    return { c[1], c[2], c[3] }
+end
+
+-- Fields of an element that belong to the color palette, per element
+local PALETTE_FIELDS = {
+    main = { "classColor", "color" },
+    gcd = { "classColor", "color" },
+    cast = { "classColor", "color", "gradient", "color2" },
+    dot = { "classColor", "color" },
+    ghost = { "classColor", "color" },
+    glow = { "classColor", "color", "colorCount", "blend", "gradientDir", "color2" },
+    trail = { "colorMode", "color", "colorCount", "gradient", "color2", "color3", "color4" },
+}
+
+local function migrateColors(cfg)
+    if (cfg.cfgVersion or 1) >= 2 then return end
+    cfg.cfgVersion = 2
+
+    -- overall opacity: what the leading element showed (its own opacity times the overall one)
+    local lead = cfg.mainStyle == "glow" and cfg.glow or cfg.main
+    local a = lead and type(lead.color) == "table" and lead.color[4]
+    if a then
+        local alpha = (cfg.alpha or 1) * a
+        cfg.alpha = math.max(0.1, math.min(1, math.floor(alpha / 0.05 + 0.5) * 0.05))
+    end
+    -- one track opacity for all rings
+    local cast, gcd = cfg.cast, cfg.gcd
+    cfg.trackAlpha = (cast and cast.trackAlpha) or (gcd and gcd.trackAlpha) or cfg.trackAlpha
+
+    local colors = cfg.colors or {}
+    cfg.colors = colors
+    colors.custom = colors.custom or {}
+    for key, fields in pairs(PALETTE_FIELDS) do
+        local element = cfg[key]
+        if type(element) == "table" then
+            local slot = colors.custom[key] or {}
+            for _, field in ipairs(fields) do
+                local v = element[field]
+                if v ~= nil then
+                    slot[field] = type(v) == "table" and rgb(v) or v
+                    element[field] = nil
+                end
+            end
+            colors.custom[key] = slot
+        end
+    end
+    for _, key in ipairs({ "gcd", "cast" }) do
+        if type(cfg[key]) == "table" then cfg[key].trackAlpha = nil end
+    end
+    if type(cfg.dot) == "table" then cfg.dot.gcdTrackAlpha = nil end
+
+    -- combat color: top-level fields up to 1.0.x
+    if cfg.combatTint ~= nil or cfg.combatTarget ~= nil or cfg.combatColor ~= nil then
+        colors.combat = colors.combat or {}
+        colors.combat.enabled, colors.combat.target = cfg.combatTint, cfg.combatTarget
+        colors.combat.color = cfg.combatColor and rgb(cfg.combatColor) or nil
+        cfg.combatTint, cfg.combatTarget, cfg.combatColor = nil, nil, nil
+    end
+end
+
 ns:On("ADDON_LOADED", function(_, name)
     if name ~= ADDON then return end
     AureoleCursorDB = AureoleCursorDB or {}
@@ -255,6 +338,7 @@ ns:On("ADDON_LOADED", function(_, name)
         end
         main.combatTint, main.combatColor = nil, nil
     end
+    migrateColors(db.cfg)
     fillDefaults(db.cfg, ns.defaults)
     ns.cfg = db.cfg
 end)
