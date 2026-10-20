@@ -51,7 +51,8 @@ ns.defaults = {
     -- offsetX/offsetY (screen pixels) fine-tune the alignment with the pointer;
     -- leadFrames places the glow ahead along the mouse movement (movement of the last frame times this), to make up for the
     -- pointer being drawn later; it follows the frame rate by itself
-    glow = { showWhileLooking = true, offsetX = 0, offsetY = 0, leadFrames = 0.8 },
+    -- look: "halo" (soft glow), "border" (crisp frame right at the pointer's edge) or "both"; borderWidth: 1 to 4
+    glow = { look = "halo", borderWidth = 2, showWhileLooking = true, offsetX = 0, offsetY = 0, leadFrames = 0.8 },
     -- presets: default size, duration and spacing per shape (and a color mode for the themed shapes); on a shape change the
     -- current values (including the color mode, which lives in colors.custom.trail) are remembered for the old shape and the
     -- remembered ones (initially these defaults) are applied for the new shape.

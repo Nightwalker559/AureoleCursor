@@ -4,6 +4,9 @@
 
 ## 1.1.1
 
+### Pointer border
+- The pointer glow has a new setting **Look**: **Halo** (the soft glow, as before), **Border** (a crisp frame right at the edge of the pointer) or **Halo and border**. The border is as wide as the new setting **Border width** says (four steps, it grows with the pointer size you set in the game) and has the colors of the glow: one or two colors, gradient or halves, the combat color and the color themes. Offset and lead work for it like for the halo, and the copy of the pointer while the game hides it gets the border too.
+
 ### Smaller download
 - All textures (rings, center marks, trail shapes, pointer glow) are PNG files now instead of uncompressed TGA files. The addon shrinks from about 6 MB to under 1 MB. Nothing changes visually: every pixel of every texture is identical to before. Only the small addon icon stays a TGA.
 

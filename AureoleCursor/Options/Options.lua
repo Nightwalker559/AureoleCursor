@@ -397,6 +397,13 @@ end
 
 -- Pointer glow: a copy of the pointer while the game hides it and a pixel offset for the alignment.
 local function glowOptions(category, key, child)
+    -- Look: soft halo, crisp border or both; the border width only matters when there is a border
+    local look = dropdown(category, key, "look", L.glowLook, L.glowLookTip, {
+        { "halo", L.lookHalo }, { "border", L.lookBorder }, { "both", L.lookBoth },
+    })
+    child(look)
+    slider(category, key, "borderWidth", L.glowBorderWidth, L.glowBorderWidthTip, 1, 4, 1)
+        :SetParentInitializer(look, function() return ns.cfg[key].look ~= "halo" end)
     child(checkbox(category, key, "showWhileLooking", L.glowLooking, L.glowLookingTip))
     child(slider(category, key, "offsetX", L.glowOffsetX, L.glowOffsetXTip, -20, 20, 1))
     child(slider(category, key, "offsetY", L.glowOffsetY, L.glowOffsetYTip, -20, 20, 1))

@@ -1,7 +1,8 @@
--- Aureole Cursor: pointer glow. A soft halo in the shape of the game's mouse pointer, drawn behind the rings. It takes
--- the place of the Main Ring (General > Main style).
+-- Aureole Cursor: pointer glow. A soft halo and/or a crisp border in the shape of the game's mouse pointer, drawn behind the
+-- rings. It takes the place of the Main Ring (General > Main style). cfg.glow.look chooses halo, border or both.
 -- The textures (Media\Glow, see make_glow.py in the tools folder) are the silhouette of Blizzard's pointer, blurred, one
--- per cursor size of the game (Accessibility > Cursor Size). The halo is only visible around the real pointer, which the
+-- per cursor size of the game (Accessibility > Cursor Size); the border textures are the same silhouette as a frame in
+-- four widths, at scale 1 so that it hugs the pointer. The halo is only visible around the real pointer, which the
 -- game draws on top of everything. It always has the shape of the normal pointer (the game does not tell us when it
 -- changes to a sword, bag etc.).
 -- While the game hides the pointer (right mouse button held, camera turned with the mouse) a copy of it is drawn at the same
@@ -26,8 +27,8 @@ local LEAD_LIMIT = 0.75
 local ATLAS = "Interface/cursor/UICursor2x"
 local SPRITE = { [32] = { 261, 67 }, [48] = { 393, 1 }, [64] = { 261, 1 }, [96] = { 1, 131 }, [128] = { 1, 1 } }
 
--- The glow is one texture, or two textures side by side along the gradient direction for two hard-edged color halves
--- (every part shows its slice of the glow texture, see paint). parts[1] is the glow itself.
+-- The halo and the border are each one texture, or two textures side by side along the gradient direction for two hard-edged
+-- color halves (every part shows its slice of the texture, see paint). parts[1] is the halo itself. The border is above it.
 local glow = ns.anchor:CreateTexture(nil, "BACKGROUND", nil, -8)
 glow:Hide()
 ns.glow = glow
@@ -35,9 +36,15 @@ local parts = { glow }
 ns.glowParts = parts
 parts[2] = ns.anchor:CreateTexture(nil, "BACKGROUND", nil, -8)
 parts[2]:Hide()
+local borderParts = { ns.anchor:CreateTexture(nil, "BACKGROUND", nil, -7), ns.anchor:CreateTexture(nil, "BACKGROUND", nil, -7) }
+borderParts[1]:Hide()
+borderParts[2]:Hide()
+ns.borderParts = borderParts
 local COLOR_FIELDS = { "color", "color2" }
--- Position of the glow in units of the anchor: top left corner relative to the anchor's center, width and height (set in Apply)
-local geometry
+local BORDER_LEVELS = 4
+-- What is drawn: parts and position (units of the anchor: top left corner relative to the anchor's center, width and height,
+-- set in Apply; nil = not drawn)
+local layers = { halo = { parts = parts }, border = { parts = borderParts } }
 
 -- The pointer copy is always fully opaque: it ignores the overall opacity of the anchor (only the glow is faded by it).
 local icon = ns.anchor:CreateTexture(nil, "OVERLAY", nil, 7)
@@ -68,8 +75,9 @@ ns.UpdatePointerIcon = updateIcon
 
 -- Shows the glow in its colors: in combat one color, the combat color, if it is switched on (Colors); otherwise
 -- one or two colors across the texture, top to bottom or left to right. With the gradient (blend) the two colors are blended
--- (one part), without it each color gets one half (two parts).
-local function paint()
+-- (one part), without it each color gets one half (two parts). The border has the same colors as the halo.
+local function paintLayer(layer)
+    local geometry = layer.geometry
     local cfg = ns:Palette().glow
     local active = geometry and ns:RingActive("glow")
     local r, g, b = ns:ElementColor("glow")
@@ -80,7 +88,7 @@ local function paint()
     local colors = { { r, g, b } }
     for i = 2, count do colors[i] = cfg[COLOR_FIELDS[i]] end
 
-    for i, part in ipairs(parts) do
+    for i, part in ipairs(layer.parts) do
         if active and i <= n then
             local from, to = (i - 1) / n, i / n -- slice of the texture
             part:ClearAllPoints()
@@ -111,6 +119,11 @@ local function paint()
     end
 end
 
+local function paint()
+    paintLayer(layers.halo)
+    paintLayer(layers.border)
+end
+
 function Glow:UpdateVisibility()
     paint()
 end
@@ -118,23 +131,31 @@ end
 function Glow:Apply()
     local cfg = ns.cfg.glow
     if not ns:RingActive("glow") then
-        geometry = nil
+        layers.halo.geometry, layers.border.geometry = nil, nil
         paint()
         updateIcon()
         return
     end
 
     local px = cursorPixels()
-    local size = CANVAS[px] * GLOW_SCALE -- edge length of the glow texture in pixels
     local unit = 1 / ns:ScreenPixels(1) -- one screen pixel in units of the anchor
     ns.leadLimit = px * LEAD_LIMIT * unit -- the lead (Cursor.lua) never pulls the glow much farther ahead than this
     -- The pointer's tip is the cursor position (the center of the anchor); its image starts at the top left of the
-    -- sprite. The glow texture has the pointer in its middle, so it is centered on the sprite and grows from there.
-    geometry = {
-        x = (cfg.offsetX + (px - size) / 2) * unit, y = (cfg.offsetY - (px - size) / 2) * unit,
-        w = size * unit, h = size * unit,
-    }
+    -- sprite. The textures have the pointer in their middle, so they are centered on the sprite and grow from there:
+    -- the halo larger by GLOW_SCALE, the border at scale 1 (it has to sit right at the pointer's edge).
+    local function place(scale)
+        local size = CANVAS[px] * scale -- edge length of the texture in pixels
+        return {
+            x = (cfg.offsetX + (px - size) / 2) * unit, y = (cfg.offsetY - (px - size) / 2) * unit,
+            w = size * unit, h = size * unit,
+        }
+    end
+    local look = cfg.look
+    layers.halo.geometry = look ~= "border" and place(GLOW_SCALE) or nil
+    layers.border.geometry = look ~= "halo" and place(1) or nil
     for _, part in ipairs(parts) do part:SetTexture(MEDIA .. "Glow_" .. px .. ".png") end
+    local width = math.max(1, math.min(BORDER_LEVELS, math.floor(cfg.borderWidth or 2)))
+    for _, part in ipairs(borderParts) do part:SetTexture(MEDIA .. "Border" .. width .. "_" .. px .. ".png") end
     paint()
 
     -- Pointer copy: the sprite's top left corner is the cursor position
