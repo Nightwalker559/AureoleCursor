@@ -5,7 +5,7 @@
 ## 1.1.0
 
 ### Settings
-- All colors now have a section of their own on the settings page, right below General: one group per element (Main Ring, GCD Ring, Cast Ring, center dot, pointer glow, ghost, mouse trail) and one for the combat color. The class color switches, color modes and gradients moved there from the element sections, which now only hold size, thickness and behavior. Groups of elements that are not in use are hidden as before. Nothing about the colors themselves changed.
+- All colors now have a section of their own on the settings page, right below General. **Colors** has one row per element (Main Ring, GCD Ring, Cast Ring, center dot, pointer glow, ghost, mouse trail, combat color) with its color swatches side by side. **Color options** below holds the class color switches, the cast gradient, the glow colors, the trail color mode and the combat color switch. The element sections now only hold size, thickness and behavior. Rows and options of elements that are not in use are hidden as before. Nothing about the colors themselves changed.
 
 ### Opacity
 - There is no opacity per element any more, only the overall opacity (General), the opacity out of combat and one **Track opacity** for the background tracks of the GCD and Cast Ring (it replaces the three separate track opacities, and also applies to the ring of the center dot with "GCD in the ring"). Existing settings are converted: the opacity of the Main Ring (of the pointer glow if that is your main style) is folded into the overall opacity, so the main element looks the same. Other elements that had a different opacity look a little different. The default overall opacity is 80 %.

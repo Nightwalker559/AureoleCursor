@@ -52,11 +52,13 @@ local function varName(key, field)
     return string.upper("AUREOLECURSOR_" .. (key or "GENERAL") .. "_" .. field)
 end
 
--- An option that depends on a setting somewhere else in the page (not its parent in the layout): it is evaluated again
--- whenever that setting reports a change.
-local function dependsOn(initializer, variable, predicate)
+-- An option that depends on settings somewhere else in the page (not its parent in the layout): it is evaluated again
+-- whenever one of these settings (variable names) reports a change.
+local function dependsOn(initializer, variables, predicate)
     initializer:AddModifyPredicate(predicate)
-    initializer:AddEvaluateStateCVar(variable)
+    for _, variable in ipairs(type(variables) == "table" and variables or { variables }) do
+        initializer:AddEvaluateStateCVar(variable)
+    end
     return initializer
 end
 
@@ -137,10 +139,6 @@ local function colorSetting(category, key, label, field)
         hexOf(defaultOf(key, field)), get, set)
 end
 
-local function colorSwatch(category, key, label, tip, field)
-    return track(Settings.CreateColorSwatch(category, colorSetting(category, key, label, field), tip))
-end
-
 -- Several swatches side by side in one row (ColorRow.xml); count() says how many of the entries are shown.
 local function colorEntry(category, key, field, name)
     return { setting = colorSetting(category, key, name, field), name = name, tooltip = L.colorTip }
@@ -193,100 +191,117 @@ local function buildGeneral(category, layout)
     dropdown(category, nil, "strata", L.strata, L.strataTip, STRATA)
 end
 
--- Colors: all of them on one place, one group per element (plus the combat color). The groups of elements that are not in
--- use (see ns:RingActive) are hidden. They edit the palette "custom" (cfg.colors.custom).
-local function colorGroup(layout, key, title, build)
-    sectionItems = key and {} or nil
-    header(layout, string.format(L.colorsFor, title))
-    build()
-    if sectionItems then
-        for _, item in ipairs(sectionItems) do
-            item:AddShownPredicate(function() return ns:RingActive(key) end)
-        end
-        sectionItems = nil
-    end
+-- Colors: all of them on one place. "Colors" is one row per element with its swatches side by side (a swatch is greyed out
+-- while the class color or another mode replaces it); "Color options" below holds the switches and sliders that belong to
+-- them. Rows and options of elements that are not in use (see ns:RingActive) are hidden. They edit the palette "custom"
+-- (cfg.colors.custom).
+local function forElement(key, initializer)
+    if key then initializer:AddShownPredicate(function() return ns:RingActive(key) end) end
+    return initializer
 end
 
--- Class color switch and the color swatch that is greyed out while it is on
-local function simpleColor(category, layout, key)
-    local class = checkbox(category, key, "classColor", L.classColor, L.classColorTip)
-    colorSwatch(category, key, L.color, L.colorTip):SetParentInitializer(class, function()
-        return not ns.cfg.colors.custom[key].classColor
-    end)
+-- Option label with the name of its element in front: "Cast Ring: Color gradient"
+local function labelOf(key, text)
+    return string.format(L.optionOf, L[key], text)
 end
 
 local function buildColors(category, layout)
-    local custom = function(key) return ns.cfg.colors.custom[key] end
+    local function custom(key) return ns.cfg.colors.custom[key] end
+    local function classVar(key) return varName(key, "classColor") end
+    local function colorsOf(key, name, tip, number, count)
+        return colorRow(layout, name, tip, colorEntries(category, key, number), count)
+    end
+    local function one() return 1 end
 
-    colorGroup(layout, "main", L.main, function() simpleColor(category, layout, "main") end)
-    colorGroup(layout, "gcd", L.gcd, function() simpleColor(category, layout, "gcd") end)
+    header(layout, L.colors)
+    -- Single colors: greyed out while the class color is on
+    for _, key in ipairs({ "main", "gcd" }) do
+        local row = colorsOf(key, L[key], L.colorTip, 1, one)
+        dependsOn(row, classVar(key), function() return not custom(key).classColor end)
+        forElement(key, row)
+    end
+    -- Cast Ring: one color, two with the gradient (then the class color is ignored)
+    do
+        local row = colorsOf("cast", L.cast, L.castColorsTip, 2, function() return custom("cast").gradient and 2 or 1 end)
+        dependsOn(row, { classVar("cast"), varName("cast", "gradient") }, function()
+            return custom("cast").gradient or not custom("cast").classColor
+        end)
+        forElement("cast", row)
+    end
+    do
+        local row = colorsOf("dot", L.dot, L.colorTip, 1, one)
+        dependsOn(row, classVar("dot"), function() return not custom("dot").classColor end)
+        forElement("dot", row)
+    end
+    -- Pointer glow: one or two colors, the class color replaces color 1
+    do
+        local row = colorsOf("glow", L.glow, L.glowColorsTip, 2, function() return custom("glow").colorCount end)
+        dependsOn(row, varName("glow", "colorCount"), function() return true end)
+        forElement("glow", row)
+    end
+    do
+        local row = colorsOf("ghost", L.ghost, L.colorTip, 1, one)
+        dependsOn(row, classVar("ghost"), function() return not custom("ghost").classColor end)
+    end
+    -- Mouse trail: the colors are only active with the color mode "Custom color", 1-4 of them. The energy shape has fixed
+    -- original colors (it follows the shape setting).
+    local function trailCustom() return ns.cfg.trail.shape ~= "energy" and custom("trail").colorMode == "custom" end
+    dependsOn(colorsOf("trail", L.trail, L.colorsTip, 4, function() return custom("trail").colorCount end),
+        { varName("trail", "shape"), varName("trail", "colorMode"), varName("trail", "colorCount") }, trailCustom)
+    -- Combat color
+    dependsOn(colorRow(layout, L.combatColor, L.combatColorTip, { colorEntry(category, nil, "combatColor", L.color) }, one),
+        varName(nil, "combatTint"), function() return ns.cfg.colors.combat.enabled end)
+
+    ------------------------------------------------------------------
+    header(layout, L.colorOptions)
+    for _, key in ipairs({ "main", "gcd" }) do
+        forElement(key, checkbox(category, key, "classColor", labelOf(key, L.classColor), L.classColorTip))
+    end
 
     -- Cast Ring: the ring moves from color 1 to color 2 while the cast progresses. Class color is ignored then, so it
-    -- hangs off the gradient switch. The color row shows one swatch, or two with a gradient; it hangs off the class color
-    -- switch, changes of the gradient switch are reported to it through the proxy (see notifyDependents).
-    colorGroup(layout, "cast", L.cast, function()
-        local blend = checkbox(category, "cast", "gradient", L.castGradient, L.castGradientTip)
-        local class = checkbox(category, "cast", "classColor", L.classColor, L.classColorTip)
-        class:SetParentInitializer(blend, function() return not custom("cast").gradient end)
-        colorRow(layout, L.colors, L.castColorsTip, colorEntries(category, "cast", 2), function() return custom("cast").gradient and 2 or 1 end)
-            :SetParentInitializer(class, function()
-                return custom("cast").gradient or not custom("cast").classColor
-            end)
-    end)
+    -- hangs off the gradient switch; changes of the gradient switch are reported to the class color through the proxy
+    -- (see notifyDependents).
+    local blend = forElement("cast", checkbox(category, "cast", "gradient", labelOf("cast", L.castGradient), L.castGradientTip))
+    forElement("cast", checkbox(category, "cast", "classColor", labelOf("cast", L.classColor), L.classColorTip))
+        :SetParentInitializer(blend, function() return not custom("cast").gradient end)
 
-    colorGroup(layout, "dot", L.dot, function() simpleColor(category, layout, "dot") end)
+    forElement("dot", checkbox(category, "dot", "classColor", labelOf("dot", L.classColor), L.classColorTip))
 
-    -- Pointer glow: one or two colors in one row like the custom colors of the trail. Class color replaces color 1.
-    -- Two colors are blended (gradient) or shown as two halves, from top to bottom or from left to right.
-    colorGroup(layout, "glow", L.glow, function()
-        checkbox(category, "glow", "classColor", L.classColor, L.glowClassColorTip)
-        local count = slider(category, "glow", "colorCount", L.colorCount, L.glowColorCountTip, 1, 2, 1)
-        colorRow(layout, L.colors, L.glowColorsTip, colorEntries(category, "glow", 2), function() return custom("glow").colorCount end)
-            :SetParentInitializer(count, function() return true end)
-        local function two() return custom("glow").colorCount > 1 end
-        checkbox(category, "glow", "blend", L.glowGradient, L.glowGradientTip):SetParentInitializer(count, two)
-        dropdown(category, "glow", "gradientDir", L.glowDirection, L.glowDirectionTip, {
-            { "vertical", L.dirVertical }, { "horizontal", L.dirHorizontal },
-        }):SetParentInitializer(count, two)
-    end)
+    -- Pointer glow: one or two colors. Two colors are blended (gradient) or shown as two halves, from top to bottom or
+    -- from left to right.
+    forElement("glow", checkbox(category, "glow", "classColor", labelOf("glow", L.classColor), L.glowClassColorTip))
+    local count = forElement("glow", slider(category, "glow", "colorCount", labelOf("glow", L.colorCount), L.glowColorCountTip, 1, 2, 1))
+    local function two() return custom("glow").colorCount > 1 end
+    forElement("glow", checkbox(category, "glow", "blend", labelOf("glow", L.glowGradient), L.glowGradientTip)):SetParentInitializer(count, two)
+    forElement("glow", dropdown(category, "glow", "gradientDir", labelOf("glow", L.glowDirection), L.glowDirectionTip, {
+        { "vertical", L.dirVertical }, { "horizontal", L.dirHorizontal },
+    })):SetParentInitializer(count, two)
 
-    colorGroup(layout, nil, L.ghost, function() simpleColor(category, layout, "ghost") end)
+    checkbox(category, "ghost", "classColor", labelOf("ghost", L.classColor), L.classColorTip)
 
-    -- Mouse trail: color mode as a dropdown, the colors are only active for "Custom color": 1-4 colors, blended along the
-    -- trail (gradient) or picked at random per dot. The colors share one row (ColorRow.xml) that hangs off the color count
-    -- and shows as many swatches as the count says; the count itself reports changes of the color mode (see proxy).
-    -- The energy shape has fixed original colors: color mode and colors are greyed out (it follows the shape setting).
-    colorGroup(layout, nil, L.trail, function()
-        local function colorable() return ns.cfg.trail.shape ~= "energy" end
-        local function customMode() return colorable() and custom("trail").colorMode == "custom" end
-        local modeDD = dropdown(category, "trail", "colorMode", L.colorMode, L.colorModeTip, {
-            { "rainbow", L.modeRainbow }, { "class", L.modeClass }, { "spring", L.modeSpring }, { "summer", L.modeSummer }, { "autumn", L.modeAutumn },
-            { "winter", L.modeWinter }, { "christmas", L.modeChristmas }, { "fire", L.modeFire }, { "love", L.modeLove },
-            { "ocean", L.modeOcean }, { "gold", L.modeGold }, { "custom", L.modeCustom },
-        })
-        dependsOn(modeDD, varName("trail", "shape"), colorable)
-        local count = slider(category, "trail", "colorCount", L.colorCount, L.colorCountTip, 1, 4, 1)
-        count:SetParentInitializer(modeDD, customMode)
-        colorRow(layout, L.colors, L.colorsTip, colorEntries(category, "trail", 4), function() return custom("trail").colorCount end)
-            :SetParentInitializer(count, customMode)
-        local blend = checkbox(category, "trail", "gradient", L.gradient, L.gradientTip)
-        blend:SetParentInitializer(count, function()
-            return customMode() and custom("trail").colorCount > 1
-        end)
+    -- Mouse trail: color mode as a dropdown, then the number of custom colors (blended along the trail as a gradient, or
+    -- one picked at random per dot). The energy shape locks them (the mode follows the shape setting).
+    local function colorable() return ns.cfg.trail.shape ~= "energy" end
+    local modeDD = dropdown(category, "trail", "colorMode", labelOf("trail", L.colorMode), L.colorModeTip, {
+        { "rainbow", L.modeRainbow }, { "class", L.modeClass }, { "spring", L.modeSpring }, { "summer", L.modeSummer }, { "autumn", L.modeAutumn },
+        { "winter", L.modeWinter }, { "christmas", L.modeChristmas }, { "fire", L.modeFire }, { "love", L.modeLove },
+        { "ocean", L.modeOcean }, { "gold", L.modeGold }, { "custom", L.modeCustom },
+    })
+    dependsOn(modeDD, varName("trail", "shape"), colorable)
+    local trailCount = slider(category, "trail", "colorCount", labelOf("trail", L.colorCount), L.colorCountTip, 1, 4, 1)
+    trailCount:SetParentInitializer(modeDD, trailCustom)
+    checkbox(category, "trail", "gradient", labelOf("trail", L.gradient), L.gradientTip):SetParentInitializer(trailCount, function()
+        return trailCustom() and custom("trail").colorCount > 1
     end)
 
     -- Combat color: choose whether the Main Ring or the center dot switches to the combat color in combat
-    colorGroup(layout, nil, L.combat, function()
-        local tint = checkbox(category, nil, "combatTint", L.combatTint, L.combatTintTip)
-        local function tintOn() return ns.cfg.colors.combat.enabled end
-        -- With the pointer glow the glow always takes the combat color, so there is nothing to choose
-        local target = dropdown(category, nil, "combatTarget", L.combatTarget, L.combatTargetTip, {
-            { "main", L.main }, { "dot", L.targetDot },
-        })
-        target:SetParentInitializer(tint, tintOn)
-        target:AddShownPredicate(function() return ns.cfg.mainStyle ~= "glow" end)
-        colorSwatch(category, nil, L.combatColor, L.combatColorTip, "combatColor"):SetParentInitializer(tint, tintOn)
-    end)
+    local tint = checkbox(category, nil, "combatTint", L.combatTint, L.combatTintTip)
+    -- With the pointer glow the glow always takes the combat color, so there is nothing to choose
+    local target = dropdown(category, nil, "combatTarget", L.combatTarget, L.combatTargetTip, {
+        { "main", L.main }, { "dot", L.targetDot },
+    })
+    target:SetParentInitializer(tint, function() return ns.cfg.colors.combat.enabled end)
+    target:AddShownPredicate(function() return ns.cfg.mainStyle ~= "glow" end)
 end
 
 -- Section for one element; the options below are only active while "Show" is on. The colors are not here (see buildColors).
