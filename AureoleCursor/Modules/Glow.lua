@@ -134,7 +134,7 @@ function Glow:Apply()
         x = (cfg.offsetX + (px - size) / 2) * unit, y = (cfg.offsetY - (px - size) / 2) * unit,
         w = size * unit, h = size * unit,
     }
-    for _, part in ipairs(parts) do part:SetTexture(MEDIA .. "Glow_" .. px .. ".tga") end
+    for _, part in ipairs(parts) do part:SetTexture(MEDIA .. "Glow_" .. px .. ".png") end
     paint()
 
     -- Pointer copy: the sprite's top left corner is the cursor position

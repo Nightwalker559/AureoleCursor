@@ -109,11 +109,11 @@ end
 
 function ns:RingTexture(level, size)
     level = math.max(1, math.min(ns.MAX_THICKNESS, math.floor(level or 4)))
-    return MEDIA .. "Rings\\Ring" .. level .. "_" .. pickResolution(RING_RES, self:ScreenPixels(size or 40)) .. ".tga"
+    return MEDIA .. "Rings\\Ring" .. level .. "_" .. pickResolution(RING_RES, self:ScreenPixels(size or 40)) .. ".png"
 end
 
 function ns:DotTexture(size)
-    return MEDIA .. "Dot\\Dot_" .. pickResolution(DOT_RES, self:ScreenPixels(size or 8)) .. ".tga"
+    return MEDIA .. "Dot\\Dot_" .. pickResolution(DOT_RES, self:ScreenPixels(size or 8)) .. ".png"
 end
 
 -- Shapes of the mouse trail (leaf, snowflake, star, mist, flame, heart, bubble, glitter, blossom, butterfly, ember, drop, feather,
@@ -131,13 +131,13 @@ local SHAPE_FILE = { leaf = "Trail\\Leaf", snow = "Trail\\Snow", star = "Trail\\
 -- "Energy": Blizzard texture from the game (FileID, not shipped with the addon), seamless tile with alpha channel.
 ns.ENERGY_FILE_ID = 6735695
 -- Soft round mask, cuts a round dot out of the tile.
-ns.TRAIL_MASK = MEDIA .. "Trail\\Mask_64.tga"
+ns.TRAIL_MASK = MEDIA .. "Trail\\Mask_64.png"
 
 function ns:ShapeTexture(shape, size)
     if shape == "energy" then return self.ENERGY_FILE_ID end
     local file = SHAPE_FILE[shape]
     if not file then return self:DotTexture(size) end
-    return MEDIA .. file .. "_" .. pickResolution(SHAPE_RES, self:ScreenPixels(size or 16)) .. ".tga"
+    return MEDIA .. file .. "_" .. pickResolution(SHAPE_RES, self:ScreenPixels(size or 16)) .. ".png"
 end
 
 local function copy(v)

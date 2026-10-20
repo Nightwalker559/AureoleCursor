@@ -2,6 +2,13 @@
 
 ---
 
+## 1.1.1
+
+### Smaller download
+- All textures (rings, center marks, trail shapes, pointer glow) are PNG files now instead of uncompressed TGA files. The addon shrinks from about 6 MB to under 1 MB. Nothing changes visually: every pixel of every texture is identical to before. Only the small addon icon stays a TGA.
+
+---
+
 ## 1.1.0
 
 ### Color themes
