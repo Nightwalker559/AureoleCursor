@@ -6,6 +6,7 @@ local _, ns = ...
 
 -- id, name (key in the locale) and three colors { r, g, b }: 1 = main color, 2 = second color, 3 = accent.
 -- "class" has no fixed colors, they come from the class color of the player (see classColors).
+-- trailShape: the theme brings a trail shape that can only be used with it (see THEME_SHAPES).
 ns.THEMES = {
     { id = "class", name = "themeClass" },
     { id = "fire", name = "themeFire", { 1, 0.85, 0.2 }, { 1, 0.45, 0.08 }, { 0.85, 0.12, 0.05 } },
@@ -16,7 +17,12 @@ ns.THEMES = {
     { id = "holy", name = "themeHoly", { 1, 0.95, 0.7 }, { 1, 0.8, 0.3 }, { 1, 1, 1 } },
     { id = "sunset", name = "themeSunset", { 1, 0.8, 0.4 }, { 1, 0.4, 0.5 }, { 0.6, 0.3, 0.8 } },
     { id = "silver", name = "themeSilver", { 1, 1, 1 }, { 0.7, 0.7, 0.75 }, { 0.45, 0.45, 0.5 } },
+    { id = "halloween", name = "themeHalloween", { 1, 0.55, 0.1 }, { 0.9, 0.3, 0.05 }, { 0.6, 0.3, 0.9 }, trailShape = "pumpkin" },
 }
+
+-- Trail shapes that belong to a theme: shape = id of the theme. They are in the shape list only while that theme is active,
+-- the theme selects its shape when it is chosen, and the shape goes back to the earlier one when the theme is left.
+ns.THEME_SHAPES = { pumpkin = "halloween" }
 
 local byId = {}
 for _, theme in ipairs(ns.THEMES) do byId[theme.id] = theme end
@@ -55,6 +61,35 @@ local function copyValue(v)
     return t
 end
 
+-- Can this trail shape be used with the theme in use? (Shapes without a theme always can.)
+function ns:ShapeAvailable(shape)
+    local theme = ns.THEME_SHAPES[shape]
+    return theme == nil or self.cfg.colors.theme == theme
+end
+
+-- A theme-only shape without its theme goes back to the shape from before (or the plain dot).
+function ns:FixThemeShape()
+    local trail = self.cfg.trail
+    if self:ShapeAvailable(trail.shape) then return end
+    local before = trail.shapeBefore
+    trail.shapeBefore = nil
+    self:SetTrailShape(before and self:ShapeAvailable(before) and before or "dot")
+end
+
+-- Choose a theme ("custom" = own colors). A theme with a trail shape of its own switches the trail to it and remembers the
+-- shape it replaced; leaving the theme brings that shape back.
+function ns:SetTheme(id)
+    local cfg = self.cfg
+    cfg.colors.theme = id
+    local theme = byId[id]
+    local shape = theme and theme.trailShape
+    if shape and cfg.trail.shape ~= shape then
+        cfg.trail.shapeBefore = cfg.trail.shape
+        self:SetTrailShape(shape)
+    end
+    self:FixThemeShape()
+end
+
 -- Take over the colors of the active theme as the player's own colors and switch to them, so a theme can be adjusted.
 function ns:UseThemeAsCustom()
     local colors = self.cfg.colors
@@ -64,6 +99,6 @@ function ns:UseThemeAsCustom()
         local custom = colors.custom[key]
         for field, value in pairs(slot) do custom[field] = copyValue(value) end
     end
-    colors.theme = "custom"
+    self:SetTheme("custom")
     self:Apply()
 end

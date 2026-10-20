@@ -62,6 +62,14 @@ local function varName(key, field)
     return string.upper("AUREOLECURSOR_" .. (key or "GENERAL") .. "_" .. field)
 end
 
+-- After a theme change: the palette, and the trail settings that follow its shape (a theme can bring a shape of its own)
+local function notifyTheme()
+    notifyPalette()
+    for _, field in ipairs({ "shape", "size", "duration", "spacing", "colorMode" }) do
+        Settings.NotifyUpdate(varName("trail", field))
+    end
+end
+
 -- Color settings are greyed out while a theme is active (they show its colors, but cannot be changed). Every one of them
 -- is evaluated again when the theme setting reports a change.
 local THEME_VAR = varName(nil, "theme")
@@ -80,7 +88,7 @@ end
 -- children of the setting that changed). After a change, tell that intermediate setting to refresh its children.
 local function notifyDependents(key, field)
     if key == nil and field == "theme" then
-        notifyPalette() -- the color settings show the colors of the theme
+        notifyTheme() -- the color settings show the colors of the theme, the trail may have changed its shape
     elseif key == "trail" and (field == "enabled" or field == "colorMode") then
         Settings.NotifyUpdate(varName(key, "colorCount")) -- the extra trail colors follow the color count
     elseif (key == "cast" or key == "gcd") and field == "enabled" then
@@ -92,8 +100,12 @@ end
 local function proxy(category, key, field, vtype, label)
     local function get() return valueOf(key, field) end
     local function set(value)
-        local t, f = holder(ns.cfg, key, field)
-        t[f] = value
+        if key == nil and field == "theme" then
+            ns:SetTheme(value) -- a theme may bring its own trail shape
+        else
+            local t, f = holder(ns.cfg, key, field)
+            t[f] = value
+        end
         ns:Apply()
         notifyDependents(key, field)
     end
@@ -110,7 +122,9 @@ end
 local function choiceList(choices)
     return function()
         local c = Settings.CreateControlTextContainer()
-        for _, choice in ipairs(choices) do c:Add(choice[1], choice[2]) end
+        for _, choice in ipairs(choices) do
+            if not choice[3] or choice[3]() then c:Add(choice[1], choice[2]) end -- 3rd entry: is the choice offered right now?
+        end
         return c:GetData()
     end
 end
@@ -208,7 +222,7 @@ local function buildGeneral(category, layout)
     local copy = CreateSettingsButtonInitializer(L.themeCopy, L.themeCopyButton, function()
         ns:UseThemeAsCustom()
         Settings.NotifyUpdate(THEME_VAR)
-        notifyPalette()
+        notifyTheme()
     end, L.themeCopyTip, true)
     layout:AddInitializer(copy)
     copy:AddModifyPredicate(function() return not editable() end)
@@ -392,6 +406,7 @@ local function trailOptions(category, key, child)
         { "bubble", L.shapeBubble }, { "glitter", L.shapeGlitter }, { "blossom", L.shapeBlossom }, { "butterfly", L.shapeButterfly },
         { "ember", L.shapeEmber }, { "drop", L.shapeDrop }, { "feather", L.shapeFeather }, { "bolt", L.shapeBolt },
         { "crystal", L.shapeCrystal }, { "coin", L.shapeCoin }, { "rune", L.shapeRune }, { "confetti", L.shapeConfetti },
+        { "pumpkin", L.shapePumpkin, function() return ns:ShapeAvailable("pumpkin") end },
     })
     child(slider(category, key, "duration", L.duration, L.durationTip, 0.1, 1.5, 0.05, seconds))
     child(slider(category, key, "spacing", L.spacing, L.spacingTip, 2, 40, 1))

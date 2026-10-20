@@ -50,6 +50,7 @@ local MOTION = {
     coin = { rise = 1.2, sway = 0.5, jitter = 0.3, tilt = 0.4 },
     rune = { jitter = 0.2, spin = 90, add = true },
     confetti = { rise = -2.2, sway = 1.4, jitter = 0.7, spin = 300 },
+    pumpkin = { rise = -1.5, sway = 1.0, jitter = 0.3, tilt = 0.5 },
 }
 
 local frame = CreateFrame("Frame", "AureoleCursorTrail", UIParent)
