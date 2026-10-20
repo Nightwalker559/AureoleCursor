@@ -4,6 +4,12 @@
 
 ## 1.1.0
 
+### Color themes
+- New dropdown **Color theme** in General with ready-made colors for everything at once: **Class color** (your class color with a darker and a lighter shade), **Fire**, **Ice**, **Nature**, **Arcane**, **Shadow**, **Holy**, **Sunset** and **Silver**. A theme is three colors: the Main Ring takes the main color, the center dot the accent, the pointer glow blends from color 1 to 2, the trail runs through all three, and the GCD Ring (1 to 2) and the Cast Ring (1 to 3) fade through them while they run.
+- While a theme is active, all color settings are greyed out and show the colors of the theme. The combat color still applies. **Custom colors** keeps your own colors, they are not touched while a theme is chosen, and the button **Use as custom colors** takes the active theme over as your own colors so you can adjust it.
+- The **GCD Ring** has a color gradient of its own now (color 1 to color 2 while the global cooldown runs), like the Cast Ring.
+- The class color is a theme now: the **Class color** switches of the elements and the trail color mode "Class color" are gone. If you used one of them, your theme is set to Class color on the first start.
+
 ### Removed
 - The **ghost** (a ghost floating above the cursor while you are dead) is gone, together with its settings and its texture.
 

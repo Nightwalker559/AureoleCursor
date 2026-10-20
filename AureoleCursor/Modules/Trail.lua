@@ -262,8 +262,8 @@ function Trail:Apply()
 
     local size = t.shape == "mist" and t.size * MIST_SIZE or t.size
     local texture = ns:ShapeTexture(t.shape, size)
-    -- Color mode: rainbow or season (color per dot in spawn), class color or custom color
-    local r, g, b = ns:GetRingColor({ classColor = colors.colorMode == "class", color = colors.color })
+    -- Color mode: rainbow or season (color per dot in spawn) or custom colors (also what a theme sets)
+    local r, g, b = ns:GetRingColor(colors)
     rainbow, palette, gradient = colors.colorMode == "rainbow", PALETTES[colors.colorMode], nil
     if colors.colorMode == "custom" and (colors.colorCount or 1) > 1 then
         -- several custom colors: blended along the trail, or one picked at random per dot

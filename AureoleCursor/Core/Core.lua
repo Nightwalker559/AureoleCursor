@@ -18,20 +18,21 @@ ns.defaults = {
     ringLayout = "individual", -- "individual" (every ring on its own), "maincast" (Main + Cast Ring) or "maingcd" (Main + GCD Ring)
     mainStyle = "ring",       -- what surrounds the cursor: the Main Ring ("ring") or the pointer glow ("glow")
     trackAlpha = 0.5,         -- opacity of the background tracks of the GCD and Cast Ring (and of the ring of the center dot)
-    -- All colors live here. The elements read them through ns:Palette(); a color theme will take the place of "custom".
-    -- Colors are plain { r, g, b }, the opacity is the overall one (alpha).
+    -- All colors live here. The elements read them through ns:Palette(): the custom colors below, or the colors of a theme
+    -- (Themes.lua) while one is chosen. Colors are plain { r, g, b }, the opacity is the overall one (alpha).
     colors = {
+        theme = "custom",         -- "custom" = the colors below, otherwise the id of a theme (ns.THEMES), which then replaces them
         -- combat color: in combat target ("main" ring or center "dot") switches to color; with the pointer glow the glow always switches
         combat = { enabled = false, target = "main", color = { 1, 0.1, 0.1 } },
         custom = {
-            main = { classColor = false, color = { 1, 1, 1 } },
-            gcd = { classColor = false, color = { 1, 0.82, 0 } },
-            -- gradient: the swipe color moves from color to color2 while the cast progresses (class color is ignored then)
-            cast = { classColor = false, color = { 1, 1, 1 }, gradient = false, color2 = { 0.3, 0.8, 1 } },
-            dot = { classColor = false, color = { 1, 1, 1 } },
+            main = { color = { 1, 1, 1 } },
+            -- gradient (GCD and Cast Ring): the swipe color moves from color to color2 while the GCD runs or the cast progresses
+            gcd = { color = { 1, 0.82, 0 }, gradient = false, color2 = { 1, 0.45, 0.1 } },
+            cast = { color = { 1, 1, 1 }, gradient = false, color2 = { 0.3, 0.8, 1 } },
+            dot = { color = { 1, 1, 1 } },
             -- one color or two (colorCount, color and color2) from top to bottom ("vertical") or left to right ("horizontal"):
             -- blend = smooth gradient, otherwise two hard halves
-            glow = { classColor = false, color = { 0.35, 0.7, 1 }, colorCount = 1, blend = true, gradientDir = "vertical",
+            glow = { color = { 0.35, 0.7, 1 }, colorCount = 1, blend = true, gradientDir = "vertical",
                      color2 = { 0.75, 0.3, 1 } },
             -- colorMode "custom": colorCount colors (color, color2..color4); gradient blends between them along the
             -- trail, otherwise every dot picks one of them at random
@@ -182,10 +183,16 @@ function ns:UpdateVisibility()
     end
 end
 
--- The colors in use: { main, gcd, cast, dot, glow, trail }, each with its color fields (see defaults.colors.custom).
--- Everything that needs a color asks here, never cfg.colors directly.
+-- The colors in use: { main, gcd, cast, dot, glow, trail }, each with its color fields (see defaults.colors.custom): the
+-- palette of the chosen theme (Themes.lua), or the custom colors. Everything that needs a color asks here, never cfg.colors
+-- directly. The tables of a theme are only read, never changed.
 function ns:Palette()
-    return self.cfg.colors.custom
+    local colors = self.cfg.colors
+    if colors.theme ~= "custom" then
+        local palette = self:ThemePalette(colors.theme)
+        if palette then return palette end
+    end
+    return colors.custom
 end
 
 -- Color of the Main Ring, the center dot or the pointer glow ("main" / "dot" / "glow"): its own color, or the combat color
@@ -222,13 +229,8 @@ function ns:ResetSettings()
     self:Apply()
 end
 
--- Color of a palette entry: class color or the configured color (r, g, b). A gradient ring uses its own colors instead.
+-- Color of a palette entry (r, g, b); a gradient ring starts with it.
 function ns:GetRingColor(slot)
-    if slot.classColor and not slot.gradient and UnitClass then
-        local _, class = UnitClass("player")
-        local c = class and C_ClassColor and C_ClassColor.GetClassColor(class)
-        if c then return c.r, c.g, c.b end
-    end
     local col = slot.color
     return col[1], col[2], col[3]
 end
@@ -320,6 +322,29 @@ local function migrateColors(cfg)
     end
 end
 
+-- The class color switches (and the trail color mode "class") are gone: the class color is a theme now. Whoever used one
+-- gets that theme, unless a theme was chosen already.
+local function dropClassColors(cfg)
+    local colors = cfg.colors
+    local custom = type(colors) == "table" and colors.custom
+    if type(custom) ~= "table" then return end
+    local used = false
+    for _, slot in pairs(custom) do
+        if type(slot) == "table" then
+            if slot.classColor then used = true end
+            slot.classColor = nil
+            if slot.colorMode == "class" then used, slot.colorMode = true, "rainbow" end
+        end
+    end
+    local presets = type(cfg.trail) == "table" and cfg.trail.presets
+    if type(presets) == "table" then
+        for _, preset in pairs(presets) do
+            if type(preset) == "table" and preset.colorMode == "class" then used, preset.colorMode = true, "rainbow" end
+        end
+    end
+    if used and (colors.theme == nil or colors.theme == "custom") then colors.theme = "class" end
+end
+
 ns:On("ADDON_LOADED", function(_, name)
     if name ~= ADDON then return end
     AureoleCursorDB = AureoleCursorDB or {}
@@ -334,6 +359,7 @@ ns:On("ADDON_LOADED", function(_, name)
         main.combatTint, main.combatColor = nil, nil
     end
     migrateColors(db.cfg)
+    dropClassColors(db.cfg)
     -- the ghost was removed in 1.1.0: drop its settings (also its colors, in configs that were already converted)
     db.cfg.ghost = nil
     if type(db.cfg.colors) == "table" and type(db.cfg.colors.custom) == "table" then db.cfg.colors.custom.ghost = nil end

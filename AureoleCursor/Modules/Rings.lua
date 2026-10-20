@@ -50,8 +50,58 @@ dotTrack:Hide()
 ns.dotCooldown, ns.dotTrack = dotCD, dotTrack
 
 ------------------------------------------------------------------------
+-- Gradient (GCD and Cast Ring): the swipe color moves from color to color2 while the cooldown or cast progresses. The
+-- color comes from a color curve evaluated against the duration object, so no secret values are ever read or calculated
+-- with.
+------------------------------------------------------------------------
+
+-- The result may be a color object or plain r, g, b, a values.
+local function unpackColor(c, g, b, a)
+    if g == nil and c ~= nil and type(c) ~= "number" then
+        if c.GetRGBA then return c:GetRGBA() end
+        return c.r, c.g, c.b, c.a
+    end
+    return c, g, b, a
+end
+
+local function buildCurve(colors)
+    if not (colors.gradient and C_CurveUtil and C_CurveUtil.CreateColorCurve and CreateColor) then return nil end
+    local c1, c2 = colors.color, colors.color2
+    local curve = C_CurveUtil.CreateColorCurve()
+    if Enum and Enum.LuaCurveType and curve.SetType then curve:SetType(Enum.LuaCurveType.Linear) end
+    curve:AddPoint(0, CreateColor(c1[1], c1[2], c1[3], 1))
+    curve:AddPoint(1, CreateColor(c2[1], c2[2], c2[3], 1))
+    return curve
+end
+
+------------------------------------------------------------------------
 -- GCD
 ------------------------------------------------------------------------
+
+local gcdCurve, gcdDuration
+
+local gcdDriver = CreateFrame("Frame", nil, anchor)
+gcdDriver:Hide()
+ns.gcdDriver = gcdDriver
+
+-- The GCD has no event when it ends, so while the gradient runs the driver asks whether it still does (only during the GCD).
+local function tickGcd()
+    local info = gcdDuration and gcdCurve and C_Spell.GetSpellCooldown(GCD_SPELL)
+    if not (info and info.isActive) then
+        gcdDuration = nil
+        gcdDriver:Hide()
+        return
+    end
+    local ok, c, g, b, a = pcall(gcdDuration.EvaluateElapsedPercent, gcdDuration, gcdCurve)
+    if not ok then -- the API does not behave as expected: keep the static start color, do not retry every frame
+        gcdCurve = nil
+        gcdDriver:Hide()
+        return
+    end
+    local r, g2, b2, a2 = unpackColor(c, g, b, a)
+    if r then gcdCD:SetSwipeColor(r, g2, b2, a2) end
+end
+gcdDriver:SetScript("OnUpdate", tickGcd)
 
 -- While the GCD is running, set the swipe from the duration object of the GCD spell.
 -- Once it is over, the swipe ends by itself.
@@ -64,7 +114,14 @@ local function updateGCD()
     if info and info.isActive then
         local d = C_Spell.GetSpellCooldownDuration(GCD_SPELL)
         if d then
-            if ring then gcdCD:SetCooldownFromDurationObject(d) end
+            if ring then
+                gcdCD:SetCooldownFromDurationObject(d)
+                gcdDuration = d
+                if gcdCurve then
+                    gcdDriver:Show()
+                    tickGcd()
+                end
+            end
             if onDot then dotCD:SetCooldownFromDurationObject(d) end
         end
     end
@@ -77,22 +134,11 @@ ns:On("SPELL_UPDATE_COOLDOWN", updateGCD)
 -- Cast / Channel / Empower
 ------------------------------------------------------------------------
 
--- Gradient (cast ring): the swipe color moves from color to color2 while the cast progresses. The color comes from a
--- color curve evaluated against the cast's duration object, so no secret values are ever read or calculated with.
 local castCurve, castDuration
 
 local castDriver = CreateFrame("Frame", nil, anchor)
 castDriver:Hide()
 ns.castDriver = castDriver
-
--- The result may be a color object or plain r, g, b, a values.
-local function unpackColor(c, g, b, a)
-    if g == nil and c ~= nil and type(c) ~= "number" then
-        if c.GetRGBA then return c:GetRGBA() end
-        return c.r, c.g, c.b, c.a
-    end
-    return c, g, b, a
-end
 
 local function tickCast()
     if not (castDuration and castCurve) then return end
@@ -138,16 +184,6 @@ local function updateCast()
         castDuration = nil
         castDriver:Hide()
     end
-end
-
-local function buildCastCurve(colors)
-    if not (colors.gradient and C_CurveUtil and C_CurveUtil.CreateColorCurve and CreateColor) then return nil end
-    local c1, c2 = colors.color, colors.color2
-    local curve = C_CurveUtil.CreateColorCurve()
-    if Enum and Enum.LuaCurveType and curve.SetType then curve:SetType(Enum.LuaCurveType.Linear) end
-    curve:AddPoint(0, CreateColor(c1[1], c1[2], c1[3], 1))
-    curve:AddPoint(1, CreateColor(c2[1], c2[2], c2[3], 1))
-    return curve
 end
 
 for _, event in ipairs({
@@ -202,7 +238,9 @@ function Rings:Apply()
     end
     gcdCD:SetReverse(false)
 
-    castCurve = buildCastCurve(ns:Palette().cast)
+    gcdCurve = buildCurve(ns:Palette().gcd)
+    if not gcdCurve then gcdDriver:Hide() end
+    castCurve = buildCurve(ns:Palette().cast)
     if not castCurve then castDriver:Hide() end
     updateGCD()
     updateCast()

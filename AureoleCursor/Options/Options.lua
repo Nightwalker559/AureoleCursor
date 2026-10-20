@@ -22,25 +22,35 @@ end
 
 -- Where a setting lives in the config. Settings are named after the element they belong to (key, nil = General) and the
 -- field. The colors are not part of the element: they are in the palette (cfg.colors.custom[key]), the combat color in
--- cfg.colors.combat. holder() gives the table that holds the value and the real name of the field in it.
+-- cfg.colors.combat, the theme in cfg.colors. holder() gives the table that holds the value and the real name of the
+-- field in it. Settings change the custom colors; what a setting shows is the palette in use (a theme's, see valueOf).
 local PALETTE_FIELDS = {
-    classColor = true, color = true, color2 = true, color3 = true, color4 = true, gradient = true, blend = true,
+    color = true, color2 = true, color3 = true, color4 = true, gradient = true, blend = true,
     gradientDir = true, colorCount = true, colorMode = true,
 }
 local COMBAT_FIELDS = { combatTint = "enabled", combatTarget = "target", combatColor = "color" }
 
-local function holder(root, key, field)
+local function holder(root, key, field, shown)
     if key == nil then
         if COMBAT_FIELDS[field] then return root.colors.combat, COMBAT_FIELDS[field] end
+        if field == "theme" then return root.colors, "theme" end
         return root, field
     end
-    if PALETTE_FIELDS[field] then return root.colors.custom[key], field end
+    if PALETTE_FIELDS[field] then return (shown and ns:Palette() or root.colors.custom)[key], field end
     return root[key], field
 end
 
 local function valueOf(key, field)
-    local t, f = holder(ns.cfg, key, field)
+    local t, f = holder(ns.cfg, key, field, true)
     return t[f]
+end
+
+-- Variables of the settings that show a palette value (colors, gradients, counts ...): they show the colors of a theme
+-- while one is active, so they are told to show their value again when the theme changes.
+local paletteVars = {}
+
+local function notifyPalette()
+    for _, var in ipairs(paletteVars) do Settings.NotifyUpdate(var) end
 end
 
 local function defaultOf(key, field)
@@ -52,14 +62,29 @@ local function varName(key, field)
     return string.upper("AUREOLECURSOR_" .. (key or "GENERAL") .. "_" .. field)
 end
 
+-- Color settings are greyed out while a theme is active (they show its colors, but cannot be changed). Every one of them
+-- is evaluated again when the theme setting reports a change.
+local THEME_VAR = varName(nil, "theme")
+
+local function editable()
+    return ns.cfg.colors.theme == "custom"
+end
+
+local function themed(initializer)
+    initializer:AddModifyPredicate(editable)
+    initializer:AddEvaluateStateCVar(THEME_VAR)
+    return initializer
+end
+
 -- Some options hang off a different setting than the one they really depend on (the Blizzard panel only re-evaluates
 -- children of the setting that changed). After a change, tell that intermediate setting to refresh its children.
 local function notifyDependents(key, field)
-    if key == "trail" and (field == "enabled" or field == "colorMode") then
+    if key == nil and field == "theme" then
+        notifyPalette() -- the color settings show the colors of the theme
+    elseif key == "trail" and (field == "enabled" or field == "colorMode") then
         Settings.NotifyUpdate(varName(key, "colorCount")) -- the extra trail colors follow the color count
-    elseif key == "cast" and (field == "enabled" or field == "gradient") then
-        if field == "enabled" then Settings.NotifyUpdate(varName(key, "gradient")) end -- class color follows the gradient switch
-        Settings.NotifyUpdate(varName(key, "classColor")) -- the color row follows the class color switch
+    elseif (key == "cast" or key == "gcd") and field == "enabled" then
+        Settings.NotifyUpdate(varName(key, "gradient")) -- the color row follows the gradient switch
     end
 end
 
@@ -72,6 +97,7 @@ local function proxy(category, key, field, vtype, label)
         ns:Apply()
         notifyDependents(key, field)
     end
+    if key and PALETTE_FIELDS[field] then paletteVars[#paletteVars + 1] = varName(key, field) end
     return Settings.RegisterProxySetting(category, varName(key, field), vtype, label, defaultOf(key, field), get, set)
 end
 
@@ -122,10 +148,11 @@ local function colorSetting(category, key, label, field)
     local function get() return hexOf(valueOf(key, field)) end
     local function set(hex)
         local c = CreateColorFromHexString(hex)
-        local col = valueOf(key, field)
-        col[1], col[2], col[3] = c.r, c.g, c.b
+        local t, f = holder(ns.cfg, key, field) -- the custom color, never a color of a theme
+        t[f][1], t[f][2], t[f][3] = c.r, c.g, c.b
         ns:Apply()
     end
+    if key then paletteVars[#paletteVars + 1] = varName(key, field) end
     return Settings.RegisterProxySetting(category, varName(key, field), Settings.VarType.String, label,
         hexOf(defaultOf(key, field)), get, set)
 end
@@ -173,6 +200,20 @@ local function buildGeneral(category, layout)
         { "individual", L.layoutIndividual }, { "maincast", L.layoutMainCast }, { "maingcd", L.layoutMainGcd },
     }):AddShownPredicate(function() return ns.cfg.mainStyle ~= "glow" end) -- no rings with the pointer glow
 
+    -- Color theme: replaces the colors of all elements at once (they are greyed out and show the theme's colors). The button
+    -- takes the colors of the theme over as the own colors, so a theme can be adjusted.
+    local choices = { { "custom", L.themeCustom } }
+    for _, theme in ipairs(ns.THEMES) do choices[#choices + 1] = { theme.id, L[theme.name] } end
+    dropdown(category, nil, "theme", L.theme, L.themeTip, choices)
+    local copy = CreateSettingsButtonInitializer(L.themeCopy, L.themeCopyButton, function()
+        ns:UseThemeAsCustom()
+        Settings.NotifyUpdate(THEME_VAR)
+        notifyPalette()
+    end, L.themeCopyTip, true)
+    layout:AddInitializer(copy)
+    copy:AddModifyPredicate(function() return not editable() end)
+    copy:AddEvaluateStateCVar(THEME_VAR)
+
     slider(category, nil, "scale", L.scale, L.scaleTip, 0.5, 3, 0.05, twoDecimals)
     slider(category, nil, "alpha", L.alpha, L.alphaTip, 0.1, 1, 0.05, percent)
     slider(category, nil, "idleAlpha", L.idleAlpha, L.idleAlphaTip, 0, 1, 0.05, percent)
@@ -197,8 +238,8 @@ end
 
 -- Section for one element; the options below are only active while "Show" is on.
 -- opts: size = { min, max, step } (false: no size slider), noEnable (no "Show" switch), thickness (ring thickness),
---       track (background track switch), colors ("simple": class color and one color, "cast": with a gradient over the
---       cast, "glow": one or two colors, "trail": color modes), ringActive (the whole section is hidden while
+--       track (background track switch), colors ("simple": one color, "gradient": with a gradient over the GCD or cast,
+--       "glow": one or two colors, "trail": color modes), ringActive (the whole section is hidden while
 --       ns:RingActive(key) is false), extra = function(category, key, child) for element-specific options.
 -- The colors are edited in the palette (cfg.colors.custom[key], see holder()).
 local function buildElement(category, layout, key, title, opts)
@@ -226,59 +267,45 @@ local function buildElement(category, layout, key, title, opts)
         local function colorable() return on() and ns.cfg[key].shape ~= "energy" end
         local function customMode() return colorable() and custom().colorMode == "custom" end
         -- Color mode as a dropdown; the colors are only active for "Custom color"
-        local modeDD = dropdown(category, key, "colorMode", L.colorMode, L.colorModeTip, {
-            { "rainbow", L.modeRainbow }, { "class", L.modeClass }, { "spring", L.modeSpring }, { "summer", L.modeSummer }, { "autumn", L.modeAutumn },
+        local modeDD = themed(dropdown(category, key, "colorMode", L.colorMode, L.colorModeTip, {
+            { "rainbow", L.modeRainbow }, { "spring", L.modeSpring }, { "summer", L.modeSummer }, { "autumn", L.modeAutumn },
             { "winter", L.modeWinter }, { "christmas", L.modeChristmas }, { "fire", L.modeFire }, { "love", L.modeLove },
             { "ocean", L.modeOcean }, { "gold", L.modeGold }, { "custom", L.modeCustom },
-        })
+        }))
         modeDD:SetParentInitializer(enable, colorable)
         -- Custom color: 1-4 colors, blended along the trail (gradient) or picked at random per dot.
         -- The colors share one row (ColorRow.xml) that hangs off the color count and shows as many swatches as the
         -- count says; the count itself reports changes of the enable switch and the color mode (see proxy).
-        local count = slider(category, key, "colorCount", L.colorCount, L.colorCountTip, 1, 4, 1)
+        local count = themed(slider(category, key, "colorCount", L.colorCount, L.colorCountTip, 1, 4, 1))
         count:SetParentInitializer(modeDD, customMode)
-        colorRow(layout, L.colors, L.colorsTip, colorEntries(category, key, 4), function() return custom().colorCount end)
+        themed(colorRow(layout, L.colors, L.colorsTip, colorEntries(category, key, 4), function() return custom().colorCount end))
             :SetParentInitializer(count, customMode)
-        local blend = checkbox(category, key, "gradient", L.gradient, L.gradientTip)
+        local blend = themed(checkbox(category, key, "gradient", L.gradient, L.gradientTip))
         blend:SetParentInitializer(count, function()
             return customMode() and custom().colorCount > 1
         end)
-    elseif mode == "cast" then
-        -- Gradient (cast ring): the ring moves from color 1 to color 2 while the cast progresses. Class color is
-        -- ignored then, so it hangs off the gradient switch. The color row shows one swatch, or two with a gradient.
-        -- The row hangs off the class color switch; changes of the enable and gradient switches are reported to
-        -- it through the proxy (see notifyDependents).
-        local blend = checkbox(category, key, "gradient", L.castGradient, L.castGradientTip)
+    elseif mode == "gradient" then
+        -- GCD and Cast Ring: the ring moves from color 1 to color 2 while the GCD runs or the cast progresses. The color row
+        -- shows one swatch, or two with the gradient; it hangs off the gradient switch, changes of the enable switch are
+        -- reported to the gradient through the proxy (see notifyDependents).
+        local blend = themed(checkbox(category, key, "gradient", L.castGradient, L[key .. "GradientTip"]))
         child(blend)
-        local class = checkbox(category, key, "classColor", L.classColor, L.classColorTip)
-        class:SetParentInitializer(blend, function()
-            return on() and not custom().gradient
-        end)
-        colorRow(layout, L.colors, L.castColorsTip, colorEntries(category, key, 2), function() return custom().gradient and 2 or 1 end)
-            :SetParentInitializer(class, function()
-                return on() and (custom().gradient or not custom().classColor)
-            end)
+        themed(colorRow(layout, L.colors, L[key .. "ColorsTip"], colorEntries(category, key, 2), function() return custom().gradient and 2 or 1 end))
+            :SetParentInitializer(blend, on)
     elseif mode == "glow" then
-        -- Pointer glow: one or two colors in one row like the custom colors of the trail. Class color replaces color 1.
+        -- Pointer glow: one or two colors in one row like the custom colors of the trail.
         -- Two colors are blended (gradient) or shown as two halves, from top to bottom or from left to right.
-        child(checkbox(category, key, "classColor", L.classColor, L.glowClassColorTip))
-        local count = slider(category, key, "colorCount", L.colorCount, L.glowColorCountTip, 1, 2, 1)
+        local count = themed(slider(category, key, "colorCount", L.colorCount, L.glowColorCountTip, 1, 2, 1))
         child(count)
-        colorRow(layout, L.colors, L.glowColorsTip, colorEntries(category, key, 2), function() return custom().colorCount end)
+        themed(colorRow(layout, L.colors, L.glowColorsTip, colorEntries(category, key, 2), function() return custom().colorCount end))
             :SetParentInitializer(count, function() return true end)
         local function two() return custom().colorCount > 1 end
-        checkbox(category, key, "blend", L.glowGradient, L.glowGradientTip):SetParentInitializer(count, two)
-        dropdown(category, key, "gradientDir", L.glowDirection, L.glowDirectionTip, {
+        themed(checkbox(category, key, "blend", L.glowGradient, L.glowGradientTip)):SetParentInitializer(count, two)
+        themed(dropdown(category, key, "gradientDir", L.glowDirection, L.glowDirectionTip, {
             { "vertical", L.dirVertical }, { "horizontal", L.dirHorizontal },
-        }):SetParentInitializer(count, two)
+        })):SetParentInitializer(count, two)
     else
-        -- The color is greyed out while class color is active
-        local class = checkbox(category, key, "classColor", L.classColor, L.classColorTip)
-        child(class)
-        colorRow(layout, L.color, L.colorTip, colorEntries(category, key, 1), function() return 1 end)
-            :SetParentInitializer(class, function()
-                return on() and not custom().classColor
-            end)
+        child(themed(colorRow(layout, L.color, L.colorTip, colorEntries(category, key, 1), function() return 1 end)))
     end
     if opts.track then
         child(checkbox(category, key, "track", L.track, L.trackTip))
@@ -375,8 +402,8 @@ local function build()
 
     buildGeneral(category, layout)
     buildElement(category, layout, "main", L.main, { thickness = true, ringActive = true })
-    buildElement(category, layout, "gcd", L.gcd, { thickness = true, track = true, ringActive = true })
-    buildElement(category, layout, "cast", L.cast, { thickness = true, track = true, ringActive = true, colors = "cast" })
+    buildElement(category, layout, "gcd", L.gcd, { thickness = true, track = true, ringActive = true, colors = "gradient" })
+    buildElement(category, layout, "cast", L.cast, { thickness = true, track = true, ringActive = true, colors = "gradient" })
     buildElement(category, layout, "dot", L.dot, { extra = dotOptions, ringActive = true })
     buildElement(category, layout, "glow", L.glow, { size = false, noEnable = true, ringActive = true, extra = glowOptions, colors = "glow" })
     buildElement(category, layout, "trail", L.trail, { size = { 4, 64, 1 }, extra = trailOptions, colors = "trail" })
