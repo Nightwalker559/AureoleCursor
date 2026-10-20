@@ -359,7 +359,13 @@ local function shapeDropdown(category, key, child, tip, choices)
     end
     local shape = Settings.RegisterProxySetting(category, varName(key, "shape"), Settings.VarType.String, L.shape,
         defaultOf(key, "shape"), function() return ns.cfg[key].shape end, setShape)
-    child(track(Settings.CreateDropdown(category, shape, choiceList(choices), tip)))
+    local initializer = Settings.CreateDropdown(category, shape, choiceList(choices), tip)
+    if key == "trail" then
+        -- a theme with a shape of its own (Halloween) decides the trail shape: the setting is greyed out and shows it
+        initializer:AddModifyPredicate(function() return not ns:ThemeShape() end)
+        initializer:AddEvaluateStateCVar(THEME_VAR)
+    end
+    child(track(initializer))
 end
 
 local function dotOptions(category, key, child)

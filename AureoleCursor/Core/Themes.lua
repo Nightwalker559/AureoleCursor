@@ -61,6 +61,12 @@ local function copyValue(v)
     return t
 end
 
+-- The trail shape the active theme brings (and locks the shape setting to), nil for themes without one.
+function ns:ThemeShape()
+    local theme = byId[self.cfg.colors.theme]
+    return theme and theme.trailShape
+end
+
 -- Can this trail shape be used with the theme in use? (Shapes without a theme always can.)
 function ns:ShapeAvailable(shape)
     local theme = ns.THEME_SHAPES[shape]
