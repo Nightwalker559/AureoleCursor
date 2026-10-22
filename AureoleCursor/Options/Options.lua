@@ -407,19 +407,9 @@ local function glowOptions(category, key, child)
     child(checkbox(category, key, "showWhileLooking", L.glowLooking, L.glowLookingTip))
     child(slider(category, key, "offsetX", L.glowOffsetX, L.glowOffsetXTip, -20, 20, 1))
     child(slider(category, key, "offsetY", L.glowOffsetY, L.glowOffsetYTip, -20, 20, 1))
-    local function lead(field, label)
-        return slider(category, key, field, label, L.glowLeadTip, 0, 3, 0.1, function(v)
-            return string.format("%.1f", v)
-        end)
-    end
-    child(lead("leadFrames", L.glowLead))
-    -- Lead by frame rate: the slider above then counts from 90 FPS on, the others below
-    local byFps = checkbox(category, key, "leadByFps", L.glowLeadByFps, L.glowLeadByFpsTip)
-    child(byFps)
-    local function whenByFps() return ns.cfg[key].leadByFps end
-    lead("leadFrames60", L.glowLead60):SetParentInitializer(byFps, whenByFps)
-    lead("leadFrames40", L.glowLead40):SetParentInitializer(byFps, whenByFps)
-    lead("leadFramesLow", L.glowLeadLow):SetParentInitializer(byFps, whenByFps)
+    child(slider(category, key, "leadFrames", L.glowLead, L.glowLeadTip, 0, 3, 0.1, function(v)
+        return string.format("%.1f", v)
+    end))
 end
 
 local function trailOptions(category, key, child)
