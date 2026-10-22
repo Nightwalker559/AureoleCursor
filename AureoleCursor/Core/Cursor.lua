@@ -16,14 +16,14 @@ local lastX, lastY, lastScale
 -- of it, so the glow trails the pointer by a frame or so. lead (glow option, in frames, the value at 120 FPS) places the glow
 -- ahead along the movement of the last frame by that many frames. The delay does not shrink in step with the frame time, so
 -- the lead grows as the frame rate falls: lead * (LEAD_BASE + LEAD_PER_MS * frame time in ms), from the smoothed frame time
--- (1 at 120 FPS, about 2.5 at 30 FPS). The shift is limited softly (ns.leadLimit, set by the glow: about the size of the
+-- (1 at 120 FPS, 2.25 at 30 FPS). The shift is limited softly (ns.leadLimit, set by the glow: about the size of the
 -- pointer), otherwise a fast flick would pull the glow far ahead.
 -- prevX/prevY: last raw position, nil after a pause.
 local lead = 0
 local frameTime -- smoothed frame time in seconds, nil until the first frame
 local prevX, prevY
 local MAX_STEP = 600 -- a jump of more than this many pixels in one frame is no mouse movement (no prediction)
-local LEAD_BASE, LEAD_PER_MS, LEAD_FACTOR_MAX = 0.5, 0.06, 4
+local LEAD_BASE, LEAD_PER_MS, LEAD_FACTOR_MAX = 7 / 12, 0.05, 4
 local FRAME_TIME_MAX = 0.1 -- a longer frame (loading screen, hitch) is no measure of the frame rate
 local sqrt, abs = math.sqrt, math.abs
 
