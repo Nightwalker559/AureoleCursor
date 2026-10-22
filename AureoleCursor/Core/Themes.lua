@@ -17,6 +17,7 @@ ns.THEMES = {
     { id = "holy", name = "themeHoly", { 1, 0.95, 0.7 }, { 1, 0.8, 0.3 }, { 1, 1, 1 } },
     { id = "sunset", name = "themeSunset", { 1, 0.8, 0.4 }, { 1, 0.4, 0.5 }, { 0.6, 0.3, 0.8 } },
     { id = "silver", name = "themeSilver", { 1, 1, 1 }, { 0.7, 0.7, 0.75 }, { 0.45, 0.45, 0.5 } },
+    { id = "lagoon", name = "themeLagoon", { 0.25, 0.9, 0.8 }, { 0.15, 0.55, 0.95 }, { 0.45, 0.35, 1 } },
     { id = "halloween", name = "themeHalloween", { 1, 0.55, 0.1 }, { 0.9, 0.3, 0.05 }, { 0.6, 0.3, 0.9 }, trailShape = "pumpkin" },
 }
 

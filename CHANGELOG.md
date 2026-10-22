@@ -2,6 +2,13 @@
 
 ---
 
+## Unreleased
+
+### Color themes
+- New theme **Lagoon**: turquoise, ocean blue and indigo.
+
+---
+
 ## 1.1.1
 
 ### Pointer border
