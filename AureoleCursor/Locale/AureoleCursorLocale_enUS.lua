@@ -95,6 +95,11 @@ L.glowOffsetY = "Offset vertical"
 L.glowOffsetYTip = "Moves the glow up (positive) or down (negative), in screen pixels. Use it if the glow does not sit exactly around the pointer."
 L.glowLead = "Lead"
 L.glowLeadTip = "The game draws its pointer slightly later than the glow can read its position, so the glow trails behind when you move the mouse. This places the glow ahead along the movement by that many frames (1 = the distance the mouse moved in the last frame), so it follows your frame rate on its own. 0 = off. Raise it until the glow stays on the pointer; too high and it overshoots when you stop or change direction. For very fast movements the shift is limited to about the size of the pointer."
+L.glowLeadByFps = "Lead by frame rate"
+L.glowLeadByFpsTip = "The delay of the pointer does not shrink as fast as the frame time does, so at a low frame rate the glow needs a higher lead. With this on, the Lead slider above counts from 90 FPS on, and the three sliders below take over at lower frame rates (the game's smoothed frame rate decides, with a small margin so it does not flip back and forth at a limit). Off = one lead for every frame rate."
+L.glowLead60 = "Lead at 60 to 89 FPS"
+L.glowLead40 = "Lead at 40 to 59 FPS"
+L.glowLeadLow = "Lead below 40 FPS"
 
 -- Settings: mouse trail
 L.trail = "Mouse trail"
