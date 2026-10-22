@@ -2,7 +2,7 @@
 
 ---
 
-## Unreleased
+## 1.1.2
 
 ### Color themes
 - New theme **Lagoon**: turquoise, ocean blue and indigo.
