@@ -420,6 +420,7 @@ local function trailOptions(category, key, child)
         { "ember", L.shapeEmber }, { "drop", L.shapeDrop }, { "feather", L.shapeFeather }, { "bolt", L.shapeBolt },
         { "crystal", L.shapeCrystal }, { "coin", L.shapeCoin }, { "rune", L.shapeRune }, { "confetti", L.shapeConfetti },
         { "pumpkin", L.shapePumpkin, function() return ns:ShapeAvailable("pumpkin") end },
+        { "balloon", L.shapeBalloon, function() return ns:ShapeAvailable("balloon") end },
     })
     child(slider(category, key, "duration", L.duration, L.durationTip, 0.1, 1.5, 0.05, seconds))
     child(slider(category, key, "spacing", L.spacing, L.spacingTip, 2, 40, 1))

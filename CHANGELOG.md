@@ -6,6 +6,7 @@
 
 ### Color themes
 - New theme **Lagoon**: turquoise, ocean blue and indigo.
+- New theme **Anniversary** (for the game's birthday): light blue, orange and blue like the birthday balloons. It brings a trail shape of its own, **Balloon**: rising balloons. Like the pumpkin of Halloween, the shape only exists with its theme and the shape setting is greyed out while it is active; leaving the theme brings back your earlier shape.
 
 ### Pointer glow lead
 - The default **Lead** of the pointer glow is 1.0 now (was 0.8); measured by hand at 30 to 120 FPS, about 1 frame fits every frame rate.

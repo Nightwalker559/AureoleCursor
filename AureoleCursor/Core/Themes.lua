@@ -19,11 +19,12 @@ ns.THEMES = {
     { id = "silver", name = "themeSilver", { 1, 1, 1 }, { 0.7, 0.7, 0.75 }, { 0.45, 0.45, 0.5 } },
     { id = "lagoon", name = "themeLagoon", { 0.25, 0.9, 0.8 }, { 0.15, 0.55, 0.95 }, { 0.45, 0.35, 1 } },
     { id = "halloween", name = "themeHalloween", { 1, 0.55, 0.1 }, { 0.9, 0.3, 0.05 }, { 0.6, 0.3, 0.9 }, trailShape = "pumpkin" },
+    { id = "anniversary", name = "themeAnniversary", { 0.5, 0.65, 1 }, { 1, 0.6, 0.2 }, { 0.25, 0.4, 0.9 }, trailShape = "balloon" },
 }
 
 -- Trail shapes that belong to a theme: shape = id of the theme. They are in the shape list only while that theme is active,
 -- the theme selects its shape when it is chosen, and the shape goes back to the earlier one when the theme is left.
-ns.THEME_SHAPES = { pumpkin = "halloween" }
+ns.THEME_SHAPES = { pumpkin = "halloween", balloon = "anniversary" }
 
 local byId = {}
 for _, theme in ipairs(ns.THEMES) do byId[theme.id] = theme end
@@ -91,7 +92,8 @@ function ns:SetTheme(id)
     local theme = byId[id]
     local shape = theme and theme.trailShape
     if shape and cfg.trail.shape ~= shape then
-        cfg.trail.shapeBefore = cfg.trail.shape
+        -- from one themed shape to another the shape from before stays the one remembered
+        if not ns.THEME_SHAPES[cfg.trail.shape] then cfg.trail.shapeBefore = cfg.trail.shape end
         self:SetTrailShape(shape)
     end
     self:FixThemeShape()

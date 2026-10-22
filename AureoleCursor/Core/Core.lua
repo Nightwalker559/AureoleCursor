@@ -79,6 +79,7 @@ ns.defaults = {
                   rune = { size = 24, duration = 1.0, spacing = 22, colorMode = "arcane" },
                   confetti = { size = 12, duration = 0.9, spacing = 10, colorMode = "rainbow" },
                   pumpkin = { size = 22, duration = 1.0, spacing = 22 },
+                  balloon = { size = 22, duration = 1.2, spacing = 24 },
               } },
 }
 
@@ -118,14 +119,14 @@ function ns:DotTexture(size)
 end
 
 -- Shapes of the mouse trail (leaf, snowflake, star, mist, flame, heart, bubble, glitter, blossom, butterfly, ember, drop, feather,
--- bolt, crystal, coin, rune, confetti, pumpkin (Halloween theme only)), of the center dot (crosshair, dot with ring, sparkle, diamond, arrowhead, crosshair with
+-- bolt, crystal, coin, rune, confetti, pumpkin (Halloween theme only), balloon (Anniversary theme only)), of the center dot (crosshair, dot with ring, sparkle, diamond, arrowhead, crosshair with
 -- dot, double ring, corner brackets, hexagon); "dot" is the plain dot.
 local SHAPE_RES = { { 30, 32 }, { 60, 64 }, { math.huge, 128 } }
 local SHAPE_FILE = { leaf = "Trail\\Leaf", snow = "Trail\\Snow", star = "Trail\\Star", mist = "Trail\\Mist",
     flame = "Trail\\Flame", heart = "Trail\\Heart", bubble = "Trail\\Bubble", glitter = "Trail\\Glitter",
     blossom = "Trail\\Blossom", butterfly = "Trail\\Butterfly", ember = "Trail\\Ember", drop = "Trail\\Drop",
     feather = "Trail\\Feather", bolt = "Trail\\Bolt", crystal = "Trail\\Crystal", coin = "Trail\\Coin",
-    rune = "Trail\\Rune", confetti = "Trail\\Confetti", pumpkin = "Trail\\Pumpkin",
+    rune = "Trail\\Rune", confetti = "Trail\\Confetti", pumpkin = "Trail\\Pumpkin", balloon = "Trail\\Balloon",
     gap = "Dot\\Gap", ring = "Dot\\DotRing", spark = "Dot\\Spark", diamond = "Dot\\Diamond", arrow = "Dot\\Arrow",
     crossdot = "Dot\\CrossDot", doublering = "Dot\\DoubleRing", corners = "Dot\\Corners", hexagon = "Dot\\Hexagon" }
 
