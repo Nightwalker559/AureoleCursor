@@ -50,9 +50,9 @@ ns.defaults = {
     -- showWhileLooking draws a copy of the pointer while the game hides it (right mouse button, mouselook);
     -- offsetX/offsetY (screen pixels) fine-tune the alignment with the pointer;
     -- leadFrames places the glow ahead along the mouse movement (movement of the last frame times this), to make up for the
-    -- pointer being drawn later (the value at 120 FPS; it grows by itself as the frame rate falls, see Cursor.lua)
+    -- pointer being drawn later
     -- look: "halo" (soft glow), "border" (crisp frame right at the pointer's edge) or "both"; borderWidth: 1 to 4
-    glow = { look = "halo", borderWidth = 2, showWhileLooking = true, offsetX = 0, offsetY = 0, leadFrames = 0.8 },
+    glow = { look = "halo", borderWidth = 2, showWhileLooking = true, offsetX = 0, offsetY = 0, leadFrames = 1 },
     -- presets: default size, duration and spacing per shape (and a color mode for the themed shapes); on a shape change the
     -- current values (including the color mode, which lives in colors.custom.trail) are remembered for the old shape and the
     -- remembered ones (initially these defaults) are applied for the new shape.
@@ -377,7 +377,7 @@ ns:On("ADDON_LOADED", function(_, name)
     -- the ghost was removed in 1.1.0: drop its settings (also its colors, in configs that were already converted)
     db.cfg.ghost = nil
     if type(db.cfg.colors) == "table" and type(db.cfg.colors.custom) == "table" then db.cfg.colors.custom.ghost = nil end
-    -- the lead by frame rate steps (pre-release builds) were replaced by an automatic lead
+    -- settings of the lead by frame rate (development builds only, dropped again)
     if type(db.cfg.glow) == "table" then
         local g = db.cfg.glow
         g.leadByFps, g.leadFrames60, g.leadFrames40, g.leadFramesLow = nil, nil, nil, nil

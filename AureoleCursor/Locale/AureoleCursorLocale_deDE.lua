@@ -93,8 +93,8 @@ L.glowOffsetX = "Versatz horizontal"
 L.glowOffsetXTip = "Verschiebt den Glow nach rechts (positiv) oder links (negativ), in Bildschirmpixeln. Nutze das, wenn der Glow nicht genau um den Zeiger sitzt."
 L.glowOffsetY = "Versatz vertikal"
 L.glowOffsetYTip = "Verschiebt den Glow nach oben (positiv) oder unten (negativ), in Bildschirmpixeln. Nutze das, wenn der Glow nicht genau um den Zeiger sitzt."
-L.glowLead = "Vorhalt (bei 120 FPS)"
-L.glowLeadTip = "Das Spiel zeichnet seinen Zeiger etwas später, als der Glow dessen Position lesen kann, deshalb hinkt der Glow bei Mausbewegungen hinterher. Das setzt den Glow um so viele Frames entlang der Bewegung nach vorn (1 = die Strecke, die die Maus im letzten Frame zurückgelegt hat). Der Wert gilt für 120 FPS: bei niedrigerer Bildrate wächst der Vorhalt von selbst (etwa das 1,4-fache bei 60 FPS, das Doppelte bei 30 FPS), weil die Verzögerung nicht so schnell schrumpft wie die Frame-Zeit. 0 = aus. Erhöhe den Wert, bis der Glow am Zeiger bleibt; zu hoch schießt er beim Anhalten oder Richtungswechsel über. Bei sehr schnellen Bewegungen ist die Verschiebung auf etwa die Zeigergröße begrenzt."
+L.glowLead = "Vorhalt"
+L.glowLeadTip = "Das Spiel zeichnet seinen Zeiger etwas später, als der Glow dessen Position lesen kann, deshalb hinkt der Glow bei Mausbewegungen hinterher. Das setzt den Glow um so viele Frames entlang der Bewegung nach vorn (1 = die Strecke, die die Maus im letzten Frame zurückgelegt hat), er folgt damit selbst deiner Bildrate. 0 = aus. Erhöhe den Wert, bis der Glow am Zeiger bleibt; zu hoch schießt er beim Anhalten oder Richtungswechsel über. Bei sehr schnellen Bewegungen ist die Verschiebung auf etwa die Zeigergröße begrenzt."
 
 -- Settings: mouse trail
 L.trail = "Mauspur"

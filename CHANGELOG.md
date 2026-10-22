@@ -7,8 +7,8 @@
 ### Color themes
 - New theme **Lagoon**: turquoise, ocean blue and indigo.
 
-### Pointer glow lead follows the frame rate
-- The **Lead** of the pointer glow now adapts to your frame rate by itself. The pointer's delay does not shrink as fast as the frame time does, so a low frame rate needs a higher lead: the slider is the value at 120 FPS (default 0.8), at 60 FPS the lead is about 1.4 times that, at 30 FPS twice that (1.6) (smoothed frame rate, no steps, nothing to set).
+### Pointer glow lead
+- The default **Lead** of the pointer glow is 1.0 now (was 0.8); measured by hand at 30 to 120 FPS, about 1 frame fits every frame rate.
 
 ---
 
