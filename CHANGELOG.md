@@ -2,6 +2,13 @@
 
 ---
 
+## 1.1.3
+
+### Addon icon
+- The addon icon is 64x64 pixels now (was 256x256). The addon list shows it at about 32 pixels, so it looks the same and the file shrinks from 256 KB to 16 KB.
+
+---
+
 ## 1.1.2
 
 ### Color themes
