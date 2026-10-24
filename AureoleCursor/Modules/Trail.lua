@@ -62,6 +62,9 @@ local LOOK = {
     line = { add = true, core = true },
 }
 local CORE_SHARE = 0.4 -- size of the core relative to the dot
+-- The core has the core color (palette field coreColor) with the color mode "custom"; with every other color mode (rainbow,
+-- seasons ...) the dots have different colors, so the core is a lighter shade of the color of its dot instead.
+local CORE_MIX = 0.7 -- how far that shade goes from the color of the dot towards white
 
 local frame = CreateFrame("Frame", "AureoleCursorTrail", UIParent)
 frame:SetSize(1, 1)
@@ -95,6 +98,7 @@ end
 local lastX, lastY
 local rainbow, palette, gradient, spin, energy = false, nil, nil, false, false
 local motion, tilt, dotSize -- MOTION of the current shape, its tilt limit and the dot size in pixels
+local coreShade = false -- the core follows the color of its dot (see CORE_MIX)
 local travelled = 0
 
 -- Hue (0..1) at full saturation and brightness, as RGB
@@ -194,6 +198,14 @@ local function removeCore(d)
     end
 end
 
+-- Colors a dot, and its core when that follows the color of the dot
+local function tint(d, r, g, b)
+    d.tex:SetVertexColor(r, g, b, 1)
+    if coreShade then
+        d.core:SetVertexColor(r + (1 - r) * CORE_MIX, g + (1 - g) * CORE_MIX, b + (1 - b) * CORE_MIX, 1)
+    end
+end
+
 local function stopAll()
     for _, d in ipairs(dots) do
         stopDot(d)
@@ -208,13 +220,11 @@ local function spawn(x, y)
     stopDot(d)
     if palette then
         local c = palette[math.random(#palette)]
-        d.tex:SetVertexColor(c[1], c[2], c[3], 1)
+        tint(d, c[1], c[2], c[3])
     elseif gradient then
-        local r, g, b = gradientColor(gradient, travelled)
-        d.tex:SetVertexColor(r, g, b, 1)
+        tint(d, gradientColor(gradient, travelled))
     elseif rainbow then
-        local r, g, b = hue(travelled / RAINBOW_LENGTH)
-        d.tex:SetVertexColor(r, g, b, 1)
+        tint(d, hue(travelled / RAINBOW_LENGTH))
     end
     if spin then d.tex:SetRotation(tilt and (math.random() * 2 - 1) * tilt or math.random() * 2 * math.pi) end
     if motion then
@@ -352,6 +362,7 @@ function Trail:Apply()
     end
     local target = shrinkTarget(t)
     local coreOn = t.core and look and look.core
+    coreShade = coreOn and colors.colorMode ~= "custom"
     local cc = colors.coreColor or { 1, 1, 1 }
     for _, d in ipairs(dots) do
         if energy then
@@ -363,13 +374,9 @@ function Trail:Apply()
             removeMask(d)
         end
         d.tex:SetSize(size, size)
-        d.tex:SetVertexColor(r, g, b, 1)
-        if coreOn then
-            applyCore(d, t, texture, size)
-            d.core:SetVertexColor(cc[1], cc[2], cc[3], 1)
-        else
-            removeCore(d)
-        end
+        if coreOn then applyCore(d, t, texture, size) else removeCore(d) end
+        tint(d, r, g, b)
+        if coreOn and not coreShade then d.core:SetVertexColor(cc[1], cc[2], cc[3], 1) end
         d.tex:SetRotation(0)
         d.fade:SetDuration(t.duration)
         d.shrink:SetDuration(t.duration)

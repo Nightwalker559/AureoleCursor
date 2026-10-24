@@ -91,6 +91,7 @@ local function notifyDependents(key, field)
         notifyTheme() -- the color settings show the colors of the theme, the trail may have changed its shape
     elseif key == "trail" and (field == "enabled" or field == "colorMode") then
         Settings.NotifyUpdate(varName(key, "colorCount")) -- the extra trail colors follow the color count
+        Settings.NotifyUpdate(varName(key, "core")) -- and the core color the core switch
     elseif (key == "cast" or key == "gcd") and field == "enabled" then
         Settings.NotifyUpdate(varName(key, "gradient")) -- the color row follows the gradient switch
     end
@@ -305,7 +306,7 @@ local function buildElement(category, layout, key, title, opts)
         core:SetParentInitializer(enable, on)
         core:AddShownPredicate(lineShape)
         local coreColor = themed(colorRow(layout, L.coreColor, L.coreColorTip, { colorEntry(category, key, "coreColor", L.coreColor) }, function() return 1 end))
-        coreColor:SetParentInitializer(core, function() return on() and ns.cfg[key].core end)
+        coreColor:SetParentInitializer(core, function() return customMode() and ns.cfg[key].core end)
         coreColor:AddShownPredicate(lineShape)
     elseif mode == "gradient" then
         -- GCD and Cast Ring: the ring moves from color 1 to color 2 while the GCD runs or the cast progresses. The color row

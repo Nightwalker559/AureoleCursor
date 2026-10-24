@@ -8,7 +8,7 @@
 - **Line**: one glowing stroke behind the cursor that gets thinner towards its end. With the color mode Rainbow the color changes along the line. Size is the width of the line, spacing the density (small values give a smooth line). Its core (see below) is on by default.
 
 ### Line core
-- The new shape **Line** has a core: a thin lighter stroke in the middle of the line, in a color of its own (**Core color**). The switch **Core in its own color** turns it on or off; both settings only show with the shape Line. Every color theme brings a light core color that suits it, and **Customize theme** takes it over. The switch can be used while a theme is active, only the color is locked.
+- The new shape **Line** has a core: a thin lighter stroke in the middle of the line, in a color of its own (**Core color**). The switch **Core in its own color** turns it on or off; both settings only show with the shape Line. The core color applies with the color mode Custom color (and with every theme); with the other color modes the core is a lighter shade of the color of each dot, so the color is only editable where it is used. Every color theme brings a light core color that suits it, and **Customize theme** takes it over. The switch can be used while a theme is active, only the color is locked.
 
 ### Fixed
 - A trail shape without rotation (like the heart) kept turning by the last value of a rotating shape (like the blossom) after you switched.
