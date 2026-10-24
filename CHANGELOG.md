@@ -11,6 +11,7 @@
 - The new shape **Line** has a core: a thin lighter stroke in the middle of the line, in a color of its own (**Core color**). The switch **Core in its own color** turns it on or off; both settings only show with the shape Line. The core color applies with the color mode Custom color (and with every theme); with the other color modes the core is a lighter shade of the color of each dot, so the color is only editable where it is used. Every color theme brings a light core color that suits it, and **Customize theme** takes it over. The switch can be used while a theme is active, only the color is locked.
 
 ### Fixed
+- The color swatches in the settings could still be clicked and changed while their row was greyed out (the trail colors without the color mode Custom color, and all colors while a color theme is active). Now they are locked and dimmed together with the row.
 - A trail shape without rotation (like the heart) kept turning by the last value of a rotating shape (like the blossom) after you switched.
 
 ### Mouse trail on fast movement

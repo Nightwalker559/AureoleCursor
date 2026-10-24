@@ -7,6 +7,7 @@
 if not (SettingsListElementMixin and SettingsColorSwatchMixin and CreateFromMixins) then return end
 
 local SWATCH_SPACING = 26
+local DISABLED_ALPHA = 0.4 -- look of a swatch that cannot be changed right now
 
 AureoleCursorColorRowMixin = CreateFromMixins(SettingsListElementMixin)
 
@@ -43,7 +44,14 @@ end
 function AureoleCursorColorRowMixin:EvaluateState()
     SettingsListElementMixin.EvaluateState(self)
     local initializer = self:GetElementData()
-    self:DisplayEnabled(initializer:EvaluateModifyPredicates())
+    local enabled = initializer:EvaluateModifyPredicates()
+    self:DisplayEnabled(enabled)
+    -- DisplayEnabled only greys out the label; the Blizzard swatch has no look for "disabled" and stays clickable, so lock
+    -- the swatches and dim them (the tooltip still works, see motionScriptsWhileDisabled in the Blizzard template)
     local count = self.data.count()
-    for i, swatch in ipairs(self.swatches) do swatch:SetShown(i <= count) end
+    for i, swatch in ipairs(self.swatches) do
+        swatch:SetShown(i <= count)
+        swatch:SetEnabled(enabled and true or false)
+        swatch:SetAlpha(enabled and 1 or DISABLED_ALPHA)
+    end
 end
