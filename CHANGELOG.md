@@ -7,6 +7,9 @@
 ### New trail shape
 - **Line**: one glowing stroke behind the cursor that gets thinner towards its end. The edge has your color, the middle is lighter, like hot light. With the color mode Rainbow the color changes along the line. Size is the width of the line, spacing the density (small values give a smooth line).
 
+### Mouse trail on fast movement
+- With a small spacing (like the new line) a fast mouse movement left gaps: only 40 dots per frame are drawn, so only the last part of the path got dots. Now the dots of that frame are spread out over the whole stretch, as far as they still overlap (up to half their size). Real jumps (Alt-Tab) are still clipped.
+
 ### Addon icon
 - The addon icon is 64x64 pixels now (was 256x256). The addon list shows it at about 32 pixels, so it looks the same and the file shrinks from 256 KB to 16 KB.
 

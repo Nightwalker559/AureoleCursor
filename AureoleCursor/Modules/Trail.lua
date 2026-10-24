@@ -9,6 +9,7 @@ local FPS_FULL = 45        -- from this frame rate up the trail is drawn as conf
 local FPS_OFF = 20         -- below this it is paused; in between it gets sparser (up to twice the spacing, half the dots per frame)
 local POOL = 256          -- dots that can be visible at the same time
 local MAX_PER_FRAME = 40   -- upper limit per frame; fast mouse movement stays gap-free, only jumps are clipped
+local STRETCH = 0.5        -- when the limit is hit, the dots of the frame are spread out up to this share of their size apart
 local SHRINK_TO = 0.2
 local RAINBOW_LENGTH = 400   -- distance in pixels for one pass through all colors
 local MIST_SIZE = 3            -- mist clouds are this many times larger than the configured size (so they overlap)
@@ -277,9 +278,15 @@ frame:SetScript("OnUpdate", function()
     local ux, uy = dx / dist, dy / dist
     local n = math.floor(dist / spacing)
     if n > maxPerFrame then
-        -- Very fast or a jump (e.g. Alt-Tab): only draw the last dots of the path
-        local skip = (n - maxPerFrame) * spacing
-        lastX, lastY = lastX + ux * skip, lastY + uy * skip
+        if dist <= maxPerFrame * math.max(spacing, STRETCH * dotSize) then
+            -- Fast stroke (dense shapes like the line reach the limit at a few hundred pixels per frame): spread the dots
+            -- of this frame over the whole stretch, they still overlap, so the trail has no gaps
+            spacing = dist / maxPerFrame
+        else
+            -- Very fast or a jump (e.g. Alt-Tab): only draw the last dots of the path
+            local skip = (n - maxPerFrame) * spacing
+            lastX, lastY = lastX + ux * skip, lastY + uy * skip
+        end
         n = maxPerFrame
     end
     for i = 1, n do
