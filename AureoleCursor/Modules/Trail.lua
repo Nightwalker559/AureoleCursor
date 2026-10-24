@@ -5,6 +5,7 @@ local _, ns = ...
 
 local GetCursorPosition = GetCursorPosition
 local GetFramerate = GetFramerate
+local atan2 = math.atan2 or math.atan
 local FPS_FULL = 45        -- from this frame rate up the trail is drawn as configured
 local FPS_OFF = 20         -- below this it is paused; in between it gets sparser (up to twice the spacing, half the dots per frame)
 local POOL = 256          -- dots that can be visible at the same time
@@ -35,6 +36,8 @@ local PALETTES = {
 -- random values when a dot is spawned. rise = distance the dot floats up while it fades (negative: falls), sway = random
 -- sideways drift, jitter = random offset of the start position around the cursor, spin = degrees the dot turns while it
 -- fades (random direction), tilt = largest random angle in radians (default: any angle), add = additive blending (glows).
+-- align = the dot points along the direction of the mouse movement (tilt then is the largest deviation from it), across =
+-- random offset sideways to the movement, drift = distance the dot is pulled back against the movement while it fades.
 local MOTION = {
     flame = { rise = 2.2, sway = 0.5, jitter = 0.3, tilt = 0.35, add = true },
     heart = { rise = 1.6, sway = 0.6, tilt = 0.45 },
@@ -52,6 +55,7 @@ local MOTION = {
     confetti = { rise = -2.2, sway = 1.4, jitter = 0.7, spin = 300 },
     pumpkin = { rise = -1.5, sway = 1.0, jitter = 0.3, tilt = 0.5 },
     balloon = { rise = 2, sway = 0.8, jitter = 0.3, tilt = 0.3 },
+    line = { align = true, across = 0.3, drift = 0.5, tilt = 0.05 },
 }
 
 local frame = CreateFrame("Frame", "AureoleCursorTrail", UIParent)
@@ -157,7 +161,7 @@ local function stopAll()
     end
 end
 
-local function spawn(x, y)
+local function spawn(x, y, ux, uy)
     local d = dots[nextDot]
     nextDot = nextDot % POOL + 1
     stopDot(d)
@@ -171,14 +175,27 @@ local function spawn(x, y)
         local r, g, b = hue(travelled / RAINBOW_LENGTH)
         d.tex:SetVertexColor(r, g, b, 1)
     end
-    if spin then d.tex:SetRotation(tilt and (math.random() * 2 - 1) * tilt or math.random() * 2 * math.pi) end
+    if motion and motion.align then
+        d.tex:SetRotation(atan2(uy, ux) + (math.random() * 2 - 1) * (tilt or 0))
+    elseif spin then
+        d.tex:SetRotation(tilt and (math.random() * 2 - 1) * tilt or math.random() * 2 * math.pi)
+    end
     if motion then
         local s = dotSize
         if motion.jitter then
             x = x + (math.random() * 2 - 1) * motion.jitter * s
             y = y + (math.random() * 2 - 1) * motion.jitter * s
         end
-        d.move:SetOffset((math.random() * 2 - 1) * (motion.sway or 0) * s, (motion.rise or 0) * s * (0.7 + 0.6 * math.random()))
+        if motion.across then
+            local a = (math.random() * 2 - 1) * motion.across * s
+            x, y = x - uy * a, y + ux * a
+        end
+        local ox, oy = (math.random() * 2 - 1) * (motion.sway or 0) * s, (motion.rise or 0) * s * (0.7 + 0.6 * math.random())
+        if motion.drift then
+            local back = motion.drift * s * (0.7 + 0.6 * math.random())
+            ox, oy = ox - ux * back, oy - uy * back
+        end
+        d.move:SetOffset(ox, oy)
         if motion.spin then d.turn:SetDegrees((math.random() < 0.5 and -1 or 1) * motion.spin * (0.5 + math.random())) end
     end
     if energy then
@@ -232,7 +249,7 @@ frame:SetScript("OnUpdate", function()
     end
     for i = 1, n do
         travelled = travelled + spacing
-        spawn(lastX + ux * spacing * i, lastY + uy * spacing * i)
+        spawn(lastX + ux * spacing * i, lastY + uy * spacing * i, ux, uy)
     end
     lastX, lastY = lastX + ux * spacing * n, lastY + uy * spacing * n
 end)

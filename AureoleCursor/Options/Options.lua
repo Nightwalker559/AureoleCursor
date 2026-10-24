@@ -419,6 +419,7 @@ local function trailOptions(category, key, child)
         { "bubble", L.shapeBubble }, { "glitter", L.shapeGlitter }, { "blossom", L.shapeBlossom }, { "butterfly", L.shapeButterfly },
         { "ember", L.shapeEmber }, { "drop", L.shapeDrop }, { "feather", L.shapeFeather }, { "bolt", L.shapeBolt },
         { "crystal", L.shapeCrystal }, { "coin", L.shapeCoin }, { "rune", L.shapeRune }, { "confetti", L.shapeConfetti },
+        { "line", L.shapeLine },
         { "pumpkin", L.shapePumpkin, function() return ns:ShapeAvailable("pumpkin") end },
         { "balloon", L.shapeBalloon, function() return ns:ShapeAvailable("balloon") end },
     })
