@@ -7,8 +7,8 @@
 ### New trail shape
 - **Line**: one glowing stroke behind the cursor that gets thinner towards its end. With the color mode Rainbow the color changes along the line. Size is the width of the line, spacing the density (small values give a smooth line). Its core (see below) is on by default.
 
-### Core in its own color
-- New setting **Core in its own color** for the mouse trail: every dot gets a smaller copy in the middle, in a color of its own (**Core color**). The edge keeps the color of the trail, the middle has the core color. It works with every shape (except Energy), every color mode and every color theme; every theme brings a light core color that suits it, and **Customize theme** takes it over. The switch can be used while a theme is active, only the color is locked. Each shape remembers its own setting.
+### Line core
+- The new shape **Line** has a core: a thin lighter stroke in the middle of the line, in a color of its own (**Core color**). The switch **Core in its own color** turns it on or off; both settings only show with the shape Line. Every color theme brings a light core color that suits it, and **Customize theme** takes it over. The switch can be used while a theme is active, only the color is locked.
 
 ### Fixed
 - A trail shape without rotation (like the heart) kept turning by the last value of a rotating shape (like the blossom) after you switched.

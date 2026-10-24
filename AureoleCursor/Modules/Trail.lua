@@ -55,13 +55,13 @@ local MOTION = {
     balloon = { rise = 2, sway = 0.8, jitter = 0.3, tilt = 0.3 },
 }
 
--- Shapes with a look of their own and no motion. add = additive blending.
+-- Shapes with a look of their own and no motion. add = additive blending, core = the shape can have a core (setting "core"):
+-- a second, smaller copy of the dot in its own color (palette field coreColor) on top of it, so the edge has the color of the
+-- trail and the middle another one.
 local LOOK = {
-    line = { add = true },
+    line = { add = true, core = true },
 }
--- The core (setting "core"): a second, smaller copy of the dot in its own color (palette field coreColor) on top of it, so
--- the edge has the color of the trail and the middle another one. This share of the dot size:
-local CORE_SHARE = 0.4
+local CORE_SHARE = 0.4 -- size of the core relative to the dot
 
 local frame = CreateFrame("Frame", "AureoleCursorTrail", UIParent)
 frame:SetSize(1, 1)
@@ -129,10 +129,7 @@ local function stopDot(d)
     d.group:Stop()
     d.motionGroup:Stop()
     if d.maskGroup then d.maskGroup:Stop() end
-    if d.coreGroup then
-        d.coreGroup:Stop()
-        d.coreMotion:Stop()
-    end
+    if d.coreGroup then d.coreGroup:Stop() end
 end
 
 -- Energy shape: round mask per dot, created on first use. The mask is attached to the dot and gets
@@ -163,8 +160,8 @@ local function removeMask(d)
     end
 end
 
--- Core: a second texture in the middle of the dot with its own fade, shrink and motion (the same values as the dot, set in
--- spawn). It is anchored to the center of the dot's texture, so it follows every spawn without a position of its own.
+-- Core: a second texture in the middle of the dot with its own fade and shrink. It is anchored to the center of the dot's
+-- texture, so it follows every spawn without a position of its own.
 local function applyCore(d, t, texture, size)
     if not d.core then
         local core = frame:CreateTexture(nil, "ARTWORK", nil, 1)
@@ -178,11 +175,6 @@ local function applyCore(d, t, texture, size)
         d.coreShrink = d.coreGroup:CreateAnimation("Scale")
         d.coreShrink:SetScaleFrom(1, 1)
         d.coreGroup:SetScript("OnFinished", function() core:Hide() end)
-        d.coreMotion = core:CreateAnimationGroup()
-        d.coreMove = d.coreMotion:CreateAnimation("Translation")
-        d.coreMove:SetOffset(0, 0)
-        d.coreTurn = d.coreMotion:CreateAnimation("Rotation")
-        d.coreTurn:SetDegrees(0)
     end
     d.coreOn = true
     d.core:SetTexture(texture)
@@ -190,8 +182,6 @@ local function applyCore(d, t, texture, size)
     d.core:SetSize(size * CORE_SHARE, size * CORE_SHARE)
     d.coreFade:SetDuration(t.duration)
     d.coreShrink:SetDuration(t.duration)
-    d.coreMove:SetDuration(t.duration)
-    d.coreTurn:SetDuration(t.duration)
     local target = shrinkTarget(t)
     d.coreShrink:SetScaleTo(target, target)
 end
@@ -226,25 +216,15 @@ local function spawn(x, y)
         local r, g, b = hue(travelled / RAINBOW_LENGTH)
         d.tex:SetVertexColor(r, g, b, 1)
     end
-    if spin then
-        local angle = tilt and (math.random() * 2 - 1) * tilt or math.random() * 2 * math.pi
-        d.tex:SetRotation(angle)
-        if d.coreOn then d.core:SetRotation(angle) end
-    end
+    if spin then d.tex:SetRotation(tilt and (math.random() * 2 - 1) * tilt or math.random() * 2 * math.pi) end
     if motion then
         local s = dotSize
         if motion.jitter then
             x = x + (math.random() * 2 - 1) * motion.jitter * s
             y = y + (math.random() * 2 - 1) * motion.jitter * s
         end
-        local ox, oy = (math.random() * 2 - 1) * (motion.sway or 0) * s, (motion.rise or 0) * s * (0.7 + 0.6 * math.random())
-        d.move:SetOffset(ox, oy)
-        local degrees = motion.spin and (math.random() < 0.5 and -1 or 1) * motion.spin * (0.5 + math.random())
-        if degrees then d.turn:SetDegrees(degrees) end
-        if d.coreOn then
-            d.coreMove:SetOffset(ox, oy)
-            if degrees then d.coreTurn:SetDegrees(degrees) end
-        end
+        d.move:SetOffset((math.random() * 2 - 1) * (motion.sway or 0) * s, (motion.rise or 0) * s * (0.7 + 0.6 * math.random()))
+        if motion.spin then d.turn:SetDegrees((math.random() < 0.5 and -1 or 1) * motion.spin * (0.5 + math.random())) end
     end
     if energy then
         local u, v = math.random(), math.random() -- tile is seamless (REPEAT), each dot shows a different section
@@ -258,10 +238,7 @@ local function spawn(x, y)
         d.core:Show()
         d.coreGroup:Play()
     end
-    if motion then
-        d.motionGroup:Play()
-        if d.coreOn then d.coreMotion:Play() end
-    end
+    if motion then d.motionGroup:Play() end
     if energy and d.maskGroup then d.maskGroup:Play() end
 end
 
@@ -322,16 +299,15 @@ frame:SetScript("OnHide", stopAll)
 -- Each shape has its own size, duration and spacing: on a change the current values are remembered
 -- for the old shape and the remembered ones (initially the defaults from cfg.trail.presets) are applied.
 -- The color mode (cfg.colors.custom.trail) goes along: every shape remembers its mode, the themed shapes start with their palette.
--- So does the core switch.
 function ns:SetTrailShape(shape)
     local t = self.cfg.trail
     if t.shape == shape then return end
     local colors = self.cfg.colors.custom.trail
-    t.presets[t.shape] = { size = t.size, duration = t.duration, spacing = t.spacing, colorMode = colors.colorMode, core = t.core }
+    t.presets[t.shape] = { size = t.size, duration = t.duration, spacing = t.spacing, colorMode = colors.colorMode }
     t.shape = shape
     local p = t.presets[shape]
     if p then
-        t.size, t.duration, t.spacing, t.core = p.size, p.duration, p.spacing, p.core == true
+        t.size, t.duration, t.spacing = p.size, p.duration, p.spacing
         if p.colorMode then colors.colorMode = p.colorMode end
     end
 end
@@ -375,7 +351,7 @@ function Trail:Apply()
         rainbow, palette, gradient, r, g, b = false, nil, nil, 1, 1, 1
     end
     local target = shrinkTarget(t)
-    local coreOn = t.core and not energy
+    local coreOn = t.core and look and look.core
     local cc = colors.coreColor or { 1, 1, 1 }
     for _, d in ipairs(dots) do
         if energy then
@@ -407,10 +383,6 @@ function Trail:Apply()
             d.move:SetOffset(0, 0)
         end
         if not (motion and motion.spin) then d.turn:SetDegrees(0) end
-        if d.coreOn then
-            if not motion then d.coreMove:SetOffset(0, 0) end
-            if not (motion and motion.spin) then d.coreTurn:SetDegrees(0) end
-        end
     end
     lastX, lastY = nil, nil
     self:UpdateVisibility()

@@ -5,7 +5,7 @@
 local _, ns = ...
 
 -- id, name (key in the locale) and three colors { r, g, b }: 1 = main color, 2 = second color, 3 = accent. core = the
--- color of the core of the trail dots (setting trail.core), a light shade that suits the theme.
+-- color of the core of the line (setting trail.core), a light shade that suits the theme.
 -- "class" has no fixed colors, they come from the class color of the player (see classColors).
 -- trailShape: the theme brings a trail shape that can only be used with it (see THEME_SHAPES).
 ns.THEMES = {
@@ -47,7 +47,7 @@ function ns:ThemePalette(id)
     if not theme then return nil end
     local c1, c2, c3
     if id == "class" then c1, c2, c3 = classColors() else c1, c2, c3 = theme[1], theme[2], theme[3] end
-    -- core of the trail dots: the theme's own light color, the class theme (and a theme without one) takes the main color mostly white
+    -- core of the line: the theme's own light color, the class theme (and a theme without one) takes the main color mostly white
     local core = theme.core or { c1[1] + (1 - c1[1]) * 0.75, c1[2] + (1 - c1[2]) * 0.75, c1[3] + (1 - c1[3]) * 0.75 }
     return {
         main = { color = c1 },
