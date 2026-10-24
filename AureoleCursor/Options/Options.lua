@@ -26,7 +26,7 @@ end
 -- field in it. Settings change the custom colors; what a setting shows is the palette in use (a theme's, see valueOf).
 local PALETTE_FIELDS = {
     color = true, color2 = true, color3 = true, color4 = true, gradient = true, blend = true,
-    gradientDir = true, colorCount = true, colorMode = true,
+    gradientDir = true, colorCount = true, colorMode = true, coreColor = true,
 }
 local COMBAT_FIELDS = { combatTint = "enabled", combatTarget = "target", combatColor = "color" }
 
@@ -65,7 +65,7 @@ end
 -- After a theme change: the palette, and the trail settings that follow its shape (a theme can bring a shape of its own)
 local function notifyTheme()
     notifyPalette()
-    for _, field in ipairs({ "shape", "size", "duration", "spacing", "colorMode" }) do
+    for _, field in ipairs({ "shape", "size", "duration", "spacing", "colorMode", "core" }) do
         Settings.NotifyUpdate(varName("trail", field))
     end
 end
@@ -298,6 +298,12 @@ local function buildElement(category, layout, key, title, opts)
         blend:SetParentInitializer(count, function()
             return customMode() and custom().colorCount > 1
         end)
+        -- Core: a smaller copy of every dot in the middle, in a color of its own (the themes bring theirs). The switch can be
+        -- used with a theme, the color is greyed out like the other colors. The energy shape has no core.
+        local core = checkbox(category, key, "core", L.trailCore, L.trailCoreTip)
+        core:SetParentInitializer(enable, colorable)
+        themed(colorRow(layout, L.coreColor, L.coreColorTip, { colorEntry(category, key, "coreColor", L.coreColor) }, function() return 1 end))
+            :SetParentInitializer(core, function() return colorable() and ns.cfg[key].core end)
     elseif mode == "gradient" then
         -- GCD and Cast Ring: the ring moves from color 1 to color 2 while the GCD runs or the cast progresses. The color row
         -- shows one swatch, or two with the gradient; it hangs off the gradient switch, changes of the enable switch are
@@ -348,13 +354,14 @@ local function shapeDropdown(category, key, child, tip, choices)
         if key == "dot" then
             Settings.NotifyUpdate(varName(key, "size")) -- size slider shows the size of the new shape
         elseif key == "trail" then
-            for _, field in ipairs({ "size", "duration", "spacing" }) do
+            for _, field in ipairs({ "size", "duration", "spacing", "core" }) do
                 Settings.NotifyUpdate(varName(key, field)) -- sliders show the values of the new shape
             end
             -- Energy locks color mode and color: the parent toggle and color mode report the change to their children
             Settings.NotifyUpdate(varName(key, "enabled"))
             Settings.NotifyUpdate(varName(key, "colorMode"))
             Settings.NotifyUpdate(varName(key, "colorCount"))
+            Settings.NotifyUpdate(varName(key, "core")) -- the core color row follows the switch
         end
     end
     local shape = Settings.RegisterProxySetting(category, varName(key, "shape"), Settings.VarType.String, L.shape,

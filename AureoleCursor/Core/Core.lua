@@ -37,7 +37,8 @@ ns.defaults = {
             -- colorMode "custom": colorCount colors (color, color2..color4); gradient blends between them along the
             -- trail, otherwise every dot picks one of them at random
             trail = { colorMode = "rainbow", color = { 1, 1, 1 }, colorCount = 1, gradient = true,
-                      color2 = { 0.3, 0.6, 1 }, color3 = { 0.8, 0.3, 1 }, color4 = { 1, 0.4, 0.3 } },
+                      color2 = { 0.3, 0.6, 1 }, color3 = { 0.8, 0.3, 1 }, color4 = { 1, 0.4, 0.3 },
+                      coreColor = { 1, 1, 1 } }, -- coreColor: color of the core of the dots (setting trail.core)
         },
     },
     main = { enabled = true, size = 40, thickness = 6 },
@@ -56,7 +57,8 @@ ns.defaults = {
     -- presets: default size, duration and spacing per shape (and a color mode for the themed shapes); on a shape change the
     -- current values (including the color mode, which lives in colors.custom.trail) are remembered for the old shape and the
     -- remembered ones (initially these defaults) are applied for the new shape.
-    trail = { enabled = true, size = 16, duration = 0.45, spacing = 6, shrink = true, shape = "dot",
+    -- core: every dot gets a smaller copy in the middle in its own color (colors.custom.trail.coreColor), see Trail.lua
+    trail = { enabled = true, size = 16, duration = 0.45, spacing = 6, shrink = true, shape = "dot", core = false,
               presets = {
                   dot = { size = 16, duration = 0.45, spacing = 6 },
                   leaf = { size = 20, duration = 0.9, spacing = 22 },
@@ -78,7 +80,7 @@ ns.defaults = {
                   coin = { size = 18, duration = 0.9, spacing = 20, colorMode = "gold" },
                   rune = { size = 24, duration = 1.0, spacing = 22, colorMode = "arcane" },
                   confetti = { size = 12, duration = 0.9, spacing = 10, colorMode = "rainbow" },
-                  line = { size = 22, duration = 0.5, spacing = 3, colorMode = "rainbow" },
+                  line = { size = 22, duration = 0.5, spacing = 3, colorMode = "rainbow", core = true },
                   pumpkin = { size = 22, duration = 1.0, spacing = 22 },
                   balloon = { size = 22, duration = 1.2, spacing = 24 },
               } },

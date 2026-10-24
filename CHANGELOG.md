@@ -5,7 +5,13 @@
 ## 1.1.3
 
 ### New trail shape
-- **Line**: one glowing stroke behind the cursor that gets thinner towards its end. The edge has your color, the middle is lighter, like hot light. With the color mode Rainbow the color changes along the line. Size is the width of the line, spacing the density (small values give a smooth line).
+- **Line**: one glowing stroke behind the cursor that gets thinner towards its end. With the color mode Rainbow the color changes along the line. Size is the width of the line, spacing the density (small values give a smooth line). Its core (see below) is on by default.
+
+### Core in its own color
+- New setting **Core in its own color** for the mouse trail: every dot gets a smaller copy in the middle, in a color of its own (**Core color**). The edge keeps the color of the trail, the middle has the core color. It works with every shape (except Energy), every color mode and every color theme; every theme brings a light core color that suits it, and **Customize theme** takes it over. The switch can be used while a theme is active, only the color is locked. Each shape remembers its own setting.
+
+### Fixed
+- A trail shape without rotation (like the heart) kept turning by the last value of a rotating shape (like the blossom) after you switched.
 
 ### Mouse trail on fast movement
 - With a small spacing (like the new line) a fast mouse movement left gaps: only 40 dots per frame are drawn, so only the last part of the path got dots. Now the dots of that frame are spread out over the whole stretch, as far as they still overlap (up to half their size). Real jumps (Alt-Tab) are still clipped.
