@@ -5,7 +5,6 @@ local _, ns = ...
 
 local GetCursorPosition = GetCursorPosition
 local GetFramerate = GetFramerate
-local atan2 = math.atan2 or math.atan
 local FPS_FULL = 45        -- from this frame rate up the trail is drawn as configured
 local FPS_OFF = 20         -- below this it is paused; in between it gets sparser (up to twice the spacing, half the dots per frame)
 local POOL = 256          -- dots that can be visible at the same time
@@ -36,10 +35,6 @@ local PALETTES = {
 -- random values when a dot is spawned. rise = distance the dot floats up while it fades (negative: falls), sway = random
 -- sideways drift, jitter = random offset of the start position around the cursor, spin = degrees the dot turns while it
 -- fades (random direction), tilt = largest random angle in radians (default: any angle), add = additive blending (glows).
--- align = the dot points along the direction of the mouse movement (tilt then is the largest deviation from it), across =
--- random offset sideways to the movement. head = (lines) distance of the head from the middle of the dot: the head sits
--- on the cursor path and the dot shrinks towards it, so the line is drawn into the direction the mouse goes; vary = the
--- shortest length of a line (random, share of the size is 1 - vary), glide = distance the line also slides forward.
 local MOTION = {
     flame = { rise = 2.2, sway = 0.5, jitter = 0.3, tilt = 0.35, add = true },
     heart = { rise = 1.6, sway = 0.6, tilt = 0.45 },
@@ -57,8 +52,14 @@ local MOTION = {
     confetti = { rise = -2.2, sway = 1.4, jitter = 0.7, spin = 300 },
     pumpkin = { rise = -1.5, sway = 1.0, jitter = 0.3, tilt = 0.5 },
     balloon = { rise = 2, sway = 0.8, jitter = 0.3, tilt = 0.3 },
-    line = { align = true, across = 0.08, tilt = 0.03, head = 0.44, vary = 0.45, glide = 0.2 },
 }
+
+-- Shapes with a look of their own and no motion. add = additive blending, core = a second layer in the middle of every dot
+-- (this share of the dot size) in a lighter color: the edge has the chosen color, the middle looks like hot light.
+local LOOK = {
+    line = { add = true, core = 0.4 },
+}
+local CORE_MIX = 0.7 -- how far the color of the core goes from the dot color towards white
 
 local frame = CreateFrame("Frame", "AureoleCursorTrail", UIParent)
 frame:SetSize(1, 1)
@@ -92,7 +93,6 @@ end
 local lastX, lastY
 local rainbow, palette, gradient, spin, energy = false, nil, nil, false, false
 local motion, tilt, dotSize -- MOTION of the current shape, its tilt limit and the dot size in pixels
-local shrinkEnd = 1 -- scale the dots shrink to
 local travelled = 0
 
 -- Hue (0..1) at full saturation and brightness, as RGB
@@ -127,6 +127,7 @@ local function stopDot(d)
     d.group:Stop()
     d.motionGroup:Stop()
     if d.maskGroup then d.maskGroup:Stop() end
+    if d.coreGroup then d.coreGroup:Stop() end
 end
 
 -- Energy shape: round mask per dot, created on first use. The mask is attached to the dot and gets
@@ -157,57 +158,75 @@ local function removeMask(d)
     end
 end
 
+-- Line shape: a second texture in the middle of the dot with its own fade and shrink. It is anchored to the center of the
+-- dot's texture, so it follows every spawn without a position of its own.
+local function applyCore(d, t, texture, size, share)
+    if not d.core then
+        local core = frame:CreateTexture(nil, "ARTWORK", nil, 1)
+        core:Hide()
+        core:SetPoint("CENTER", d.tex, "CENTER")
+        d.core = core
+        d.coreGroup = core:CreateAnimationGroup()
+        d.coreFade = d.coreGroup:CreateAnimation("Alpha")
+        d.coreFade:SetFromAlpha(1)
+        d.coreFade:SetToAlpha(0)
+        d.coreShrink = d.coreGroup:CreateAnimation("Scale")
+        d.coreShrink:SetScaleFrom(1, 1)
+        d.coreGroup:SetScript("OnFinished", function() core:Hide() end)
+    end
+    d.coreOn = true
+    d.core:SetTexture(texture)
+    d.core:SetSize(size * share, size * share)
+    d.coreFade:SetDuration(t.duration)
+    d.coreShrink:SetDuration(t.duration)
+    local target = shrinkTarget(t)
+    d.coreShrink:SetScaleTo(target, target)
+end
+
+local function removeCore(d)
+    if d.coreOn then
+        d.coreOn = false
+        d.coreGroup:Stop()
+        d.core:Hide()
+    end
+end
+
+-- Colors the dot, and its core a step towards white
+local function tint(d, r, g, b)
+    d.tex:SetVertexColor(r, g, b, 1)
+    if d.coreOn then
+        d.core:SetVertexColor(r + (1 - r) * CORE_MIX, g + (1 - g) * CORE_MIX, b + (1 - b) * CORE_MIX, 1)
+    end
+end
+
 local function stopAll()
     for _, d in ipairs(dots) do
         stopDot(d)
         d.tex:Hide()
+        if d.core then d.core:Hide() end
     end
 end
 
-local function spawn(x, y, ux, uy)
+local function spawn(x, y)
     local d = dots[nextDot]
     nextDot = nextDot % POOL + 1
     stopDot(d)
     if palette then
         local c = palette[math.random(#palette)]
-        d.tex:SetVertexColor(c[1], c[2], c[3], 1)
+        tint(d, c[1], c[2], c[3])
     elseif gradient then
-        local r, g, b = gradientColor(gradient, travelled)
-        d.tex:SetVertexColor(r, g, b, 1)
+        tint(d, gradientColor(gradient, travelled))
     elseif rainbow then
-        local r, g, b = hue(travelled / RAINBOW_LENGTH)
-        d.tex:SetVertexColor(r, g, b, 1)
+        tint(d, hue(travelled / RAINBOW_LENGTH))
     end
-    if motion and motion.align then
-        d.tex:SetRotation(atan2(uy, ux) + (math.random() * 2 - 1) * (tilt or 0))
-    elseif spin then
-        d.tex:SetRotation(tilt and (math.random() * 2 - 1) * tilt or math.random() * 2 * math.pi)
-    end
+    if spin then d.tex:SetRotation(tilt and (math.random() * 2 - 1) * tilt or math.random() * 2 * math.pi) end
     if motion then
         local s = dotSize
         if motion.jitter then
             x = x + (math.random() * 2 - 1) * motion.jitter * s
             y = y + (math.random() * 2 - 1) * motion.jitter * s
         end
-        local length = 1
-        if motion.head then
-            -- the head of the line sits on the path, the rest of it trails behind
-            length = 1 - (motion.vary or 0) * math.random()
-            d.shrink:SetScaleFrom(length, length)
-            d.shrink:SetScaleTo(length * shrinkEnd, length * shrinkEnd)
-            x, y = x - ux * length * motion.head * s, y - uy * length * motion.head * s
-        end
-        if motion.across then
-            local a = (math.random() * 2 - 1) * motion.across * s
-            x, y = x - uy * a, y + ux * a
-        end
-        local ox, oy = (math.random() * 2 - 1) * (motion.sway or 0) * s, (motion.rise or 0) * s * (0.7 + 0.6 * math.random())
-        if motion.head then
-            -- shrinking around the middle would pull the head back too: move the middle forward so the head stays put
-            local forward = (length * (1 - shrinkEnd) * motion.head + (motion.glide or 0)) * s
-            ox, oy = ox + ux * forward, oy + uy * forward
-        end
-        d.move:SetOffset(ox, oy)
+        d.move:SetOffset((math.random() * 2 - 1) * (motion.sway or 0) * s, (motion.rise or 0) * s * (0.7 + 0.6 * math.random()))
         if motion.spin then d.turn:SetDegrees((math.random() < 0.5 and -1 or 1) * motion.spin * (0.5 + math.random())) end
     end
     if energy then
@@ -218,6 +237,10 @@ local function spawn(x, y, ux, uy)
     d.tex:SetPoint("CENTER", UIParent, "BOTTOMLEFT", x, y)
     d.tex:Show()
     d.group:Play()
+    if d.coreOn then
+        d.core:Show()
+        d.coreGroup:Play()
+    end
     if motion then d.motionGroup:Play() end
     if energy and d.maskGroup then d.maskGroup:Play() end
 end
@@ -261,7 +284,7 @@ frame:SetScript("OnUpdate", function()
     end
     for i = 1, n do
         travelled = travelled + spacing
-        spawn(lastX + ux * spacing * i, lastY + uy * spacing * i, ux, uy)
+        spawn(lastX + ux * spacing * i, lastY + uy * spacing * i)
     end
     lastX, lastY = lastX + ux * spacing * n, lastY + uy * spacing * n
 end)
@@ -317,6 +340,7 @@ function Trail:Apply()
     end
     spin = t.shape ~= "dot" -- every shape except the plain dot is randomly rotated
     motion = MOTION[t.shape]
+    local look = LOOK[t.shape]
     tilt = motion and motion.tilt
     dotSize = size
     energy = t.shape == "energy"
@@ -335,15 +359,17 @@ function Trail:Apply()
             removeMask(d)
         end
         d.tex:SetSize(size, size)
-        d.tex:SetVertexColor(r, g, b, 1)
+        if look and look.core then applyCore(d, t, texture, size, look.core) else removeCore(d) end
+        tint(d, r, g, b)
         d.tex:SetRotation(0)
         d.fade:SetDuration(t.duration)
         d.shrink:SetDuration(t.duration)
-        d.shrink:SetScaleFrom(1, 1)
         d.shrink:SetScaleTo(target, target)
         d.move:SetDuration(t.duration)
         d.turn:SetDuration(t.duration)
-        d.tex:SetBlendMode(motion and motion.add and "ADD" or "BLEND")
+        local blend = ((motion and motion.add) or (look and look.add)) and "ADD" or "BLEND"
+        d.tex:SetBlendMode(blend)
+        if d.coreOn then d.core:SetBlendMode(blend) end
         if not motion then
             d.move:SetOffset(0, 0)
             d.turn:SetDegrees(0)

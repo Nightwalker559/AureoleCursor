@@ -5,7 +5,7 @@
 ## 1.1.3
 
 ### New trail shape
-- **Lines**: long, thin lines along your path. Each one points the way you move, starts at the cursor's path and is drawn in towards it while it fades, so it looks like real lines being pulled behind the cursor. Lengths vary a little. The size setting is the line length (up to 200 now); pick the color as usual.
+- **Line**: one glowing stroke behind the cursor that gets thinner towards its end. The edge has your color, the middle is lighter, like hot light. With the color mode Rainbow the color changes along the line. Size is the width of the line, spacing the density (small values give a smooth line).
 
 ### Addon icon
 - The addon icon is 64x64 pixels now (was 256x256). The addon list shows it at about 32 pixels, so it looks the same and the file shrinks from 256 KB to 16 KB.

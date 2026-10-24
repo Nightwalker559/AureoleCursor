@@ -78,7 +78,7 @@ ns.defaults = {
                   coin = { size = 18, duration = 0.9, spacing = 20, colorMode = "gold" },
                   rune = { size = 24, duration = 1.0, spacing = 22, colorMode = "arcane" },
                   confetti = { size = 12, duration = 0.9, spacing = 10, colorMode = "rainbow" },
-                  line = { size = 120, duration = 0.6, spacing = 16 },
+                  line = { size = 22, duration = 0.5, spacing = 3, colorMode = "rainbow" },
                   pumpkin = { size = 22, duration = 1.0, spacing = 22 },
                   balloon = { size = 22, duration = 1.2, spacing = 24 },
               } },
