@@ -16,8 +16,8 @@ local lastX, lastY, lastScale
 -- of it, so the glow trails the pointer by a frame or so. lead (glow option, in frames) places the glow ahead along the
 -- movement of the last frame by that many frames. The shift is limited softly (ns.leadLimit, set by the glow: about the size
 -- of the pointer), otherwise a fast flick would pull the glow far ahead.
--- (Tried and dropped: a lead that grows as the frame rate falls. Tuned by hand at 30, 60, 90 and 120 FPS the lead came out
--- at about 1.0 to 1.1 frames everywhere, so one value does.)
+-- The lead is one fixed value: tuned by hand at 30, 60, 90 and 120 FPS it comes out at about 1.0 to 1.1 frames everywhere,
+-- so it does not have to follow the frame rate.
 -- prevX/prevY: last raw position, nil after a pause.
 local lead = 0
 local prevX, prevY
@@ -25,7 +25,8 @@ local MAX_STEP = 600 -- a jump of more than this many pixels in one frame is no 
 local sqrt, abs = math.sqrt, math.abs
 
 -- The game reports when it starts and stops hiding the pointer (looking = mouselook, turning = right mouse button), so
--- nothing is polled per frame. ns.mouselooking is read by the opacity.
+-- nothing is polled per frame. ns.mouselooking is read by the opacity and by the pointer copy of the glow (both are updated
+-- by ns:UpdateAlpha).
 local looking, turning = false, false
 
 local function mouseChanged(isLooking, isTurning)
@@ -35,7 +36,7 @@ local function mouseChanged(isLooking, isTurning)
         local state = looking or turning
         if state ~= ns.mouselooking then
             ns.mouselooking = state
-            if ns.cfg and ns.cfg.hideOnMouselook then ns:UpdateAlpha() end
+            if ns.cfg then ns:UpdateAlpha() end
         end
     end
 end

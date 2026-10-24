@@ -61,14 +61,12 @@ end
 local Glow = {}
 ns:RegisterModule(Glow)
 
--- The game reports when it starts and stops hiding the pointer (looking = mouselook, turning = right mouse button).
-local looking, turning = false, false
-
--- Since the copy ignores the anchor's opacity, it is hidden by hand when everything else is invisible (overall opacity 0,
--- e.g. hidden while mouselooking or out of combat).
+-- The copy shows while the game hides the pointer (ns.mouselooking, see Cursor.lua). Since it ignores the anchor's opacity, it
+-- is hidden by hand when everything else is invisible (overall opacity 0, e.g. hidden while mouselooking or out of combat).
+-- ns:UpdateAlpha calls this on every change of either.
 local function updateIcon()
     local cfg = ns.cfg and ns.cfg.glow
-    icon:SetShown(cfg and cfg.showWhileLooking and ns:RingActive("glow") and (looking or turning)
+    icon:SetShown(cfg and cfg.showWhileLooking and ns:RingActive("glow") and ns.mouselooking
         and ns:CurrentAlpha() > 0 or false)
 end
 ns.UpdatePointerIcon = updateIcon
@@ -76,11 +74,9 @@ ns.UpdatePointerIcon = updateIcon
 -- Shows the glow in its colors: in combat one color, the combat color, if it is switched on (Colors); otherwise
 -- one or two colors across the texture, top to bottom or left to right. With the gradient (blend) the two colors are blended
 -- (one part), without it each color gets one half (two parts). The border has the same colors as the halo.
-local function paintLayer(layer)
+local function paintLayer(layer, cfg, r, g, b)
     local geometry = layer.geometry
-    local cfg = ns:Palette().glow
     local active = geometry and ns:RingActive("glow")
-    local r, g, b = ns:ElementColor("glow")
     local combat = ns.cfg.colors.combat.enabled and ns.inCombat
     local count = combat and 1 or math.max(1, math.min(2, cfg.colorCount or 1))
     local n = count == 1 and 1 or (cfg.blend and count - 1 or count)
@@ -120,8 +116,10 @@ local function paintLayer(layer)
 end
 
 local function paint()
-    paintLayer(layers.halo)
-    paintLayer(layers.border)
+    local cfg = ns:Palette().glow
+    local r, g, b = ns:ElementColor("glow")
+    paintLayer(layers.halo, cfg, r, g, b)
+    paintLayer(layers.border, cfg, r, g, b)
 end
 
 function Glow:UpdateVisibility()
@@ -167,19 +165,6 @@ function Glow:Apply()
     icon:SetPoint("TOPLEFT", ns.anchor, "CENTER", cfg.offsetX * unit, cfg.offsetY * unit)
     updateIcon()
 end
-
-local function lookChanged(isLooking, isTurning)
-    return function()
-        if isLooking ~= nil then looking = isLooking end
-        if isTurning ~= nil then turning = isTurning end
-        updateIcon()
-    end
-end
-ns:On("PLAYER_STARTED_LOOKING", lookChanged(true, nil))
-ns:On("PLAYER_STOPPED_LOOKING", lookChanged(false, nil))
-ns:On("PLAYER_STARTED_TURNING", lookChanged(nil, true))
-ns:On("PLAYER_STOPPED_TURNING", lookChanged(nil, false))
-ns:On("PLAYER_ENTERING_WORLD", lookChanged(false, false))
 
 -- A change of the game's cursor size picks another texture.
 ns:On("CVAR_UPDATE", function(_, name)

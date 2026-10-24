@@ -64,6 +64,16 @@ local function unpackColor(c, g, b, a)
     return c, g, b, a
 end
 
+-- Sets the swipe color of a cooldown from the curve at the elapsed share of the duration; false if the API does not behave
+-- as expected (the caller then keeps the static start color and stops asking).
+local function paintSwipe(cd, duration, curve)
+    local ok, c, g, b, a = pcall(duration.EvaluateElapsedPercent, duration, curve)
+    if not ok then return false end
+    local r, g2, b2, a2 = unpackColor(c, g, b, a)
+    if r then cd:SetSwipeColor(r, g2, b2, a2) end
+    return true
+end
+
 local function buildCurve(colors)
     if not (colors.gradient and C_CurveUtil and C_CurveUtil.CreateColorCurve and CreateColor) then return nil end
     local c1, c2 = colors.color, colors.color2
@@ -92,14 +102,10 @@ local function tickGcd()
         gcdDriver:Hide()
         return
     end
-    local ok, c, g, b, a = pcall(gcdDuration.EvaluateElapsedPercent, gcdDuration, gcdCurve)
-    if not ok then -- the API does not behave as expected: keep the static start color, do not retry every frame
+    if not paintSwipe(gcdCD, gcdDuration, gcdCurve) then
         gcdCurve = nil
         gcdDriver:Hide()
-        return
     end
-    local r, g2, b2, a2 = unpackColor(c, g, b, a)
-    if r then gcdCD:SetSwipeColor(r, g2, b2, a2) end
 end
 gcdDriver:SetScript("OnUpdate", tickGcd)
 
@@ -142,14 +148,10 @@ ns.castDriver = castDriver
 
 local function tickCast()
     if not (castDuration and castCurve) then return end
-    local ok, c, g, b, a = pcall(castDuration.EvaluateElapsedPercent, castDuration, castCurve)
-    if not ok then -- the API does not behave as expected: keep the static start color, do not retry every frame
+    if not paintSwipe(castCD, castDuration, castCurve) then
         castCurve = nil
         castDriver:Hide()
-        return
     end
-    local r, g2, b2, a2 = unpackColor(c, g, b, a)
-    if r then castCD:SetSwipeColor(r, g2, b2, a2) end
 end
 castDriver:SetScript("OnUpdate", tickCast)
 
@@ -215,6 +217,7 @@ end
 function Rings:Apply()
     local cfg = ns.cfg
     local strata = cfg.strata
+    local palette = ns:Palette()
 
     local m = cfg.main
     mainRing:SetTexture(ns:RingTexture(m.thickness, m.size))
@@ -227,7 +230,7 @@ function Rings:Apply()
         local active = ring.enabled and ns:RingActive(trio[4]) -- the ring layout can switch a ring off
         track:SetTexture(ns:RingTexture(ring.thickness, ring.size))
         track:SetSize(ring.size, ring.size)
-        local r, g, b = ns:GetRingColor(ns:Palette()[trio[4]])
+        local r, g, b = ns:GetRingColor(palette[trio[4]])
         track:SetVertexColor(r, g, b, cfg.trackAlpha)
         track:SetShown(active and ring.track)
         cd:SetFrameStrata(strata)
@@ -238,9 +241,9 @@ function Rings:Apply()
     end
     gcdCD:SetReverse(false)
 
-    gcdCurve = buildCurve(ns:Palette().gcd)
+    gcdCurve = buildCurve(palette.gcd)
     if not gcdCurve then gcdDriver:Hide() end
-    castCurve = buildCurve(ns:Palette().cast)
+    castCurve = buildCurve(palette.cast)
     if not castCurve then castDriver:Hide() end
     updateGCD()
     updateCast()

@@ -56,18 +56,29 @@ local MOTION = {
 }
 
 -- Shapes with a look of their own and no motion. add = additive blending, core = the shape can have a core (setting "core"):
--- a second, smaller dot (this shape file) in its own color (palette field coreColor) on top of it, so the edge has the color
--- of the trail and the middle another one. The edge glows additively, which would swallow the color of the core (additive
--- colors add up to white), so the core is drawn with normal blending, opaque in the middle, and the edge is a little more
--- transparent while there is a core.
+-- a second, smaller dot (this shape file) on top of the first, so the edge has the color of the trail and the middle another.
+-- The edge glows additively, which would swallow the color of the core (additive colors add up to white), so the core is
+-- drawn with normal blending, opaque in the middle, and the edge is a little more transparent while there is a core.
 local LOOK = {
     line = { add = true, core = "linecore" },
 }
 local CORE_SHARE = 0.35 -- size of the core relative to the dot
 local EDGE_ALPHA = 0.85 -- opacity of the dots of a shape with a core
--- The core has the core color (palette field coreColor) with the color mode "custom"; with every other color mode (rainbow,
--- seasons ...) the dots have different colors, so the core is a lighter shade of the color of its dot instead.
+-- The core has the core color (palette field coreColor) with the color mode "custom". With every other color mode (rainbow,
+-- seasons ...) the dots have different colors, so the core is a lighter shade of the color of its dot instead:
 local CORE_MIX = 0.7 -- how far that shade goes from the color of the dot towards white
+
+-- Animation group of a region that fades it out and shrinks it (the target scale is set in Apply) and hides it when done.
+local function fadeGroup(region)
+    local group = region:CreateAnimationGroup()
+    local fade = group:CreateAnimation("Alpha")
+    fade:SetFromAlpha(1)
+    fade:SetToAlpha(0)
+    local shrink = group:CreateAnimation("Scale")
+    shrink:SetScaleFrom(1, 1)
+    group:SetScript("OnFinished", function() region:Hide() end)
+    return group, fade, shrink
+end
 
 local frame = CreateFrame("Frame", "AureoleCursorTrail", UIParent)
 frame:SetSize(1, 1)
@@ -81,13 +92,7 @@ ns.trailDots = dots
 for i = 1, POOL do
     local tex = frame:CreateTexture(nil, "ARTWORK")
     tex:Hide()
-    local group = tex:CreateAnimationGroup()
-    local fade = group:CreateAnimation("Alpha")
-    fade:SetFromAlpha(1)
-    fade:SetToAlpha(0)
-    local shrink = group:CreateAnimation("Scale")
-    shrink:SetScaleFrom(1, 1)
-    group:SetScript("OnFinished", function() tex:Hide() end)
+    local group, fade, shrink = fadeGroup(tex)
     -- The motion of the themed shapes is a second group that only plays for those shapes. The plain shapes would otherwise
     -- pay for a translation and a rotation of zero on every dot and every frame.
     local motionGroup = tex:CreateAnimationGroup()
@@ -176,13 +181,7 @@ local function applyCore(d, t, texture, size)
         core:Hide()
         core:SetPoint("CENTER", d.tex, "CENTER")
         d.core = core
-        d.coreGroup = core:CreateAnimationGroup()
-        d.coreFade = d.coreGroup:CreateAnimation("Alpha")
-        d.coreFade:SetFromAlpha(1)
-        d.coreFade:SetToAlpha(0)
-        d.coreShrink = d.coreGroup:CreateAnimation("Scale")
-        d.coreShrink:SetScaleFrom(1, 1)
-        d.coreGroup:SetScript("OnFinished", function() core:Hide() end)
+        d.coreGroup, d.coreFade, d.coreShrink = fadeGroup(core)
     end
     d.coreOn = true
     d.core:SetTexture(texture)
@@ -392,9 +391,7 @@ function Trail:Apply()
         local blend = ((motion and motion.add) or (look and look.add)) and "ADD" or "BLEND"
         d.tex:SetBlendMode(blend)
         if d.coreOn then d.core:SetBlendMode("BLEND") end
-        if not motion then
-            d.move:SetOffset(0, 0)
-        end
+        if not motion then d.move:SetOffset(0, 0) end
         if not (motion and motion.spin) then d.turn:SetDegrees(0) end
     end
     lastX, lastY = nil, nil

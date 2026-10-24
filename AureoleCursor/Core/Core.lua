@@ -121,9 +121,8 @@ function ns:DotTexture(size)
     return MEDIA .. "Dot\\Dot_" .. pickResolution(DOT_RES, self:ScreenPixels(size or 8)) .. ".png"
 end
 
--- Shapes of the mouse trail (leaf, snowflake, star, mist, flame, heart, bubble, glitter, blossom, butterfly, ember, drop, feather,
--- bolt, crystal, coin, rune, confetti, line, pumpkin (Halloween theme only), balloon (Anniversary theme only)), of the center dot (crosshair, dot with ring, sparkle, diamond, arrowhead, crosshair with
--- dot, double ring, corner brackets, hexagon); "dot" is the plain dot.
+-- Texture file per shape of the mouse trail and of the center dot ("dot" is the plain dot, "energy" a texture of the game).
+-- The files exist in several resolutions (see ns:ShapeTexture); linecore is the core of the line.
 local SHAPE_RES = { { 30, 32 }, { 60, 64 }, { math.huge, 128 } }
 local SHAPE_FILE = { leaf = "Trail\\Leaf", snow = "Trail\\Snow", star = "Trail\\Star", mist = "Trail\\Mist",
     flame = "Trail\\Flame", heart = "Trail\\Heart", bubble = "Trail\\Bubble", glitter = "Trail\\Glitter",
@@ -381,11 +380,6 @@ ns:On("ADDON_LOADED", function(_, name)
     -- the ghost was removed in 1.1.0: drop its settings (also its colors, in configs that were already converted)
     db.cfg.ghost = nil
     if type(db.cfg.colors) == "table" and type(db.cfg.colors.custom) == "table" then db.cfg.colors.custom.ghost = nil end
-    -- settings of the lead by frame rate (development builds only, dropped again)
-    if type(db.cfg.glow) == "table" then
-        local g = db.cfg.glow
-        g.leadByFps, g.leadFrames60, g.leadFrames40, g.leadFramesLow = nil, nil, nil, nil
-    end
     fillDefaults(db.cfg, ns.defaults)
     ns.cfg = db.cfg
     ns:FixThemeShape() -- a shape that belongs to a theme is only kept while that theme is on
