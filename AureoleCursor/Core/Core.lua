@@ -129,7 +129,7 @@ local SHAPE_FILE = { leaf = "Trail\\Leaf", snow = "Trail\\Snow", star = "Trail\\
     flame = "Trail\\Flame", heart = "Trail\\Heart", bubble = "Trail\\Bubble", glitter = "Trail\\Glitter",
     blossom = "Trail\\Blossom", butterfly = "Trail\\Butterfly", ember = "Trail\\Ember", drop = "Trail\\Drop",
     feather = "Trail\\Feather", bolt = "Trail\\Bolt", crystal = "Trail\\Crystal", coin = "Trail\\Coin",
-    rune = "Trail\\Rune", confetti = "Trail\\Confetti", line = "Trail\\Line", pumpkin = "Trail\\Pumpkin", balloon = "Trail\\Balloon",
+    rune = "Trail\\Rune", confetti = "Trail\\Confetti", line = "Trail\\Line", linecore = "Trail\\LineCore", pumpkin = "Trail\\Pumpkin", balloon = "Trail\\Balloon",
     gap = "Dot\\Gap", ring = "Dot\\DotRing", spark = "Dot\\Spark", diamond = "Dot\\Diamond", arrow = "Dot\\Arrow",
     crossdot = "Dot\\CrossDot", doublering = "Dot\\DoubleRing", corners = "Dot\\Corners", hexagon = "Dot\\Hexagon" }
 

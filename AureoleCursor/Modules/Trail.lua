@@ -56,12 +56,15 @@ local MOTION = {
 }
 
 -- Shapes with a look of their own and no motion. add = additive blending, core = the shape can have a core (setting "core"):
--- a second, smaller copy of the dot in its own color (palette field coreColor) on top of it, so the edge has the color of the
--- trail and the middle another one.
+-- a second, smaller dot (this shape file) in its own color (palette field coreColor) on top of it, so the edge has the color
+-- of the trail and the middle another one. The edge glows additively, which would swallow the color of the core (additive
+-- colors add up to white), so the core is drawn with normal blending, opaque in the middle, and the edge is a little more
+-- transparent while there is a core.
 local LOOK = {
-    line = { add = true, core = true },
+    line = { add = true, core = "linecore" },
 }
-local CORE_SHARE = 0.4 -- size of the core relative to the dot
+local CORE_SHARE = 0.35 -- size of the core relative to the dot
+local EDGE_ALPHA = 0.85 -- opacity of the dots of a shape with a core
 -- The core has the core color (palette field coreColor) with the color mode "custom"; with every other color mode (rainbow,
 -- seasons ...) the dots have different colors, so the core is a lighter shade of the color of its dot instead.
 local CORE_MIX = 0.7 -- how far that shade goes from the color of the dot towards white
@@ -99,6 +102,7 @@ local lastX, lastY
 local rainbow, palette, gradient, spin, energy = false, nil, nil, false, false
 local motion, tilt, dotSize -- MOTION of the current shape, its tilt limit and the dot size in pixels
 local coreShade = false -- the core follows the color of its dot (see CORE_MIX)
+local edgeAlpha = 1 -- opacity of the dots (EDGE_ALPHA with a core)
 local travelled = 0
 
 -- Hue (0..1) at full saturation and brightness, as RGB
@@ -200,7 +204,7 @@ end
 
 -- Colors a dot, and its core when that follows the color of the dot
 local function tint(d, r, g, b)
-    d.tex:SetVertexColor(r, g, b, 1)
+    d.tex:SetVertexColor(r, g, b, edgeAlpha)
     if coreShade then
         d.core:SetVertexColor(r + (1 - r) * CORE_MIX, g + (1 - g) * CORE_MIX, b + (1 - b) * CORE_MIX, 1)
     end
@@ -363,6 +367,8 @@ function Trail:Apply()
     local target = shrinkTarget(t)
     local coreOn = t.core and look and look.core
     coreShade = coreOn and colors.colorMode ~= "custom"
+    edgeAlpha = coreOn and EDGE_ALPHA or 1
+    local coreTexture = coreOn and ns:ShapeTexture(look.core, size * CORE_SHARE)
     local cc = colors.coreColor or { 1, 1, 1 }
     for _, d in ipairs(dots) do
         if energy then
@@ -374,7 +380,7 @@ function Trail:Apply()
             removeMask(d)
         end
         d.tex:SetSize(size, size)
-        if coreOn then applyCore(d, t, texture, size) else removeCore(d) end
+        if coreOn then applyCore(d, t, coreTexture, size) else removeCore(d) end
         tint(d, r, g, b)
         if coreOn and not coreShade then d.core:SetVertexColor(cc[1], cc[2], cc[3], 1) end
         d.tex:SetRotation(0)
@@ -385,7 +391,7 @@ function Trail:Apply()
         d.turn:SetDuration(t.duration)
         local blend = ((motion and motion.add) or (look and look.add)) and "ADD" or "BLEND"
         d.tex:SetBlendMode(blend)
-        if d.coreOn then d.core:SetBlendMode(blend) end
+        if d.coreOn then d.core:SetBlendMode("BLEND") end
         if not motion then
             d.move:SetOffset(0, 0)
         end
