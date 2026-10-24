@@ -37,7 +37,9 @@ local PALETTES = {
 -- sideways drift, jitter = random offset of the start position around the cursor, spin = degrees the dot turns while it
 -- fades (random direction), tilt = largest random angle in radians (default: any angle), add = additive blending (glows).
 -- align = the dot points along the direction of the mouse movement (tilt then is the largest deviation from it), across =
--- random offset sideways to the movement, drift = distance the dot is pulled back against the movement while it fades.
+-- random offset sideways to the movement. head = (lines) distance of the head from the middle of the dot: the head sits
+-- on the cursor path and the dot shrinks towards it, so the line is drawn into the direction the mouse goes; vary = the
+-- shortest length of a line (random, share of the size is 1 - vary), glide = distance the line also slides forward.
 local MOTION = {
     flame = { rise = 2.2, sway = 0.5, jitter = 0.3, tilt = 0.35, add = true },
     heart = { rise = 1.6, sway = 0.6, tilt = 0.45 },
@@ -55,7 +57,7 @@ local MOTION = {
     confetti = { rise = -2.2, sway = 1.4, jitter = 0.7, spin = 300 },
     pumpkin = { rise = -1.5, sway = 1.0, jitter = 0.3, tilt = 0.5 },
     balloon = { rise = 2, sway = 0.8, jitter = 0.3, tilt = 0.3 },
-    line = { align = true, across = 0.3, drift = 0.5, tilt = 0.05 },
+    line = { align = true, across = 0.08, tilt = 0.03, head = 0.44, vary = 0.45, glide = 0.2 },
 }
 
 local frame = CreateFrame("Frame", "AureoleCursorTrail", UIParent)
@@ -90,6 +92,7 @@ end
 local lastX, lastY
 local rainbow, palette, gradient, spin, energy = false, nil, nil, false, false
 local motion, tilt, dotSize -- MOTION of the current shape, its tilt limit and the dot size in pixels
+local shrinkEnd = 1 -- scale the dots shrink to
 local travelled = 0
 
 -- Hue (0..1) at full saturation and brightness, as RGB
@@ -186,14 +189,23 @@ local function spawn(x, y, ux, uy)
             x = x + (math.random() * 2 - 1) * motion.jitter * s
             y = y + (math.random() * 2 - 1) * motion.jitter * s
         end
+        local length = 1
+        if motion.head then
+            -- the head of the line sits on the path, the rest of it trails behind
+            length = 1 - (motion.vary or 0) * math.random()
+            d.shrink:SetScaleFrom(length, length)
+            d.shrink:SetScaleTo(length * shrinkEnd, length * shrinkEnd)
+            x, y = x - ux * length * motion.head * s, y - uy * length * motion.head * s
+        end
         if motion.across then
             local a = (math.random() * 2 - 1) * motion.across * s
             x, y = x - uy * a, y + ux * a
         end
         local ox, oy = (math.random() * 2 - 1) * (motion.sway or 0) * s, (motion.rise or 0) * s * (0.7 + 0.6 * math.random())
-        if motion.drift then
-            local back = motion.drift * s * (0.7 + 0.6 * math.random())
-            ox, oy = ox - ux * back, oy - uy * back
+        if motion.head then
+            -- shrinking around the middle would pull the head back too: move the middle forward so the head stays put
+            local forward = (length * (1 - shrinkEnd) * motion.head + (motion.glide or 0)) * s
+            ox, oy = ox + ux * forward, oy + uy * forward
         end
         d.move:SetOffset(ox, oy)
         if motion.spin then d.turn:SetDegrees((math.random() < 0.5 and -1 or 1) * motion.spin * (0.5 + math.random())) end
@@ -312,6 +324,7 @@ function Trail:Apply()
         rainbow, palette, gradient, r, g, b = false, nil, nil, 1, 1, 1
     end
     local target = shrinkTarget(t)
+    shrinkEnd = target
     for _, d in ipairs(dots) do
         if energy then
             d.tex:SetTexture(texture, "REPEAT", "REPEAT")
@@ -326,6 +339,7 @@ function Trail:Apply()
         d.tex:SetRotation(0)
         d.fade:SetDuration(t.duration)
         d.shrink:SetDuration(t.duration)
+        d.shrink:SetScaleFrom(1, 1)
         d.shrink:SetScaleTo(target, target)
         d.move:SetDuration(t.duration)
         d.turn:SetDuration(t.duration)

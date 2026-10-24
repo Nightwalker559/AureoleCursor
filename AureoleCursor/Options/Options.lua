@@ -440,7 +440,7 @@ local function build()
     buildElement(category, layout, "cast", L.cast, { thickness = true, track = true, ringActive = true, colors = "gradient" })
     buildElement(category, layout, "dot", L.dot, { extra = dotOptions, ringActive = true })
     buildElement(category, layout, "glow", L.glow, { size = false, noEnable = true, ringActive = true, extra = glowOptions, colors = "glow" })
-    buildElement(category, layout, "trail", L.trail, { size = { 4, 64, 1 }, extra = trailOptions, colors = "trail" })
+    buildElement(category, layout, "trail", L.trail, { size = { 4, 200, 1 }, extra = trailOptions, colors = "trail" })
 
     Settings.RegisterAddOnCategory(category)
 end

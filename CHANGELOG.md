@@ -5,7 +5,7 @@
 ## 1.1.3
 
 ### New trail shape
-- **Lines**: thin streaks that point along the direction you move the mouse. They are scattered a little across the path and pulled out behind the cursor while they fade, like speed lines. Pick the color as usual (custom color, rainbow, season ...).
+- **Lines**: long, thin lines along your path. Each one points the way you move, starts at the cursor's path and is drawn in towards it while it fades, so it looks like real lines being pulled behind the cursor. Lengths vary a little. The size setting is the line length (up to 200 now); pick the color as usual.
 
 ### Addon icon
 - The addon icon is 64x64 pixels now (was 256x256). The addon list shows it at about 32 pixels, so it looks the same and the file shrinks from 256 KB to 16 KB.
