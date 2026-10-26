@@ -51,4 +51,4 @@ Found a bug or have an idea? Open an issue on GitHub.
 
 ## License
 
-MIT, see [LICENSE.md](LICENSE.md).
+MIT with AI restriction (no use for AI or machine learning), see [LICENSE.md](LICENSE.md).
