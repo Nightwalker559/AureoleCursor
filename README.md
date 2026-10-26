@@ -47,8 +47,8 @@ Open the settings with `/ac` or `/aureole` (`/aureolecursor` works too). Everyth
 
 ## Feedback
 
-Found a bug or have an idea? Open an issue on GitHub.
+Found a bug or have an idea? [Open an issue on GitHub](https://github.com/Nightwalker559/AureoleCursor/issues).
 
 ## License
 
-MIT with AI restriction (no use for AI or machine learning), see [LICENSE.md](LICENSE.md).
+MIT with AI restriction (no use for AI or machine learning), see [LICENSE.md](https://github.com/Nightwalker559/AureoleCursor/blob/main/LICENSE.md).
