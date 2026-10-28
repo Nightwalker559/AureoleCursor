@@ -1,14 +1,15 @@
--- Aureole Cursor: core. Namespace, settings (with defaults), event dispatcher, modules, slash commands.
+-- Aureole Cursor: core. Namespace, settings (with defaults), modules, shared state, event dispatcher, loading of the saved settings.
 local ADDON, ns = ...
 
-ns.modules = {}
+local modules = {}
 ns.inCombat = false
 
--- Config version: 1 = up to 1.0.x (colors and opacity inside every element), 2 = colors in cfg.colors, one overall opacity
-ns.CFG_VERSION = 2
+-- Version of the saved settings: 1 = colors and opacity inside every element (1.0.x), 2 = colors in cfg.colors, one overall
+-- opacity (the step from 1 to 2 is in Migrate.lua)
+local CFG_VERSION = 2
 
 ns.defaults = {
-    cfgVersion = ns.CFG_VERSION,
+    cfgVersion = CFG_VERSION,
     scale = 1.0,
     alpha = 0.8,              -- the only opacity setting: overall opacity of everything at the cursor
     strata = "TOOLTIP",
@@ -92,75 +93,13 @@ ns.defaults = {
               } },
 }
 
--- Ring thickness in levels 1..8 (percent of the radius, see make_media.py in the tools folder)
-ns.MAX_THICKNESS = 8
-local MEDIA = "Interface\\AddOns\\AureoleCursor\\Media\\"
-
--- Textures exist in several resolutions so that shrunken rings do not turn pixelated.
--- The choice depends on the size in screen pixels (see ns:ScreenPixels).
-local RING_RES = { { 80, 64 }, { 160, 128 }, { math.huge, 256 } } -- { up to pixels, texture resolution }
-local DOT_RES = { { 20, 16 }, { 40, 32 }, { math.huge, 64 } }
-
-local function pickResolution(list, pixels)
-    for _, r in ipairs(list) do
-        if pixels <= r[1] then return r[2] end
-    end
-end
-
--- Size of an element in real screen pixels (UI scale and resolution included).
-function ns:ScreenPixels(size)
-    local scale = self.anchor and self.anchor:GetEffectiveScale() or 1
-    local height = 768
-    if GetPhysicalScreenSize then
-        local _, h = GetPhysicalScreenSize()
-        if h and h > 0 then height = h end
-    end
-    return size * scale * height / 768
-end
-
--- File name prefix of the ring line styles (same thickness levels and resolutions as the plain ring, see make_media.py)
-local RING_STYLES = { solid = "Ring", dash = "Dash", dots = "Dots", ticks = "Ticks", segments = "Segments" }
-
--- style: line style of the ring (cfg.ringStyle), the plain ring when left out
-function ns:RingTexture(level, size, style)
-    level = math.max(1, math.min(ns.MAX_THICKNESS, math.floor(level or 4)))
-    return MEDIA .. "Rings\\" .. (RING_STYLES[style] or "Ring") .. level .. "_" .. pickResolution(RING_RES, self:ScreenPixels(size or 40)) .. ".png"
-end
-
-function ns:DotTexture(size)
-    return MEDIA .. "Dot\\Dot_" .. pickResolution(DOT_RES, self:ScreenPixels(size or 8)) .. ".png"
-end
-
--- Texture file per shape of the mouse trail and of the center dot ("dot" is the plain dot, "energy" a texture of the game).
--- The files exist in several resolutions (see ns:ShapeTexture); linecore is the core of the line.
-local SHAPE_RES = { { 30, 32 }, { 60, 64 }, { math.huge, 128 } }
-local SHAPE_FILE = { leaf = "Trail\\Leaf", snow = "Trail\\Snow", star = "Trail\\Star", mist = "Trail\\Mist",
-    flame = "Trail\\Flame", heart = "Trail\\Heart", bubble = "Trail\\Bubble", glitter = "Trail\\Glitter",
-    blossom = "Trail\\Blossom", butterfly = "Trail\\Butterfly", ember = "Trail\\Ember", drop = "Trail\\Drop",
-    feather = "Trail\\Feather", bolt = "Trail\\Bolt", crystal = "Trail\\Crystal", coin = "Trail\\Coin",
-    rune = "Trail\\Rune", confetti = "Trail\\Confetti", line = "Trail\\Line", linecore = "Trail\\LineCore", pumpkin = "Trail\\Pumpkin", balloon = "Trail\\Balloon",
-    paw = "Trail\\Paw", bat = "Trail\\Bat", smoke = "Trail\\Smoke", ripple = "Trail\\Ripple",
-    gap = "Dot\\Gap", ring = "Dot\\DotRing", spark = "Dot\\Spark", diamond = "Dot\\Diamond", arrow = "Dot\\Arrow",
-    crossdot = "Dot\\CrossDot", doublering = "Dot\\DoubleRing", corners = "Dot\\Corners", hexagon = "Dot\\Hexagon" }
-
--- "Energy": Blizzard texture from the game (FileID, not shipped with the addon), seamless tile with alpha channel.
-ns.ENERGY_FILE_ID = 6735695
--- Soft round mask, cuts a round dot out of the tile.
-ns.TRAIL_MASK = MEDIA .. "Trail\\Mask_64.png"
-
-function ns:ShapeTexture(shape, size)
-    if shape == "energy" then return self.ENERGY_FILE_ID end
-    local file = SHAPE_FILE[shape]
-    if not file then return self:DotTexture(size) end
-    return MEDIA .. file .. "_" .. pickResolution(SHAPE_RES, self:ScreenPixels(size or 16)) .. ".png"
-end
-
 local function copy(v)
     if type(v) ~= "table" then return v end
     local t = {}
     for k, x in pairs(v) do t[k] = copy(x) end
     return t
 end
+ns.Copy = copy
 
 -- Fill missing keys from the defaults, never touch existing values.
 local function fillDefaults(dst, src)
@@ -174,11 +113,11 @@ local function fillDefaults(dst, src)
 end
 
 function ns:RegisterModule(m)
-    self.modules[#self.modules + 1] = m
+    modules[#modules + 1] = m
 end
 
 function ns:Apply()
-    for _, m in ipairs(self.modules) do
+    for _, m in ipairs(modules) do
         if m.Apply then m:Apply() end
     end
 end
@@ -206,7 +145,7 @@ function ns:GcdOnDot()
 end
 
 function ns:UpdateVisibility()
-    for _, m in ipairs(self.modules) do
+    for _, m in ipairs(modules) do
         if m.UpdateVisibility then m:UpdateVisibility() end
     end
 end
@@ -287,110 +226,12 @@ frame:SetScript("OnEvent", function(_, event, ...)
     end
 end)
 
--- Config version 1 -> 2: every element held its own colors (with opacity as the 4th value), class color switches, track
--- opacities and so on. The colors move into cfg.colors.custom (RGB only), the opacity of the Main Ring (of the pointer glow
--- with that main style) goes into the overall opacity, and the track opacities become the single trackAlpha.
-local function rgb(c)
-    return { c[1], c[2], c[3] }
-end
-
--- Fields of an element that belong to the color palette, per element
-local PALETTE_FIELDS = {
-    main = { "classColor", "color" },
-    gcd = { "classColor", "color" },
-    cast = { "classColor", "color", "gradient", "color2" },
-    dot = { "classColor", "color" },
-    glow = { "classColor", "color", "colorCount", "blend", "gradientDir", "color2" },
-    trail = { "colorMode", "color", "colorCount", "gradient", "color2", "color3", "color4" },
-}
-
-local function migrateColors(cfg)
-    if (cfg.cfgVersion or 1) >= 2 then return end
-    cfg.cfgVersion = 2
-
-    -- overall opacity: what the leading element showed (its own opacity times the overall one)
-    local lead = cfg.mainStyle == "glow" and cfg.glow or cfg.main
-    local a = lead and type(lead.color) == "table" and lead.color[4]
-    if a then
-        local alpha = (cfg.alpha or 1) * a
-        cfg.alpha = math.max(0.1, math.min(1, math.floor(alpha / 0.05 + 0.5) * 0.05))
-    end
-    -- one track opacity for all rings
-    local cast, gcd = cfg.cast, cfg.gcd
-    cfg.trackAlpha = (cast and cast.trackAlpha) or (gcd and gcd.trackAlpha) or cfg.trackAlpha
-
-    local colors = cfg.colors or {}
-    cfg.colors = colors
-    colors.custom = colors.custom or {}
-    for key, fields in pairs(PALETTE_FIELDS) do
-        local element = cfg[key]
-        if type(element) == "table" then
-            local slot = colors.custom[key] or {}
-            for _, field in ipairs(fields) do
-                local v = element[field]
-                if v ~= nil then
-                    slot[field] = type(v) == "table" and rgb(v) or v
-                    element[field] = nil
-                end
-            end
-            colors.custom[key] = slot
-        end
-    end
-    for _, key in ipairs({ "gcd", "cast" }) do
-        if type(cfg[key]) == "table" then cfg[key].trackAlpha = nil end
-    end
-    if type(cfg.dot) == "table" then cfg.dot.gcdTrackAlpha = nil end
-
-    -- combat color: top-level fields up to 1.0.x
-    if cfg.combatTint ~= nil or cfg.combatTarget ~= nil or cfg.combatColor ~= nil then
-        colors.combat = colors.combat or {}
-        colors.combat.enabled, colors.combat.target = cfg.combatTint, cfg.combatTarget
-        colors.combat.color = cfg.combatColor and rgb(cfg.combatColor) or nil
-        cfg.combatTint, cfg.combatTarget, cfg.combatColor = nil, nil, nil
-    end
-end
-
--- The class color switches (and the trail color mode "class") are gone: the class color is a theme now. Whoever used one
--- gets that theme, unless a theme was chosen already.
-local function dropClassColors(cfg)
-    local colors = cfg.colors
-    local custom = type(colors) == "table" and colors.custom
-    if type(custom) ~= "table" then return end
-    local used = false
-    for _, slot in pairs(custom) do
-        if type(slot) == "table" then
-            if slot.classColor then used = true end
-            slot.classColor = nil
-            if slot.colorMode == "class" then used, slot.colorMode = true, "rainbow" end
-        end
-    end
-    local presets = type(cfg.trail) == "table" and cfg.trail.presets
-    if type(presets) == "table" then
-        for _, preset in pairs(presets) do
-            if type(preset) == "table" and preset.colorMode == "class" then used, preset.colorMode = true, "rainbow" end
-        end
-    end
-    if used and (colors.theme == nil or colors.theme == "custom") then colors.theme = "class" end
-end
-
 ns:On("ADDON_LOADED", function(_, name)
     if name ~= ADDON then return end
     AureoleCursorDB = AureoleCursorDB or {}
     local db = AureoleCursorDB
     db.cfg = db.cfg or {}
-    local main = db.cfg.main
-    if main then
-        -- up to 1.0.1 the combat color belonged to the Main Ring; it is a general option now
-        if main.combatTint ~= nil and db.cfg.combatTint == nil then
-            db.cfg.combatTint, db.cfg.combatColor, db.cfg.combatTarget = main.combatTint, main.combatColor, "main"
-        end
-        main.combatTint, main.combatColor = nil, nil
-    end
-    migrateColors(db.cfg)
-    dropClassColors(db.cfg)
-    -- the ghost was removed in 1.1.0: drop its settings (also its colors, in configs that were already converted)
-    db.cfg.ghost = nil
-    if type(db.cfg.colors) == "table" and type(db.cfg.colors.custom) == "table" then db.cfg.colors.custom.ghost = nil end
+    ns:MigrateConfig(db.cfg)
     fillDefaults(db.cfg, ns.defaults)
     ns.cfg = db.cfg
     ns:FixThemeShape() -- a shape that belongs to a theme is only kept while that theme is on
@@ -417,72 +258,3 @@ ns:On("PLAYER_REGEN_ENABLED", function()
     ns.inCombat = false
     ns:UpdateVisibility()
 end)
-
-------------------------------------------------------------------------
--- Slash commands (the settings page is the main UI; these are shortcuts)
-------------------------------------------------------------------------
-
-local L = ns.L
-local PREFIX = "|cff66ccffAureole Cursor|r "
-local RINGS = { main = true, gcd = true, cast = true, dot = true, trail = true }
--- Limits of the shortcuts: the same ranges as the sliders on the settings page (Options.lua)
-local MIN_SCALE, MAX_SCALE, MIN_ALPHA = 0.5, 3, 0.1
-local SIZE_LIMITS = { trail = { 4, 64 } }
-local DEFAULT_SIZE_LIMITS = { 8, 400 }
-
-local function say(...)
-    print(PREFIX .. string.format(...))
-end
-
-local function onOff(s)
-    if s == "on" then return true end
-    if s == "off" then return false end
-end
-
-SLASH_AUREOLECURSOR1 = "/aureole"
-SLASH_AUREOLECURSOR2 = "/aureolecursor"
-SLASH_AUREOLECURSOR3 = "/ac"
-SlashCmdList["AUREOLECURSOR"] = function(msg)
-    local cfg = ns.cfg
-    if not cfg then return end
-    local args = {}
-    for w in string.gmatch(strlower(msg or ""), "%S+") do args[#args + 1] = w end
-    local cmd = args[1]
-
-    if cmd == "scale" and tonumber(args[2]) then
-        cfg.scale = math.max(MIN_SCALE, math.min(MAX_SCALE, tonumber(args[2])))
-        ns:Apply()
-    elseif cmd == "alpha" and tonumber(args[2]) then
-        cfg.alpha = math.max(MIN_ALPHA, math.min(1, tonumber(args[2])))
-        ns:Apply()
-    elseif cmd == "combat" and onOff(args[2]) ~= nil then
-        cfg.combatOnly = onOff(args[2])
-        ns:Apply()
-    elseif cmd == "ring" and RINGS[args[2]] then
-        local ring = cfg[args[2]]
-        if onOff(args[3]) ~= nil then
-            ring.enabled = onOff(args[3])
-        elseif args[3] == "size" and tonumber(args[4]) then
-            local limits = SIZE_LIMITS[args[2]] or DEFAULT_SIZE_LIMITS
-            ring.size = math.max(limits[1], math.min(limits[2], tonumber(args[4])))
-        else
-            say(L.slashRingUsage, args[2])
-            return
-        end
-        ns:Apply()
-    elseif cmd == nil or cmd == "config" or cmd == "options" then
-        -- without arguments, open the settings directly (shortcut: /ac)
-        if ns.OpenSettings then ns:OpenSettings() end
-        return
-    elseif cmd == "reset" then
-        ns:ResetSettings()
-        say(L.slashReset)
-        return
-    else
-        say(L.slashStatus, cfg.scale, cfg.alpha, cfg.combatOnly and L.yes or L.no)
-        for _, name in ipairs({ "main", "gcd", "cast", "dot", "trail" }) do
-            say(L.slashElement, name, cfg[name].enabled and L.stateOn or L.stateOff, cfg[name].size)
-        end
-        say(L.slashHelp)
-    end
-end

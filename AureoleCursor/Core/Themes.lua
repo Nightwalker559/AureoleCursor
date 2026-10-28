@@ -80,13 +80,6 @@ function ns:ThemePalette(id)
     }
 end
 
-local function copyValue(v)
-    if type(v) ~= "table" then return v end
-    local t = {}
-    for k, x in pairs(v) do t[k] = copyValue(x) end
-    return t
-end
-
 -- The trail shape the active theme brings (and locks the shape setting to), nil for themes without one.
 function ns:ThemeShape()
     local theme = byId[self.cfg.colors.theme]
@@ -130,7 +123,7 @@ function ns:UseThemeAsCustom()
     if not palette then return end
     for key, slot in pairs(palette) do
         local custom = colors.custom[key]
-        for field, value in pairs(slot) do custom[field] = copyValue(value) end
+        for field, value in pairs(slot) do custom[field] = ns.Copy(value) end
     end
     self:SetTheme("custom")
     self:Apply()

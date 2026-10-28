@@ -75,41 +75,6 @@ anchor:SetScript("OnShow", function()
     prevX, prevY = nil, nil
 end)
 
--- A ring that grows and fades out when played (click pulse of the center dot, click wave of the Main Ring); the caller sets
--- texture, size and the scale from/to. The animation runs in the engine, Lua is only needed on the click.
-function ns:CreateBurst(time)
-    local tex = anchor:CreateTexture(nil, "OVERLAY")
-    tex:SetPoint("CENTER", anchor, "CENTER")
-    tex:Hide()
-    local group = tex:CreateAnimationGroup()
-    local fade = group:CreateAnimation("Alpha")
-    fade:SetFromAlpha(1)
-    fade:SetToAlpha(0)
-    fade:SetDuration(time)
-    local scale = group:CreateAnimation("Scale")
-    scale:SetDuration(time)
-    group:SetScript("OnFinished", function() tex:Hide() end)
-    return tex, group, scale
-end
-
-function ns:PlayBurst(tex, group)
-    group:Stop()
-    tex:Show()
-    group:Play()
-end
-
--- Mouse buttons a click effect reacts to: "left", "right" or "both" (the setting) against the button name of the event.
-local CLICK_BUTTONS = {
-    left = { LeftButton = true },
-    right = { RightButton = true },
-    both = { LeftButton = true, RightButton = true },
-}
-
-function ns:ClickButton(setting, button)
-    local buttons = CLICK_BUTTONS[setting]
-    return buttons ~= nil and buttons[button] == true
-end
-
 local Cursor = {}
 ns:RegisterModule(Cursor)
 

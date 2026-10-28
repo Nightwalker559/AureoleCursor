@@ -75,18 +75,6 @@ local EDGE_ALPHA = 0.85 -- opacity of the dots of a shape with a core
 -- seasons ...) the dots have different colors, so the core is a lighter shade of the color of its dot instead:
 local CORE_MIX = 0.7 -- how far that shade goes from the color of the dot towards white
 
--- Animation group of a region that fades it out and shrinks it (the target scale is set in Apply) and hides it when done.
-local function fadeGroup(region)
-    local group = region:CreateAnimationGroup()
-    local fade = group:CreateAnimation("Alpha")
-    fade:SetFromAlpha(1)
-    fade:SetToAlpha(0)
-    local shrink = group:CreateAnimation("Scale")
-    shrink:SetScaleFrom(1, 1)
-    group:SetScript("OnFinished", function() region:Hide() end)
-    return group, fade, shrink
-end
-
 local frame = CreateFrame("Frame", "AureoleCursorTrail", UIParent)
 frame:SetSize(1, 1)
 frame:EnableMouse(false)
@@ -99,7 +87,7 @@ ns.trailDots = dots
 for i = 1, POOL do
     local tex = frame:CreateTexture(nil, "ARTWORK")
     tex:Hide()
-    local group, fade, shrink = fadeGroup(tex)
+    local group, fade, shrink = ns:FadeGroup(tex) -- the end scale is set in Apply
     -- The motion of the themed shapes is a second group that only plays for those shapes. The plain shapes would otherwise
     -- pay for a translation and a rotation of zero on every dot and every frame.
     local motionGroup = tex:CreateAnimationGroup()
@@ -142,7 +130,8 @@ local function gradientColor(list, distance)
     return a[1] + (b[1] - a[1]) * f, a[2] + (b[2] - a[2]) * f, a[3] + (b[3] - a[3]) * f
 end
 
-local function shrinkTarget(t)
+-- Scale a dot ends at: it shrinks (setting) or stays, a growing shape grows
+local function endScale(t)
     if motion and motion.grow then return motion.grow end
     return t.shrink and SHRINK_TO or 1
 end
@@ -176,7 +165,7 @@ local function applyMask(d, t)
         d.tex:AddMaskTexture(d.mask)
         d.masked = true
     end
-    local target = shrinkTarget(t)
+    local target = endScale(t)
     d.maskShrink:SetDuration(t.duration)
     d.maskShrink:SetScaleTo(target, target)
 end
@@ -197,7 +186,7 @@ local function applyCore(d, t, texture, size)
         core:Hide()
         core:SetPoint("CENTER", d.tex, "CENTER")
         d.core = core
-        d.coreGroup, d.coreFade, d.coreShrink = fadeGroup(core)
+        d.coreGroup, d.coreFade, d.coreShrink = ns:FadeGroup(core)
     end
     d.coreOn = true
     d.core:SetTexture(texture)
@@ -205,7 +194,7 @@ local function applyCore(d, t, texture, size)
     d.core:SetSize(size * CORE_SHARE, size * CORE_SHARE)
     d.coreFade:SetDuration(t.duration)
     d.coreShrink:SetDuration(t.duration)
-    local target = shrinkTarget(t)
+    local target = endScale(t)
     d.coreShrink:SetScaleTo(target, target)
 end
 
@@ -391,7 +380,7 @@ function Trail:Apply()
     if energy then -- energy keeps its original colors: color mode and color do not apply
         rainbow, palette, gradient, r, g, b = false, nil, nil, 1, 1, 1
     end
-    local target = shrinkTarget(t)
+    local target = endScale(t)
     local coreOn = t.core and look and look.core
     coreShade = coreOn and colors.colorMode ~= "custom"
     edgeAlpha = coreOn and EDGE_ALPHA or 1

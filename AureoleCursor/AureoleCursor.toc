@@ -12,8 +12,12 @@
 Locale\AureoleCursorLocale_enUS.lua
 Locale\AureoleCursorLocale_deDE.lua
 Core\Core.lua
+Core\Media.lua
+Core\Migrate.lua
 Core\Themes.lua
 Core\Cursor.lua
+Core\Effects.lua
+Core\Slash.lua
 Modules\Rings.lua
 Modules\Dot.lua
 Modules\Glow.lua

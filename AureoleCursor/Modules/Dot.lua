@@ -7,15 +7,8 @@ dot:SetPoint("CENTER", ns.anchor, "CENTER")
 ns.dot = dot
 
 -- Click pulse: a ring grows out of the center dot and fades out.
-local pulse, pulseGroup, pulseScale = ns:CreateBurst(0.3)
+local pulse, pulseGroup, pulseScale = ns:CreateBurst(0.3, "dot", "pulse", "pulseButton")
 ns.pulse, ns.pulseGroup, ns.pulseScale = pulse, pulseGroup, pulseScale
-
-ns:On("GLOBAL_MOUSE_DOWN", function(_, button)
-    local cfg = ns.cfg and ns.cfg.dot
-    if not cfg or not cfg.enabled or not ns:RingActive("dot") or not cfg.pulse or not ns:ClickButton(cfg.pulseButton, button) then return end
-    if not ns.anchor:IsShown() then return end
-    ns:PlayBurst(pulse, pulseGroup)
-end)
 
 -- Each shape has its own size: on a change the current size is remembered for the old shape and the
 -- remembered one (initially the default size from cfg.dot.sizes) is applied for the new shape.

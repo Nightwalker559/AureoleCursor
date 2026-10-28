@@ -87,6 +87,9 @@ local function themed(initializer)
     return initializer
 end
 
+-- The click effect of an element (see clickEffect): the field of its switch
+local CLICK_EFFECTS = { main = "wave", dot = "pulse" }
+
 -- Some options hang off a different setting than the one they really depend on (the Blizzard panel only re-evaluates
 -- children of the setting that changed). After a change, tell that intermediate setting to refresh its children.
 local function notifyDependents(key, field)
@@ -97,6 +100,8 @@ local function notifyDependents(key, field)
         Settings.NotifyUpdate(varName(key, "core")) -- and the core color the core switch
     elseif (key == "cast" or key == "gcd") and field == "enabled" then
         Settings.NotifyUpdate(varName(key, "gradient")) -- the color row follows the gradient switch
+    elseif field == "enabled" and CLICK_EFFECTS[key] then
+        Settings.NotifyUpdate(varName(key, CLICK_EFFECTS[key])) -- the button (and size) of the click effect follow the element
     end
 end
 
@@ -387,12 +392,18 @@ local function shapeDropdown(category, key, child, tip, choices)
     child(track(initializer))
 end
 
--- Click wave of the Main Ring: the button is only usable while the wave is on
+-- Click effect (pulse of the center dot, wave of the Main Ring): a switch and the mouse button, which is only usable while
+-- the effect is on. Returns the switch and the function that says whether the effect is on, for options that hang off it.
+local function clickEffect(category, key, child, field, label, tip, buttonTip)
+    local switch = checkbox(category, key, field, label, tip)
+    child(switch)
+    local function on() return ns.cfg[key].enabled and ns.cfg[key][field] end
+    dropdown(category, key, field .. "Button", L.pulseButton, buttonTip, BUTTON_CHOICES):SetParentInitializer(switch, on)
+    return switch, on
+end
+
 local function mainOptions(category, key, child)
-    local wave = checkbox(category, key, "wave", L.wave, L.waveTip)
-    child(wave)
-    dropdown(category, key, "waveButton", L.pulseButton, L.waveButtonTip, BUTTON_CHOICES)
-        :SetParentInitializer(wave, function() return ns.cfg[key].enabled and ns.cfg[key].wave end)
+    clickEffect(category, key, child, "wave", L.wave, L.waveTip, L.waveButtonTip)
 end
 
 local function dotOptions(category, key, child)
@@ -409,12 +420,7 @@ local function dotOptions(category, key, child)
     gcd:AddShownPredicate(ringShape)
 
     -- Click pulse: button and size are only usable while the pulse is active
-    local pulse = checkbox(category, key, "pulse", L.pulse, L.pulseTip)
-    child(pulse)
-    local function whenPulse()
-        return ns.cfg[key].enabled and ns.cfg[key].pulse
-    end
-    dropdown(category, key, "pulseButton", L.pulseButton, L.pulseButtonTip, BUTTON_CHOICES):SetParentInitializer(pulse, whenPulse)
+    local pulse, whenPulse = clickEffect(category, key, child, "pulse", L.pulse, L.pulseTip, L.pulseButtonTip)
     slider(category, key, "pulseSize", L.pulseSize, L.pulseSizeTip, 1.5, 6, 0.5, function(v)
         return string.format("%.1fx", v)
     end):SetParentInitializer(pulse, whenPulse)

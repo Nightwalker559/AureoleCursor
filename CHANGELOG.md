@@ -18,9 +18,16 @@
 - **Ripple**: thin rings that spread out like water and fade. Starts in the Water colors.
 - Smoke and Ripple grow instead of shrinking, so the **Shrink** switch is hidden while one of them is selected.
 
+### Fixed
+- The mouse button and size options of the click pulse (center dot) did not grey out or come back when you switched the whole element on or off; they follow it now, and so does the button of the new click wave.
+
+### Tooltips
+- The long tooltips (Shape, Color theme, Main style, Pointer glow lead, Color mode, GCD in the ring, Ring line style) are down to two or three sentences.
+
 ### Under the hood
-- Click pulse and wave share one helper (and the choice of mouse buttons).
+- Click pulse and wave share one helper (animation, mouse button, conditions), as do the trail dots and the click effects for their fade animation, the deep copy and the options of a click effect.
 - Shapes that only jitter or turn to face the mouse no longer play an empty motion animation per dot.
+- `Core.lua` is split by topic: texture paths (`Media.lua`), saved settings of older versions (`Migrate.lua`), animation helpers (`Effects.lua`) and slash commands (`Slash.lua`).
 
 ---
 

@@ -1,4 +1,4 @@
--- Aureole Cursor: the three rings. Main = fixed ring, GCD and Cast = cooldown rings
+-- Aureole Cursor: the three rings. Main = fixed ring (with the click wave), GCD and Cast = cooldown rings
 -- (swipe with ring texture). Times come as duration objects, secret values are never used in calculations.
 local _, ns = ...
 
@@ -27,15 +27,8 @@ ns.mainRing = mainRing
 
 -- Click wave of the Main Ring: a thin ring leaves the Main Ring and grows to WAVE_GROW times its size while it fades out.
 local WAVE_TIME, WAVE_GROW, WAVE_LEVEL = 0.5, 2.5, 2
-local wave, waveGroup, waveScale = ns:CreateBurst(WAVE_TIME)
+local wave, waveGroup, waveScale = ns:CreateBurst(WAVE_TIME, "main", "wave", "waveButton")
 ns.wave, ns.waveGroup, ns.waveScale = wave, waveGroup, waveScale
-
-ns:On("GLOBAL_MOUSE_DOWN", function(_, button)
-    local m = ns.cfg and ns.cfg.main
-    if not m or not m.enabled or not m.wave or not ns:RingActive("main") or not ns:ClickButton(m.waveButton, button) then return end
-    if not anchor:IsShown() then return end
-    ns:PlayBurst(wave, waveGroup)
-end)
 
 -- Background track: faint full ring behind the progress ring (sits below the cooldown frames).
 local function createTrack()
