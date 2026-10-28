@@ -25,6 +25,18 @@ mainRing:SetTexture(DEFAULT_RING_TEXTURE)
 mainRing:SetPoint("CENTER", anchor, "CENTER")
 ns.mainRing = mainRing
 
+-- Click wave of the Main Ring: a thin ring leaves the Main Ring and grows to WAVE_GROW times its size while it fades out.
+local WAVE_TIME, WAVE_GROW, WAVE_LEVEL = 0.5, 2.5, 2
+local wave, waveGroup, waveScale = ns:CreateBurst(WAVE_TIME)
+ns.wave, ns.waveGroup, ns.waveScale = wave, waveGroup, waveScale
+
+ns:On("GLOBAL_MOUSE_DOWN", function(_, button)
+    local m = ns.cfg and ns.cfg.main
+    if not m or not m.enabled or not m.wave or not ns:RingActive("main") or not ns:ClickButton(m.waveButton, button) then return end
+    if not anchor:IsShown() then return end
+    ns:PlayBurst(wave, waveGroup)
+end)
+
 -- Background track: faint full ring behind the progress ring (sits below the cooldown frames).
 local function createTrack()
     local t = anchor:CreateTexture(nil, "BACKGROUND")
@@ -208,6 +220,7 @@ ns:RegisterModule(Rings)
 local function applyMainColor()
     local r, g, b = ns:ElementColor("main")
     mainRing:SetVertexColor(r, g, b, 1)
+    wave:SetVertexColor(r, g, b, 1)
 end
 
 function Rings:UpdateVisibility()
@@ -220,21 +233,30 @@ function Rings:Apply()
     local palette = ns:Palette()
 
     local m = cfg.main
-    mainRing:SetTexture(ns:RingTexture(m.thickness, m.size))
+    mainRing:SetTexture(ns:RingTexture(m.thickness, m.size, cfg.ringStyle))
     mainRing:SetSize(m.size, m.size)
+    local final = m.size * WAVE_GROW
+    wave:SetTexture(ns:RingTexture(WAVE_LEVEL, final))
+    wave:SetSize(final, final)
+    waveScale:SetScaleFrom(1 / WAVE_GROW, 1 / WAVE_GROW)
+    waveScale:SetScaleTo(1, 1)
     applyMainColor()
     mainRing:SetShown(m.enabled and ns:RingActive("main"))
+    if not (m.enabled and m.wave and ns:RingActive("main")) then
+        waveGroup:Stop()
+        wave:Hide()
+    end
 
     for _, trio in ipairs({ { gcdCD, cfg.gcd, gcdTrack, "gcd" }, { castCD, cfg.cast, castTrack, "cast" } }) do
         local cd, ring, track = trio[1], trio[2], trio[3]
         local active = ring.enabled and ns:RingActive(trio[4]) -- the ring layout can switch a ring off
-        track:SetTexture(ns:RingTexture(ring.thickness, ring.size))
+        track:SetTexture(ns:RingTexture(ring.thickness, ring.size, cfg.ringStyle))
         track:SetSize(ring.size, ring.size)
         local r, g, b = ns:GetRingColor(palette[trio[4]])
         track:SetVertexColor(r, g, b, cfg.trackAlpha)
         track:SetShown(active and ring.track)
         cd:SetFrameStrata(strata)
-        cd:SetSwipeTexture(ns:RingTexture(ring.thickness, ring.size))
+        cd:SetSwipeTexture(ns:RingTexture(ring.thickness, ring.size, cfg.ringStyle))
         cd:SetSize(ring.size, ring.size)
         cd:SetSwipeColor(r, g, b, 1)
         if active then cd:Show() else cd:Clear(); cd:Hide() end

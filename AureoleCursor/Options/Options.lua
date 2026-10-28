@@ -20,6 +20,9 @@ local function track(initializer)
     return initializer
 end
 
+-- Mouse buttons of the click effects (pulse of the center dot, wave of the Main Ring)
+local BUTTON_CHOICES = { { "left", L.buttonLeft }, { "right", L.buttonRight }, { "both", L.buttonBoth } }
+
 -- Where a setting lives in the config. Settings are named after the element they belong to (key, nil = General) and the
 -- field. The colors are not part of the element: they are in the palette (cfg.colors.custom[key]), the combat color in
 -- cfg.colors.combat, the theme in cfg.colors. holder() gives the table that holds the value and the real name of the
@@ -215,6 +218,12 @@ local function buildGeneral(category, layout)
         { "individual", L.layoutIndividual }, { "maincast", L.layoutMainCast }, { "maingcd", L.layoutMainGcd },
     }):AddShownPredicate(function() return ns.cfg.mainStyle ~= "glow" end) -- no rings with the pointer glow
 
+    -- Line style of the three rings (solid, dashed ...)
+    dropdown(category, nil, "ringStyle", L.ringStyle, L.ringStyleTip, {
+        { "solid", L.styleSolid }, { "dash", L.styleDash }, { "dots", L.styleDots }, { "ticks", L.styleTicks },
+        { "segments", L.styleSegments },
+    }):AddShownPredicate(function() return ns.cfg.mainStyle ~= "glow" end)
+
     -- Color theme: replaces the colors of all elements at once (they are greyed out and show the theme's colors). The button
     -- takes the colors of the theme over as the own colors, so a theme can be adjusted.
     local choices = { { "custom", L.themeCustom } }
@@ -378,6 +387,14 @@ local function shapeDropdown(category, key, child, tip, choices)
     child(track(initializer))
 end
 
+-- Click wave of the Main Ring: the button is only usable while the wave is on
+local function mainOptions(category, key, child)
+    local wave = checkbox(category, key, "wave", L.wave, L.waveTip)
+    child(wave)
+    dropdown(category, key, "waveButton", L.pulseButton, L.waveButtonTip, BUTTON_CHOICES)
+        :SetParentInitializer(wave, function() return ns.cfg[key].enabled and ns.cfg[key].wave end)
+end
+
 local function dotOptions(category, key, child)
     shapeDropdown(category, key, child, L.dotShapeTip, {
         { "dot", L.shapeDot }, { "gap", L.shapeGap }, { "ring", L.shapeRing }, { "spark", L.shapeSpark },
@@ -397,9 +414,7 @@ local function dotOptions(category, key, child)
     local function whenPulse()
         return ns.cfg[key].enabled and ns.cfg[key].pulse
     end
-    dropdown(category, key, "pulseButton", L.pulseButton, L.pulseButtonTip, {
-        { "left", L.buttonLeft }, { "right", L.buttonRight }, { "both", L.buttonBoth },
-    }):SetParentInitializer(pulse, whenPulse)
+    dropdown(category, key, "pulseButton", L.pulseButton, L.pulseButtonTip, BUTTON_CHOICES):SetParentInitializer(pulse, whenPulse)
     slider(category, key, "pulseSize", L.pulseSize, L.pulseSizeTip, 1.5, 6, 0.5, function(v)
         return string.format("%.1fx", v)
     end):SetParentInitializer(pulse, whenPulse)
@@ -432,10 +447,14 @@ local function trailOptions(category, key, child)
         { "line", L.shapeLine },
         { "pumpkin", L.shapePumpkin, function() return ns:ShapeAvailable("pumpkin") end },
         { "balloon", L.shapeBalloon, function() return ns:ShapeAvailable("balloon") end },
+        { "paw", L.shapePaw }, { "bat", L.shapeBat }, { "smoke", L.shapeSmoke }, { "ripple", L.shapeRipple },
     })
     child(slider(category, key, "duration", L.duration, L.durationTip, 0.1, 1.5, 0.05, seconds))
     child(slider(category, key, "spacing", L.spacing, L.spacingTip, 2, 40, 1))
-    child(checkbox(category, key, "shrink", L.shrink, L.shrinkTip))
+    -- smoke and ripples grow while they fade, shrinking does not apply to them
+    local shrink = checkbox(category, key, "shrink", L.shrink, L.shrinkTip)
+    child(shrink)
+    shrink:AddShownPredicate(function() return not ns:ShapeGrows(ns.cfg[key].shape) end)
 end
 
 local function build()
@@ -445,7 +464,7 @@ local function build()
     ns.settingsCategory = category
 
     buildGeneral(category, layout)
-    buildElement(category, layout, "main", L.main, { thickness = true, ringActive = true })
+    buildElement(category, layout, "main", L.main, { thickness = true, extra = mainOptions, ringActive = true })
     buildElement(category, layout, "gcd", L.gcd, { thickness = true, track = true, ringActive = true, colors = "gradient" })
     buildElement(category, layout, "cast", L.cast, { thickness = true, track = true, ringActive = true, colors = "gradient" })
     buildElement(category, layout, "dot", L.dot, { extra = dotOptions, ringActive = true })

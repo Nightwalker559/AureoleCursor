@@ -35,7 +35,10 @@ local PALETTES = {
 -- Motion of the themed shapes, in multiples of the dot size. All of it is played by the engine (animations), Lua only sets
 -- random values when a dot is spawned. rise = distance the dot floats up while it fades (negative: falls), sway = random
 -- sideways drift, jitter = random offset of the start position around the cursor, spin = degrees the dot turns while it
--- fades (random direction), tilt = largest random angle in radians (default: any angle), add = additive blending (glows).
+-- fades (random direction), tilt = largest random angle in radians (default: any angle), add = additive blending (glows),
+-- face = the dot is turned in the direction of the mouse movement, side = the dots alternate left and right of the path by
+-- this much (footprints), grow = scale the dot reaches while it fades, instead of shrinking (the setting "shrink" does not
+-- apply to these shapes, see ns:ShapeGrows).
 local MOTION = {
     flame = { rise = 2.2, sway = 0.5, jitter = 0.3, tilt = 0.35, add = true },
     heart = { rise = 1.6, sway = 0.6, tilt = 0.45 },
@@ -53,6 +56,10 @@ local MOTION = {
     confetti = { rise = -2.2, sway = 1.4, jitter = 0.7, spin = 300 },
     pumpkin = { rise = -1.5, sway = 1.0, jitter = 0.3, tilt = 0.5 },
     balloon = { rise = 2, sway = 0.8, jitter = 0.3, tilt = 0.3 },
+    bat = { rise = 1.8, sway = 1.5, jitter = 0.3, tilt = 0.5 },
+    paw = { face = true, side = 0.4 },
+    smoke = { rise = 2.5, sway = 0.6, jitter = 0.3, spin = 40, grow = 2.5 },
+    ripple = { grow = 3.5 },
 }
 
 -- Shapes with a look of their own and no motion. add = additive blending, core = the shape can have a core (setting "core"):
@@ -106,6 +113,8 @@ end
 local lastX, lastY
 local rainbow, palette, gradient, spin, energy = false, nil, nil, false, false
 local motion, tilt, dotSize -- MOTION of the current shape, its tilt limit and the dot size in pixels
+local moves = false -- the shape floats, sways or turns (the engine plays the motion group; shapes that only jitter or face do not need it)
+local pawSide = 1 -- the side the next dot of a shape with MOTION.side goes to
 local coreShade = false -- the core follows the color of its dot (see CORE_MIX)
 local edgeAlpha = 1 -- opacity of the dots (EDGE_ALPHA with a core)
 local travelled = 0
@@ -134,7 +143,14 @@ local function gradientColor(list, distance)
 end
 
 local function shrinkTarget(t)
+    if motion and motion.grow then return motion.grow end
     return t.shrink and SHRINK_TO or 1
+end
+
+-- Does this shape grow while it fades? (It then has no shrink setting.)
+function ns:ShapeGrows(shape)
+    local m = MOTION[shape]
+    return m ~= nil and m.grow ~= nil
 end
 
 -- Stops the animations of a dot (also the motion of an earlier shape, and the mask, see applyMask).
@@ -217,7 +233,8 @@ local function stopAll()
     end
 end
 
-local function spawn(x, y)
+-- ux, uy: direction of the mouse movement (unit vector)
+local function spawn(x, y, ux, uy)
     local d = dots[nextDot]
     nextDot = nextDot % POOL + 1
     stopDot(d)
@@ -229,15 +246,25 @@ local function spawn(x, y)
     elseif rainbow then
         tint(d, hue(travelled / RAINBOW_LENGTH))
     end
-    if spin then d.tex:SetRotation(tilt and (math.random() * 2 - 1) * tilt or math.random() * 2 * math.pi) end
+    if motion and motion.face then
+        d.tex:SetRotation(math.atan2(uy, ux) - math.pi / 2) -- the textures point up
+    elseif spin then
+        d.tex:SetRotation(tilt and (math.random() * 2 - 1) * tilt or math.random() * 2 * math.pi)
+    end
     if motion then
         local s = dotSize
         if motion.jitter then
             x = x + (math.random() * 2 - 1) * motion.jitter * s
             y = y + (math.random() * 2 - 1) * motion.jitter * s
         end
-        d.move:SetOffset((math.random() * 2 - 1) * (motion.sway or 0) * s, (motion.rise or 0) * s * (0.7 + 0.6 * math.random()))
-        if motion.spin then d.turn:SetDegrees((math.random() < 0.5 and -1 or 1) * motion.spin * (0.5 + math.random())) end
+        if motion.side then
+            pawSide = -pawSide
+            x, y = x - uy * pawSide * motion.side * s, y + ux * pawSide * motion.side * s
+        end
+        if moves then
+            d.move:SetOffset((math.random() * 2 - 1) * (motion.sway or 0) * s, (motion.rise or 0) * s * (0.7 + 0.6 * math.random()))
+            if motion.spin then d.turn:SetDegrees((math.random() < 0.5 and -1 or 1) * motion.spin * (0.5 + math.random())) end
+        end
     end
     if energy then
         local u, v = math.random(), math.random() -- tile is seamless (REPEAT), each dot shows a different section
@@ -251,7 +278,7 @@ local function spawn(x, y)
         d.core:Show()
         d.coreGroup:Play()
     end
-    if motion then d.motionGroup:Play() end
+    if moves then d.motionGroup:Play() end
     if energy and d.maskGroup then d.maskGroup:Play() end
 end
 
@@ -300,7 +327,7 @@ frame:SetScript("OnUpdate", function()
     end
     for i = 1, n do
         travelled = travelled + spacing
-        spawn(lastX + ux * spacing * i, lastY + uy * spacing * i)
+        spawn(lastX + ux * spacing * i, lastY + uy * spacing * i, ux, uy)
     end
     lastX, lastY = lastX + ux * spacing * n, lastY + uy * spacing * n
 end)
@@ -356,6 +383,7 @@ function Trail:Apply()
     end
     spin = t.shape ~= "dot" -- every shape except the plain dot is randomly rotated
     motion = MOTION[t.shape]
+    moves = motion ~= nil and (motion.rise ~= nil or motion.sway ~= nil or motion.spin ~= nil)
     local look = LOOK[t.shape]
     tilt = motion and motion.tilt
     dotSize = size
@@ -391,7 +419,7 @@ function Trail:Apply()
         local blend = ((motion and motion.add) or (look and look.add)) and "ADD" or "BLEND"
         d.tex:SetBlendMode(blend)
         if d.coreOn then d.core:SetBlendMode("BLEND") end
-        if not motion then d.move:SetOffset(0, 0) end
+        if not moves then d.move:SetOffset(0, 0) end
         if not (motion and motion.spin) then d.turn:SetDegrees(0) end
     end
     lastX, lastY = nil, nil

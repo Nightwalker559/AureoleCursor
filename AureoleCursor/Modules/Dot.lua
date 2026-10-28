@@ -6,35 +6,15 @@ dot:SetTexture(ns:DotTexture(8))
 dot:SetPoint("CENTER", ns.anchor, "CENTER")
 ns.dot = dot
 
--- Click pulse: a ring grows out of the center dot and fades out. The animation runs in the engine,
--- Lua is only needed on the click.
-local PULSE_TIME = 0.3
-local PULSE_BUTTONS = {
-    left = { LeftButton = true },
-    right = { RightButton = true },
-    both = { LeftButton = true, RightButton = true },
-}
-
-local pulse = ns.anchor:CreateTexture(nil, "OVERLAY")
-pulse:SetPoint("CENTER", ns.anchor, "CENTER")
-pulse:Hide()
-local pulseGroup = pulse:CreateAnimationGroup()
-local pulseFade = pulseGroup:CreateAnimation("Alpha")
-pulseFade:SetFromAlpha(1)
-pulseFade:SetToAlpha(0)
-pulseFade:SetDuration(PULSE_TIME)
-local pulseScale = pulseGroup:CreateAnimation("Scale")
-pulseScale:SetDuration(PULSE_TIME)
-pulseGroup:SetScript("OnFinished", function() pulse:Hide() end)
+-- Click pulse: a ring grows out of the center dot and fades out.
+local pulse, pulseGroup, pulseScale = ns:CreateBurst(0.3)
 ns.pulse, ns.pulseGroup, ns.pulseScale = pulse, pulseGroup, pulseScale
 
 ns:On("GLOBAL_MOUSE_DOWN", function(_, button)
     local cfg = ns.cfg and ns.cfg.dot
-    if not cfg or not cfg.enabled or not ns:RingActive("dot") or not cfg.pulse or not PULSE_BUTTONS[cfg.pulseButton][button] then return end
+    if not cfg or not cfg.enabled or not ns:RingActive("dot") or not cfg.pulse or not ns:ClickButton(cfg.pulseButton, button) then return end
     if not ns.anchor:IsShown() then return end
-    pulseGroup:Stop()
-    pulse:Show()
-    pulseGroup:Play()
+    ns:PlayBurst(pulse, pulseGroup)
 end)
 
 -- Each shape has its own size: on a change the current size is remembered for the old shape and the

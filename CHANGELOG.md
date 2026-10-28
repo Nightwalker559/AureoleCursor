@@ -2,6 +2,28 @@
 
 ---
 
+## 1.2.0
+
+### Color themes
+- Five new themes: **Faction** (follows your faction: blue and gold for the Alliance, red and amber for the Horde), **Void** (indigo, magenta and a cyan accent), **Fel** (toxic green with a violet accent), **Blood** (crimson, dark red and gold) and **Aurora** (green, turquoise and violet like the northern lights). Like the class theme, Faction has no fixed colors; every new theme brings its own core color for the line.
+
+### Rings
+- **Ring line style** (General): the Main, GCD and Cast Ring can be solid (as before), dashed, dotted, ticks (like a clock, with a longer tick at each compass point) or segments. The progress of the GCD and Cast Ring runs over the pattern as usual, and the thickness setting of each ring decides how heavy the dashes, dots, ticks or segments are. The click pulse of the center dot keeps its solid ring.
+- **Wave on click** (Main Ring): a click sends a thin ring out from the Main Ring, growing to 2.5 times its size while it fades out. It has the color of the Main Ring (also the combat color) and you can choose the mouse button (left, right or both). It is off by default.
+
+### New trail shapes
+- **Paw print**: stays where it lands, turns in the direction of the mouse and alternates left and right of the path, like footsteps.
+- **Bat**: flutters upwards with a slight tilt.
+- **Smoke**: soft puffs that rise, drift and turn slowly while they grow and fade. They start white (Custom color) and can be tinted.
+- **Ripple**: thin rings that spread out like water and fade. Starts in the Water colors.
+- Smoke and Ripple grow instead of shrinking, so the **Shrink** switch is hidden while one of them is selected.
+
+### Under the hood
+- Click pulse and wave share one helper (and the choice of mouse buttons).
+- Shapes that only jitter or turn to face the mouse no longer play an empty motion animation per dot.
+
+---
+
 ## 1.1.3
 
 ### New trail shape

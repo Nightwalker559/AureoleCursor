@@ -16,6 +16,7 @@ ns.defaults = {
     idleAlpha = 1.0,          -- share of the opacity applied out of combat
     hideOnMouselook = false,  -- hide while the camera is being turned with the mouse
     ringLayout = "individual", -- "individual" (every ring on its own), "maincast" (Main + Cast Ring) or "maingcd" (Main + GCD Ring)
+    ringStyle = "solid",      -- line style of the three rings: "solid", "dash", "dots", "ticks" or "segments" (see RING_STYLES)
     mainStyle = "ring",       -- what surrounds the cursor: the Main Ring ("ring") or the pointer glow ("glow")
     trackAlpha = 0.5,         -- opacity of the background tracks of the GCD and Cast Ring (and of the ring of the center dot)
     -- All colors live here. The elements read them through ns:Palette(): the custom colors below, or the colors of a theme
@@ -41,7 +42,8 @@ ns.defaults = {
                       coreColor = { 1, 1, 1 } }, -- coreColor: color of the core of the line (setting trail.core)
         },
     },
-    main = { enabled = true, size = 40, thickness = 6 },
+    -- wave: a click sends a thin ring out from the Main Ring and fades it (waveButton: "left", "right" or "both")
+    main = { enabled = true, size = 40, thickness = 6, wave = false, waveButton = "both" },
     gcd  = { enabled = true, size = 28, thickness = 6, track = true },
     cast = { enabled = true, size = 54, thickness = 6, track = true },
     dot  = { enabled = true, size = 10, shape = "dot", sizes = { dot = 10, gap = 22, ring = 24, spark = 24, diamond = 14, arrow = 16, crossdot = 22, doublering = 26, corners = 26, hexagon = 24 }, pulse = true, pulseButton = "both", pulseSize = 4,
@@ -83,6 +85,10 @@ ns.defaults = {
                   line = { size = 22, duration = 0.5, spacing = 3, colorMode = "rainbow" },
                   pumpkin = { size = 22, duration = 1.0, spacing = 22 },
                   balloon = { size = 22, duration = 1.2, spacing = 24 },
+                  paw = { size = 20, duration = 1.4, spacing = 26 },
+                  bat = { size = 24, duration = 1.1, spacing = 22, colorMode = "arcane" },
+                  smoke = { size = 18, duration = 1.0, spacing = 10, colorMode = "custom" },
+                  ripple = { size = 14, duration = 0.9, spacing = 18, colorMode = "ocean" },
               } },
 }
 
@@ -112,9 +118,13 @@ function ns:ScreenPixels(size)
     return size * scale * height / 768
 end
 
-function ns:RingTexture(level, size)
+-- File name prefix of the ring line styles (same thickness levels and resolutions as the plain ring, see make_media.py)
+local RING_STYLES = { solid = "Ring", dash = "Dash", dots = "Dots", ticks = "Ticks", segments = "Segments" }
+
+-- style: line style of the ring (cfg.ringStyle), the plain ring when left out
+function ns:RingTexture(level, size, style)
     level = math.max(1, math.min(ns.MAX_THICKNESS, math.floor(level or 4)))
-    return MEDIA .. "Rings\\Ring" .. level .. "_" .. pickResolution(RING_RES, self:ScreenPixels(size or 40)) .. ".png"
+    return MEDIA .. "Rings\\" .. (RING_STYLES[style] or "Ring") .. level .. "_" .. pickResolution(RING_RES, self:ScreenPixels(size or 40)) .. ".png"
 end
 
 function ns:DotTexture(size)
@@ -129,6 +139,7 @@ local SHAPE_FILE = { leaf = "Trail\\Leaf", snow = "Trail\\Snow", star = "Trail\\
     blossom = "Trail\\Blossom", butterfly = "Trail\\Butterfly", ember = "Trail\\Ember", drop = "Trail\\Drop",
     feather = "Trail\\Feather", bolt = "Trail\\Bolt", crystal = "Trail\\Crystal", coin = "Trail\\Coin",
     rune = "Trail\\Rune", confetti = "Trail\\Confetti", line = "Trail\\Line", linecore = "Trail\\LineCore", pumpkin = "Trail\\Pumpkin", balloon = "Trail\\Balloon",
+    paw = "Trail\\Paw", bat = "Trail\\Bat", smoke = "Trail\\Smoke", ripple = "Trail\\Ripple",
     gap = "Dot\\Gap", ring = "Dot\\DotRing", spark = "Dot\\Spark", diamond = "Dot\\Diamond", arrow = "Dot\\Arrow",
     crossdot = "Dot\\CrossDot", doublering = "Dot\\DoubleRing", corners = "Dot\\Corners", hexagon = "Dot\\Hexagon" }
 

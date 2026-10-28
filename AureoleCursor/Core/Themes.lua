@@ -6,16 +6,22 @@ local _, ns = ...
 
 -- id, name (key in the locale) and three colors { r, g, b }: 1 = main color, 2 = second color, 3 = accent. core = the
 -- color of the core of the line (setting trail.core), a light shade that suits the theme.
--- "class" has no fixed colors, they come from the class color of the player (see classColors).
+-- "class" and "faction" have no fixed colors, they come from the class color / the faction of the player (see classColors,
+-- factionColors).
 -- trailShape: the theme brings a trail shape that can only be used with it (see THEME_SHAPES).
 ns.THEMES = {
     { id = "class", name = "themeClass" },
+    { id = "faction", name = "themeFaction" },
     { id = "fire", name = "themeFire", { 1, 0.85, 0.2 }, { 1, 0.45, 0.08 }, { 0.85, 0.12, 0.05 }, core = { 1, 0.97, 0.75 } },
     { id = "ice", name = "themeIce", { 0.8, 0.95, 1 }, { 0.35, 0.7, 1 }, { 0.15, 0.4, 0.95 }, core = { 0.95, 1, 1 } },
     { id = "nature", name = "themeNature", { 0.75, 1, 0.5 }, { 0.3, 0.8, 0.35 }, { 0.95, 0.85, 0.3 }, core = { 0.95, 1, 0.85 } },
     { id = "arcane", name = "themeArcane", { 0.85, 0.55, 1 }, { 0.55, 0.3, 1 }, { 0.3, 0.75, 1 }, core = { 0.96, 0.88, 1 } },
     { id = "shadow", name = "themeShadow", { 0.75, 0.35, 0.95 }, { 0.45, 0.15, 0.6 }, { 0.95, 0.3, 0.6 }, core = { 1, 0.82, 0.95 } },
+    { id = "void", name = "themeVoid", { 0.45, 0.3, 1 }, { 0.85, 0.2, 0.8 }, { 0.3, 0.9, 1 }, core = { 0.9, 0.88, 1 } },
     { id = "holy", name = "themeHoly", { 1, 0.95, 0.7 }, { 1, 0.8, 0.3 }, { 1, 1, 1 }, core = { 1, 1, 1 } },
+    { id = "fel", name = "themeFel", { 0.55, 1, 0.1 }, { 0.2, 0.75, 0.15 }, { 0.65, 0.3, 0.9 }, core = { 0.9, 1, 0.7 } },
+    { id = "blood", name = "themeBlood", { 0.9, 0.12, 0.15 }, { 0.6, 0.06, 0.1 }, { 1, 0.78, 0.3 }, core = { 1, 0.85, 0.8 } },
+    { id = "aurora", name = "themeAurora", { 0.4, 1, 0.6 }, { 0.2, 0.85, 0.85 }, { 0.65, 0.4, 1 }, core = { 0.9, 1, 0.95 } },
     { id = "sunset", name = "themeSunset", { 1, 0.8, 0.4 }, { 1, 0.4, 0.5 }, { 0.6, 0.3, 0.8 }, core = { 1, 0.95, 0.82 } },
     { id = "silver", name = "themeSilver", { 1, 1, 1 }, { 0.7, 0.7, 0.75 }, { 0.45, 0.45, 0.5 }, core = { 1, 1, 1 } },
     { id = "lagoon", name = "themeLagoon", { 0.25, 0.9, 0.8 }, { 0.15, 0.55, 0.95 }, { 0.45, 0.35, 1 }, core = { 0.85, 1, 0.97 } },
@@ -39,6 +45,18 @@ local function classColors()
     return { r, g, b }, { r * 0.6, g * 0.6, b * 0.6 }, { r + (1 - r) * 0.5, g + (1 - g) * 0.5, b + (1 - b) * 0.5 }
 end
 
+-- The faction theme: blue and gold for the Alliance, red and amber for the Horde, gold for a player who has not chosen yet.
+local FACTIONS = {
+    Alliance = { { 0.3, 0.55, 1 }, { 0.15, 0.3, 0.8 }, { 1, 0.82, 0.3 } },
+    Horde = { { 0.9, 0.15, 0.1 }, { 0.55, 0.05, 0.05 }, { 1, 0.65, 0.25 } },
+}
+local NEUTRAL = { { 1, 0.82, 0.3 }, { 0.7, 0.6, 0.35 }, { 1, 1, 1 } }
+
+local function factionColors()
+    local f = FACTIONS[UnitFactionGroup("player")] or NEUTRAL
+    return f[1], f[2], f[3]
+end
+
 -- The palette of a theme, in the form of cfg.colors.custom (every field the settings page shows is there): the Main Ring and
 -- the center dot are plain colors (main color, accent), the GCD Ring runs from color 1 to 2 and the Cast Ring from 1 to 3 over
 -- its time, the pointer glow blends from 1 (top) to 2, the trail runs through all three. nil for an unknown id.
@@ -46,8 +64,10 @@ function ns:ThemePalette(id)
     local theme = byId[id]
     if not theme then return nil end
     local c1, c2, c3
-    if id == "class" then c1, c2, c3 = classColors() else c1, c2, c3 = theme[1], theme[2], theme[3] end
-    -- core of the line: the theme's own light color, the class theme (and a theme without one) takes the main color mostly white
+    if id == "class" then c1, c2, c3 = classColors()
+    elseif id == "faction" then c1, c2, c3 = factionColors()
+    else c1, c2, c3 = theme[1], theme[2], theme[3] end
+    -- core of the line: the theme's own light color, the dynamic themes (and a theme without one) take the main color mostly white
     local core = theme.core or { c1[1] + (1 - c1[1]) * 0.75, c1[2] + (1 - c1[2]) * 0.75, c1[3] + (1 - c1[3]) * 0.75 }
     return {
         main = { color = c1 },
