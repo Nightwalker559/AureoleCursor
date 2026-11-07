@@ -2,6 +2,14 @@
 
 ---
 
+## 1.2.1
+
+### Fixed
+- `/ac` showed "Interface action failed because of an addon" on the WoW Forever client. The settings now open without it.
+
+### Compatibility
+- The addon now also loads on WoW Forever.
+
 ## 1.2.0
 
 ### Color themes

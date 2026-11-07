@@ -481,8 +481,15 @@ local function build()
 end
 
 function ns:OpenSettings()
-    if self.settingsCategory then
-        Settings.OpenToCategory(self.settingsCategory:GetID())
+    local category = self.settingsCategory
+    if not category then return end
+    -- SettingsPanel:OpenToCategory also writes category.expanded from addon code, which raised
+    -- "interface action failed" on the Forever client; opening and selecting does not write to it.
+    if SettingsPanel and SettingsPanel.SelectCategory then
+        SettingsPanel:Open()
+        SettingsPanel:SelectCategory(category)
+    else
+        Settings.OpenToCategory(category:GetID())
     end
 end
 
