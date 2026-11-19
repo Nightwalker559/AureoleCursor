@@ -1,4 +1,4 @@
-## Interface: 120100, 120105, 16001
+## Interface: 120100, 120105, 120107, 16001
 ## Title: Aureole Cursor
 ## Notes: Rings or a pointer glow around your mouse cursor, plus a mouse trail. All settings on one page.
 ## Notes-deDE: Ringe oder ein Zeiger-Glow um deinen Mauszeiger, dazu eine Mauspur. Alle Einstellungen auf einer Seite.
