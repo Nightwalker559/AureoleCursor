@@ -87,7 +87,7 @@ ns.defaults = {
                   pumpkin = { size = 22, duration = 1.0, spacing = 22 },
                   balloon = { size = 22, duration = 1.2, spacing = 24 },
                   bauble = { size = 20, duration = 1.1, spacing = 22 },
-                  firework = { size = 22, duration = 0.8, spacing = 14 },
+                  rocket = { size = 22, duration = 0.9, spacing = 20 },
                   paw = { size = 20, duration = 1.4, spacing = 26 },
                   bat = { size = 24, duration = 1.1, spacing = 22, colorMode = "arcane" },
                   smoke = { size = 18, duration = 1.0, spacing = 10, colorMode = "custom" },

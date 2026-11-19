@@ -57,7 +57,7 @@ local MOTION = {
     pumpkin = { rise = -1.5, sway = 1.0, jitter = 0.3, tilt = 0.5 },
     balloon = { rise = 2, sway = 0.8, jitter = 0.3, tilt = 0.3 },
     bauble = { rise = -1.2, sway = 0.7, jitter = 0.3, tilt = 0.4 },
-    firework = { rise = 0.8, sway = 0.5, jitter = 0.5, spin = 50, add = true },
+    rocket = { rise = 2.5, sway = 0.4, jitter = 0.3, tilt = 0.25 },
     bat = { rise = 1.8, sway = 1.5, jitter = 0.3, tilt = 0.5 },
     paw = { face = true, side = 0.4 },
     smoke = { rise = 2.5, sway = 0.6, jitter = 0.3, spin = 40, grow = 2.5 },

@@ -28,12 +28,12 @@ ns.THEMES = {
     { id = "halloween", name = "themeHalloween", { 1, 0.55, 0.1 }, { 0.9, 0.3, 0.05 }, { 0.6, 0.3, 0.9 }, core = { 1, 0.9, 0.5 }, trailShape = "pumpkin" },
     { id = "anniversary", name = "themeAnniversary", { 0.5, 0.65, 1 }, { 1, 0.6, 0.2 }, { 0.25, 0.4, 0.9 }, core = { 1, 0.95, 0.8 }, trailShape = "balloon" },
     { id = "christmas", name = "themeChristmas", { 0.9, 0.15, 0.15 }, { 0.1, 0.55, 0.25 }, { 1, 0.85, 0.35 }, core = { 1, 0.95, 0.8 }, trailShape = "bauble" },
-    { id = "newyear", name = "themeNewYear", { 1, 0.82, 0.3 }, { 0.95, 0.2, 0.6 }, { 0.3, 0.85, 1 }, core = { 1, 1, 1 }, trailShape = "firework" },
+    { id = "newyear", name = "themeNewYear", { 1, 0.82, 0.3 }, { 0.95, 0.2, 0.6 }, { 0.3, 0.85, 1 }, core = { 1, 1, 1 }, trailShape = "rocket" },
 }
 
 -- Trail shapes that belong to a theme: shape = id of the theme. They are in the shape list only while that theme is active,
 -- the theme selects its shape when it is chosen, and the shape goes back to the earlier one when the theme is left.
-ns.THEME_SHAPES = { pumpkin = "halloween", balloon = "anniversary", bauble = "christmas", firework = "newyear" }
+ns.THEME_SHAPES = { pumpkin = "halloween", balloon = "anniversary", bauble = "christmas", rocket = "newyear" }
 
 local byId = {}
 for _, theme in ipairs(ns.THEMES) do byId[theme.id] = theme end
