@@ -385,7 +385,7 @@ local function shapeDropdown(category, key, child, tip, choices)
         defaultOf(key, "shape"), function() return ns.cfg[key].shape end, setShape)
     local initializer = Settings.CreateDropdown(category, shape, choiceList(choices), tip)
     if key == "trail" then
-        -- a theme with a shape of its own (Halloween) decides the trail shape: the setting is greyed out and shows it
+        -- a theme with a shape of its own (see THEME_SHAPES) decides the trail shape: the setting is greyed out and shows it
         initializer:AddModifyPredicate(function() return not ns:ThemeShape() end)
         initializer:AddEvaluateStateCVar(THEME_VAR)
     end
