@@ -453,6 +453,8 @@ local function trailOptions(category, key, child)
         { "line", L.shapeLine },
         { "pumpkin", L.shapePumpkin, function() return ns:ShapeAvailable("pumpkin") end },
         { "balloon", L.shapeBalloon, function() return ns:ShapeAvailable("balloon") end },
+        { "bauble", L.shapeBauble, function() return ns:ShapeAvailable("bauble") end },
+        { "firework", L.shapeFirework, function() return ns:ShapeAvailable("firework") end },
         { "paw", L.shapePaw }, { "bat", L.shapeBat }, { "smoke", L.shapeSmoke }, { "ripple", L.shapeRipple },
     })
     child(slider(category, key, "duration", L.duration, L.durationTip, 0.1, 1.5, 0.05, seconds))

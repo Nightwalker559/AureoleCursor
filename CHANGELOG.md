@@ -4,6 +4,9 @@
 
 ## 1.2.2
 
+### New
+- Themes **Christmas** (red, green and gold) and **New Year's Eve** (gold, magenta and cyan). Like the pumpkin of Halloween, each brings a trail shape of its own that only exists with the theme: falling **Baubles** for Christmas and a **Firework** (a starburst that rises and sparkles) for New Year's Eve. The shape setting is greyed out while the theme is on; leaving it brings back your earlier shape.
+
 ### Changed
 - TOC: added Interface 12.1.7 (120107).
 
