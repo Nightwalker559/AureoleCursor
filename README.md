@@ -1,39 +1,33 @@
 # Aureole Cursor
 
-Highlight your mouse cursor with rings or with a glow. The rings are a fixed ring, a global cooldown ring, a cast ring and a center dot; the glow is a soft halo in the shape of the pointer. Add an optional mouse trail to either. Sharp edges at every size, all settings on one page.
+Highlight your mouse cursor with rings or a glow, plus an optional mouse trail. Sharp at every size, all settings on one page.
 
-Built for Midnight (12.1.5). The timers use Blizzard's duration objects, so the rings keep working when combat values are restricted.
+For World of Warcraft: Midnight (12.1.5). English and German. The timers use Blizzard's duration objects, so the rings keep working when combat values are restricted.
+
+**Author:** Nightwalker559 · **License:** MIT with AI restriction
+
+---
 
 ## Features
 
-- **Main Ring:** a fixed ring around the cursor.
-- **GCD Ring:** shows the global cooldown and drains while it runs. Optionally it fades from one color to another while the GCD runs (color gradient).
-- **Cast Ring:** shows casts (fills up), channels (drains) and empowered spells. Optionally it fades from one color to another while the cast progresses (color gradient).
-- **Ring line style:** the three rings can be solid, dashed, dotted, ticks (like a clock) or segments; the GCD and cast progress runs over the pattern.
-- **Click wave:** optionally a thin ring leaves the Main Ring on a click and fades out (left, right or both mouse buttons).
-- **Ring layout:** use every ring on its own, or only Main + Cast Ring, or only Main + GCD Ring. The options of a ring you do not use are hidden.
-- **Main style:** the cursor is surrounded by the rings (default) or by the pointer glow, never both.
-- **Pointer glow:** a soft halo, a crisp border or both, in the shape of the game's mouse pointer (the border hugs its edge, in four widths), in one or two colors (as a gradient or two halves). It follows the game's cursor size and can be nudged by pixels. It replaces the rings and the center dot; the mouse trail still works. While the game hides the pointer (right mouse button, turning the camera) a copy of the pointer is drawn so the glow does not hang around an invisible cursor. The pointer is always fully opaque; only the glow follows the opacity settings.
-- **Combat color:** in combat the Main Ring or the center dot (with the pointer glow: the glow) switches to a color of your choice automatically and back afterwards.
-- **Background track:** an optional faint full ring behind the GCD and Cast ring, so you can see how much is left.
-- **Center mark:** a dot in the middle of the rings, a crosshair with a gap, a crosshair with a dot, a dot with a ring, a double ring, corner brackets, a sparkle, a diamond, an arrowhead or a hexagon. It can give a click pulse: a ring that expands from the center when you press the left, right or both mouse buttons.
-- **Mouse trail:** a trail of dots behind the cursor that fades out and shrinks. Color mode: rainbow, spring, summer, autumn, winter, Christmas, fire, love, water, gold, arcane, storm or custom colors (up to four, blended as a gradient along the trail or picked at random per dot). Shape: dot, leaf, snowflake, star, mist (a soft tintable cloud), flame, heart, bubble, glitter, blossom, butterfly, ember, raindrop, feather, lightning, crystal, coin, rune or confetti (these fourteen move: they rise, sink or scatter, and have their own colors), paw print (turns in the direction of the mouse and alternates left and right), bat, smoke or ripple (both grow while they fade), line (one glowing stroke that gets thinner towards its end, with an optional core in a color of its own) or energy (a glowing energy pattern from the game files, nothing extra is shipped), so the trail can fit the season. Duration, spacing and size are adjustable, and every shape has its own defaults for them (your changes are remembered per shape). Fast mouse movements stay gap-free.
-- **Sharp at any size:** the textures come in several resolutions and are picked by the size on your screen, so small rings do not turn pixelated. Ring thickness has eight steps. The textures are PNG files, so all of them together are only about half a MB.
-- **Color themes:** one dropdown in General sets the colors of everything at once: class color, faction (blue and gold or red and amber), fire, ice, nature, arcane, shadow, void, holy, fel, blood, aurora, sunset, silver, lagoon, Halloween (orange and purple, and the trail turns into falling pumpkins), Anniversary (the colors of the game's birthday balloons, and the trail turns into rising balloons), Christmas (red, green and gold, falling baubles) or New Year's Eve (gold, magenta and cyan, a trail of rising rockets). The pumpkin, the balloon, the bauble and the rocket are shapes that only exist with their theme, so the shape setting is locked while that theme is on. Every theme also brings a core color for the line. A theme colors the Main Ring, the center dot, the pointer glow and the trail, and the GCD and Cast Ring fade through it as a gradient. While a theme is active the color settings show its colors and are greyed out (the combat color still applies); a button takes a theme over as your own colors so you can adjust it.
-- **Colors:** every element has its own color in its section (the GCD and Cast Ring, the pointer glow and the trail take several colors). "Custom colors" keeps them while a theme is chosen. There is one overall opacity (and one for the background tracks of the rings) instead of an opacity per element.
-- **Visibility:** overall opacity, a separate opacity out of combat, "show in combat only", hide while mouse-looking, and the frame layer.
-- **Languages:** English and German.
+- **Rings:** a fixed **Main Ring**, a **GCD Ring** that drains while the global cooldown runs, and a **Cast Ring** that fills for casts, drains for channels and handles empowered spells. GCD and Cast Ring can fade between two colors. Use every ring, only Main + Cast or only Main + GCD; unused options are hidden.
+- **Line style:** solid, dashed, dotted, ticks or segments, with eight thickness steps and an optional faint background track.
+- **Pointer glow:** instead of the rings, a soft halo and/or crisp border in the shape of the game's pointer, in one or two colors. A copy of the pointer is drawn while the game hides it (mouse-looking). Only the glow follows the opacity settings.
+- **Center mark:** dot, crosshair, double ring, corner brackets, sparkle, diamond, arrowhead, hexagon and more. Optional click pulse and **click wave** on left, right or both mouse buttons.
+- **Combat color:** the Main Ring, dot or glow switches color in combat and back afterwards.
+- **Mouse trail:** dots, leaves, snowflakes, stars, hearts, flames, paw prints, lightning, runes, confetti, energy and many more shapes. Color modes (rainbow, seasons, fire, water, arcane, custom gradients) and per-shape defaults for duration, spacing and size. Fast mouse movement stays gap-free.
+- **Color themes:** one dropdown colors everything at once (class, faction, fire, ice, nature, arcane, shadow, void, holy, fel, blood, aurora, sunset, silver, lagoon). Halloween, Anniversary, Christmas and New Year's Eve also change the trail (falling pumpkins, rising balloons, baubles, rockets). A button takes a theme over as your own colors.
+- **Visibility:** overall opacity, a separate opacity out of combat, show in combat only, hide while mouse-looking, frame layer.
+- **Sharp at any size:** PNG textures in several resolutions, about half a MB in total.
 
 ## Usage
 
-Open the settings with `/ac` or `/aureole` (`/aureolecursor` works too). Everything is on one page with a section per element. Options that depend on another one are greyed out while they do not apply.
-
-### Commands
+Open the settings with `/ac` or `/aureole` (`/aureolecursor` works too). Options that depend on another one are greyed out while they do not apply.
 
 | Command | What it does |
 | --- | --- |
-| `/ac` or `/aureole` | Open the settings |
-| `/aureole help` | Show the current state and the command list |
+| `/ac`, `/aureole` | Open the settings |
+| `/aureole help` | Show the current state and the commands |
 | `/aureole scale <n>` | Overall scale |
 | `/aureole alpha <n>` | Overall opacity (0.1 to 1) |
 | `/aureole combat on\|off` | Show only in combat |
@@ -43,9 +37,10 @@ Open the settings with `/ac` or `/aureole` (`/aureolecursor` works too). Everyth
 
 ## Good to know
 
-- There are no health or power rings. Since Midnight those values are restricted for addons and cannot be drawn reliably.
-- The GCD and cast rings read Blizzard's duration objects instead of doing their own time math. Behavior in boss fights, Mythic+ and PvP has not been measured yet.
+- There are no health or power rings. Since Midnight those values are restricted for addons.
 - The trail uses a fixed pool of textures with engine-driven animations, so it costs almost nothing per frame.
+
+---
 
 ## Feedback
 
